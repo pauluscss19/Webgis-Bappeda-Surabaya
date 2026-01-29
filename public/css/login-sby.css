@@ -1,0 +1,92 @@
+:root{
+  --card-bg: rgba(255,255,255,.86);
+  --text: #2d2d2d;
+  --muted: #5a5a5a;
+  --primary: #4a7ef2;
+}
+
+*{ box-sizing: border-box; }
+body{
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+}
+
+.login-page{
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.card{
+  width: min(520px, 92vw);
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 28px 34px 32px;
+  backdrop-filter: blur(100px);
+  box-shadow: 0 20px 50px rgba(0,0,0,.25);
+}
+
+.logos{
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.logo{
+  height: 48px;
+  width: auto;
+  display: block;
+}
+
+.title{
+  text-align: center;
+  margin: 10px 0 6px;
+  letter-spacing: .5px;
+  font-size: 32px;
+  font-weight: 800;
+}
+.subtitle{
+  text-align: center;
+  margin: 0 0 22px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.form{ display: grid; gap: 10px; }
+.label{
+  font-weight: 700;
+  margin-top: 6px;
+}
+.input{
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,.15);
+  background: rgba(255,255,255,.95);
+  outline: none;
+}
+.input:focus{
+  border-color: rgba(74,126,242,.75);
+  box-shadow: 0 0 0 4px rgba(74,126,242,.15);
+}
+
+.btn{
+  margin-top: 14px;
+  width: 180px;
+  justify-self: center;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: .8px;
+  cursor: pointer;
+}
+.btn:hover{ filter: brightness(.95); }
