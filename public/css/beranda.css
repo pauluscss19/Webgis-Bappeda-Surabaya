@@ -14,13 +14,15 @@ body{
   background:#fff;
 }
 
-/* Sticky header */
 .topbar{
-  position: sticky;
-  top: 12px;         /* jarak ngambang dari atas */
+  position: fixed;
+  top: 12px;
+  left: 0;
+  right: 0;
   z-index: 50;
-  padding: 12px 18px 0;
+  padding: 0 18px;
 }
+
 .navwrap{
   max-width: 1100px;
   margin: 0 auto;
@@ -46,9 +48,13 @@ body{
   width: auto;
   display:block;
 }
-.brand-text{
+.brand-text1{
   font-weight: 700;
-  color: #0b3b6f;
+  color: #017EB8;
+}
+.brand-text2{
+  font-weight: 700;
+  color: #5A961C;
 }
 
 .nav{
@@ -77,27 +83,32 @@ body{
   color: #dc2626;
 }
 
-/* Hero */
-/* Hero mulai dari paling atas layar */
 .hero{
   min-height: 100vh;
-  padding-top: 110px;   /* ruang untuk navbar ngambang (bukan margin, tapi padding) */
+  padding-top: 0;          /* ini yang bikin mentok atas */
   padding-bottom: 90px;
+
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+
+  display: flex;
+  align-items: center;     /* konten hero tetap di tengah vertikal */
 }
 .hero-inner{
+  width: 100%;
   max-width: 1100px;
   margin: 0 auto;
   padding: 0 18px;
+  padding-top: 120px;      /* ruang supaya teks tidak ketutup navbar */
 }
+
 
 .pill{
   width: fit-content;
   padding: 10px 14px;
   border-radius: 999px;
-  background: rgba(29,78,216,.30);
+  background: rgba(29, 163, 216, 0.544);
   color: white;
   font-weight: 700;
   display:flex;
@@ -157,4 +168,182 @@ body{
 @media (max-width: 800px){
   .brand{ min-width: auto; }
   .nav{ display:none; } /* kalau mau tetap tampil, bilang ya */
+}
+
+.logout{
+  text-decoration:none;
+  font-weight: 800;
+  color: #dc2626;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logout-icon{
+  color: #dc2626;     /* icon merah */
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Animasi naik-turun halus */
+.floaty{
+  display: inline-block;              /* supaya transform enak */
+  animation: floatUpDown 4s ease-in-out infinite;
+}
+
+@keyframes floatUpDown{
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); } /* naik dikit */
+}
+
+/* "Luaran hitam" cuma di bagian atas teks */
+.headline{
+  color: #fff;
+  /* shadow diarahkan ke atas (nilai Y negatif) */
+  text-shadow:
+    0 -2px 0 #03346E,
+    0 -4px 0 #03346E,
+    0 -6px 6px #03346E;
+}
+
+/* Animasi masuk pertama kali */
+.intro .intro-item{
+  opacity: 0;
+  transform: translateY(18px);
+  animation: introFadeUp .8s ease-out forwards;
+}
+
+/* bikin munculnya bertahap */
+.intro .intro-item:nth-child(1){ animation-delay: .10s; }
+.intro .intro-item:nth-child(2){ animation-delay: .25s; }
+.intro .intro-item:nth-child(3){ animation-delay: .40s; }
+.intro .intro-item:nth-child(4){ animation-delay: .55s; }
+
+@keyframes introFadeUp{
+  to{
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* aksesibilitas: kalau user minta reduced motion, matikan animasi */
+@media (prefers-reduced-motion: reduce){
+  .intro .intro-item{
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+:root{
+  --footer-bg: #03346E;           /* biru kehijauan seperti contoh (ubah bebas) */
+  --footer-text: rgba(255,255,255,.82);
+  --footer-white: #ffffff;
+  --footer-line: rgba(255,255,255,.18);
+}
+
+.sby-footer{
+  background: var(--footer-bg);
+  color: var(--footer-text);
+  padding: 56px 0 0;
+}
+
+.sby-footer__inner{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 18px 44px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr;
+  gap: 28px;
+}
+
+.sby-footer__brand{
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.sby-footer__logo img{
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  display: block;
+}
+
+.sby-footer__brand-title{
+  color: var(--footer-white);
+  font-weight: 900;
+  letter-spacing: .5px;
+  font-size: 18px;
+}
+.sby-footer__brand-sub{
+  color: rgba(255,255,255,.75);
+  font-weight: 600;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.sby-footer__text{
+  margin: 0;
+  line-height: 1.8;
+  max-width: 320px;
+}
+
+.sby-footer__title{
+  color: var(--footer-white);
+  font-size: 16px;
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--footer-line);
+}
+
+.sby-footer__list{
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+  line-height: 1.7;
+}
+
+.sby-footer__links a{
+  color: var(--footer-text);
+  text-decoration: none;
+}
+.sby-footer__links a:hover{
+  color: var(--footer-white);
+  text-decoration: underline;
+}
+
+/* Bottom bar */
+.sby-footer__bottom{
+  border-top: 1px solid var(--footer-line);
+  padding: 18px 0;
+}
+
+.sby-footer__bottom-inner{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sby-footer__copy{
+  color: rgba(255,255,255,.7);
+}
+.sby-footer__tagline{
+  color: rgba(255,255,255,.6);
+}
+
+/* Responsive */
+@media (max-width: 900px){
+  .sby-footer__inner{
+    grid-template-columns: 1fr;
+  }
+  .sby-footer__text{ max-width: none; }
 }

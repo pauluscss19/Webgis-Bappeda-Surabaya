@@ -4,7 +4,8 @@
       <a href="https://link-logo-kamu-1" class="brand-logo" target="_blank" rel="noopener">
         <img src="{{ asset('images/logo-2.png') }}" alt="Logo">
       </a>
-      <span class="brand-text">Bappeda Surabaya</span>
+      <span class="brand-text1">Bappeda</span>
+      <span class="brand-text2">Surabaya</span>
     </div>
 
     <nav class="nav">
@@ -24,6 +25,9 @@
       </a>
     </nav>
 
-    <a class="logout" href="{{ url('/logout') }}">Logout</a>
+    <a class="logout" href="{{ url('/logout') }}">
+  <i class="bi bi-arrow-right text-white"></i>
+  Logout
+</a>
   </div>
 </header>

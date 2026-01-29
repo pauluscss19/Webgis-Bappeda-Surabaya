@@ -10,7 +10,7 @@
 <body>
 
   <main class="login-page" style="background-image: url('{{ asset('images/bg-sby.jpg') }}')">
-    <section class="card">
+     <section class="card login-anim">
 
       <div class="logos">
         {{-- Logo 1 pakai href --}}
@@ -36,7 +36,8 @@
         <label class="label" for="password">Password</label>
         <input class="input" id="password" name="password" type="password" autocomplete="current-password" placeholder="">
 
-        <button class="btn" type="submit">LOGIN</button>
+        <button class="btn login-anim-btn" type="submit">LOGIN</button>
+
       </form>
 
     </section>
