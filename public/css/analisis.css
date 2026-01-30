@@ -1,0 +1,183 @@
+:root{
+  --ana-bg: #f6f7fb;
+  --ana-card: #ffffff;
+
+  --ana-blue: #1f74d9;     /* banner */
+  --ana-deep: #0b3b70;     /* strip bawah banner */
+
+  --ana-text: #0f172a;
+  --ana-muted: rgba(15,23,42,.65);
+
+  --ana-border: rgba(15,23,42,.10);
+  --ana-shadow: 0 18px 50px rgba(2,6,23,.10);
+
+  --ana-green: #22c55e;
+}
+
+.ana{
+  background: var(--ana-bg);
+  color: var(--ana-text);
+  padding-top: 110px; /* supaya konten di bawah navbar fixed */
+  padding-bottom: 70px;
+}
+
+/* Banner */
+.ana-hero{
+  padding: 0 18px;
+}
+.ana-hero__inner{
+  max-width: 1100px;
+  margin: 0 auto;
+  background: var(--ana-blue);
+  color: #fff;
+  border-radius: 14px;
+  padding: 18px 22px;
+  box-shadow: var(--ana-shadow);
+
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.ana-hero__icon{
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.16);
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+}
+.ana-hero__title{
+  margin: 0;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1.05;
+}
+.ana-hero__subtitle{
+  margin: 6px 0 0;
+  opacity: .92;
+}
+
+/* Strip kartu ringkas */
+.ana-strip{
+  margin-top: 14px;
+  background: var(--ana-deep);
+  padding: 16px 0 22px;
+}
+.ana-strip__inner{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 18px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+.ana-mini{
+  background: rgba(25, 110, 220, .55);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  padding: 14px 14px 12px;
+  color: #fff;
+  box-shadow: 0 14px 26px rgba(2,6,23,.18);
+}
+.ana-mini__label{
+  font-size: 12px;
+  opacity: .92;
+  font-weight: 700;
+}
+.ana-mini__value{
+  margin-top: 6px;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: .3px;
+}
+.ana-mini__sub{
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: .90;
+  font-weight: 700;
+}
+
+/* Card tabel */
+.ana-main{
+  padding: 26px 18px 0;
+}
+.ana-card{
+  max-width: 1100px;
+  margin: 0 auto;
+  background: var(--ana-card);
+  border-radius: 18px;
+  border: 1px solid var(--ana-border);
+  box-shadow: var(--ana-shadow);
+  padding: 22px;
+}
+.ana-card__title{
+  margin: 0 0 14px;
+  font-size: 26px;
+  font-weight: 900;
+}
+
+/* Table */
+.ana-tablewrap{
+  overflow-x: auto;
+}
+.ana-table{
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+.ana-table th,
+.ana-table td{
+  text-align: left;
+  padding: 14px 10px;
+  border-bottom: 1px solid rgba(15,23,42,.10);
+  font-size: 14px;
+}
+.ana-table th{
+  color: rgba(15,23,42,.70);
+  font-weight: 800;
+}
+.ana-td--strong{
+  font-weight: 800;
+}
+
+/* Capaian progress */
+.ana-cap{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ana-cap__bar{
+  width: 170px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(34,197,94,.18);
+  overflow: hidden;
+}
+.ana-cap__fill{
+  display: block;
+  height: 100%;
+  background: var(--ana-green);
+  border-radius: 999px;
+}
+.ana-cap__pct{
+  font-weight: 800;
+  color: rgba(15,23,42,.75);
+}
+
+/* Trend */
+.ana-trend{
+  width: 70px;
+  text-align: center;
+  color: var(--ana-green);
+  font-size: 20px;
+}
+
+/* Responsive */
+@media (max-width: 900px){
+  .ana-strip__inner{ grid-template-columns: repeat(2, 1fr); }
+  .ana-hero__title{ font-size: 26px; }
+}
+@media (max-width: 520px){
+  .ana-strip__inner{ grid-template-columns: 1fr; }
+}

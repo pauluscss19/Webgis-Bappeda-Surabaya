@@ -27,18 +27,28 @@
       <h1 class="title">SIDAPETA SBY</h1>
       <p class="subtitle">Silakan masuk untuk mengakses data & peta lokasi<br>Kota Surabaya</p>
 
-      <form class="form" method="POST" action="#">
-        @csrf
+      <form class="form" method="POST" action="{{ url('/login') }}">
+  @csrf
 
-        <label class="label" for="username">Username</label>
-        <input class="input" id="username" name="username" type="text" autocomplete="username" placeholder="">
+  {{-- ALERT MERAH tepat di atas Username --}}
+  @if ($errors->has('login') || $errors->has('username') || $errors->has('password'))
+    <div class="form-alert">
+      {{ $errors->first('login') ?? $errors->first('username') ?? $errors->first('password') }}
+    </div>
+  @endif
 
-        <label class="label" for="password">Password</label>
-        <input class="input" id="password" name="password" type="password" autocomplete="current-password" placeholder="">
+  <label class="label" for="username">Username</label>
+  <input class="input" id="username" name="username" type="text"
+         value="{{ old('username') }}"
+         autocomplete="username">
 
-        <button class="btn login-anim-btn" type="submit">LOGIN</button>
+  <label class="label" for="password">Password</label>
+  <input class="input" id="password" name="password" type="password"
+         autocomplete="current-password">
 
-      </form>
+  <button class="btn login-anim-btn" type="submit">LOGIN</button>
+</form>
+
 
     </section>
   </main>

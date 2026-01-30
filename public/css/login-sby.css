@@ -67,6 +67,18 @@ body{
   font-weight: 700;
   margin-top: 6px;
 }
+
+.form-alert{
+  color: #b91c1c;
+  background: rgba(239, 68, 68, .12);
+  border: 1px solid rgba(239, 68, 68, .35);
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 13px;
+  margin-bottom: 2px; /* posisi pas di atas username */
+}
+
 .input{
   width: 100%;
   padding: 12px 14px;

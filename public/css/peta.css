@@ -1,0 +1,110 @@
+:root{
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: rgba(15,23,42,.65);
+
+  --blue: #1f6feb;          /* biru banner */
+  --blue-dark: #0b4aa7;
+
+  --shadow: 0 18px 50px rgba(2, 6, 23, .10);
+  --radius: 14px;
+}
+
+*{ box-sizing: border-box; }
+body{
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* supaya konten tidak ketutup header fixed/sticky kamu */
+.peta-page{
+  padding-top: 110px; /* sesuaikan tinggi navbar kamu */
+}
+
+/* Banner biru seperti contoh */
+.peta-banner{
+  padding: 18px 18px 0;
+}
+.peta-banner__inner{
+  max-width: 1100px;
+  margin: 0 auto;
+  background: linear-gradient(90deg, var(--blue), var(--blue-dark));
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 18px 22px;
+  box-shadow: var(--shadow);
+
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.peta-banner__icon{
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+}
+.peta-banner__title{
+  margin: 0;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1.05;
+}
+.peta-banner__subtitle{
+  margin: 6px 0 0;
+  opacity: .92;
+}
+
+/* Card map */
+.peta-content{
+  padding: 26px 18px 70px;
+}
+.peta-card{
+  max-width: 1100px;
+  margin: 0 auto;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  border: 1px solid rgba(15,23,42,.08);
+}
+.peta-card__header{
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid rgba(15,23,42,.08);
+}
+.peta-card__label{
+  font-weight: 900;
+}
+.peta-card__hint{
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.peta-map{
+  height: calc(100vh - 180px); /* 180 = banner+padding, sesuaikan */
+}
+.peta-banner__icon a{ display: grid; place-items: center; }
+
+.peta-banner__icon img{
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Mobile */
+@media (max-width: 700px){
+  .peta-banner__title{ font-size: 24px; }
+  .peta-map{ height: 420px; }
+  .peta-card__header{ flex-direction: column; align-items: flex-start; }
+}
+
