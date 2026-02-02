@@ -42,11 +42,17 @@
   width: 64px;
   height: 64px;
   border-radius: 14px;
-  background: rgba(255,255,255,.16);
   display: grid;
   place-items: center;
-  font-size: 34px;
 }
+
+.ana-hero__iconimg{
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  display: block;
+}
+
 .ana-hero__title{
   margin: 0;
   font-size: 34px;

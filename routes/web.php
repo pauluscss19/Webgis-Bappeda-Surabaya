@@ -1,33 +1,31 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DataStatistikController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/login', fn () => view('auth.login'))->name('login');
-
-Route::post('/login', function (Request $request) {
-
-  $request->validate(
-    [
-      'username' => ['required'],
-      'password' => ['required'],
-    ],
-    [
-      'required' => '*silahkan isi dengan lengkap!',
-    ]
-  );
-
-  if ($request->username === 'admin' && $request->password === 'admin123') {
-    return redirect('/beranda');
-  }
-
-  return back()->withErrors(['login' => '*paswword atau username salah!'])->withInput();
+// 1. Redirect Halaman Depan ke Login
+Route::get('/', function () {
+    // Cek: Kalau user sudah login, lempar ke beranda. Kalau belum, ke login.
+    if (auth()->check()) {
+        return redirect()->route('beranda');
+    }
+    return redirect()->route('login');
 });
 
+// 2. GROUP ROUTE YANG BUTUH LOGIN (Halaman Admin/User)
+Route::middleware('auth')->group(function () {
+    
+    Route::get('/beranda', fn() => view('pages.beranda'))->name('beranda');
+    Route::get('/peta', fn() => view('pages.peta'))->name('peta');
+    Route::get('/data-statistik', [DataStatistikController::class, 'index'])->name('data-statistik');
 
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-Route::get('/beranda', fn () => view('pages.beranda'))->name('beranda');
+}); // <--- PERHATIKAN! Tanda kurung kurawal TUTUP middleware ada di sini.
 
-Route::get('/peta', fn() => view('pages.peta'))->name('peta');
-
-Route::get('/data-statistik', fn() => view('pages.data-statistik'))->name('data-statistik');
+// 3. LOAD ROUTE AUTH (Login, Register, dll)
+// INI WAJIB DI LUAR KURUNG KURAWAL DI ATAS
+require __DIR__.'/auth.php';

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Login - SIDAPETA SBY</title>
-
+  {{-- Pastikan file CSS ini ada di folder public/css --}}
   <link rel="stylesheet" href="{{ asset('css/login-sby.css') }}">
 </head>
 <body>
@@ -13,42 +13,48 @@
      <section class="card login-anim">
 
       <div class="logos">
-        {{-- Logo 1 pakai href --}}
-        <a href="https://contoh-link-logo-1.com" target="_blank" rel="noopener">
+        <a href="#" target="_blank" rel="noopener">
           <img class="logo" src="{{ asset('images/logo-1.png') }}" alt="Logo 1">
         </a>
-
-        {{-- Logo 2 pakai href --}}
-        <a href="https://contoh-link-logo-2.com" target="_blank" rel="noopener">
+        <a href="#" target="_blank" rel="noopener">
           <img class="logo" src="{{ asset('images/logo-2.png') }}" alt="Logo 2">
         </a>
       </div>
 
-      <h1 class="title">SIDAPETA SBY</h1>
+      <h1 class="title">SIDAPETA</h1>
       <p class="subtitle">Silakan masuk untuk mengakses data & peta lokasi<br>Kota Surabaya</p>
 
-      <form class="form" method="POST" action="{{ url('/login') }}">
-  @csrf
+      {{-- Form Action mengarah ke route('login') bawaan Breeze --}}
+      <form class="form" method="POST" action="{{ route('login') }}">
+        @csrf
 
-  {{-- ALERT MERAH tepat di atas Username --}}
-  @if ($errors->has('login') || $errors->has('username') || $errors->has('password'))
-    <div class="form-alert">
-      {{ $errors->first('login') ?? $errors->first('username') ?? $errors->first('password') }}
-    </div>
-  @endif
+        {{-- Menampilkan Error Global (jika ada) --}}
+        @if ($errors->any())
+            <div class="form-alert" style="color: red; font-size: 0.9em; margin-bottom: 10px; text-align: center;">
+                {{-- Menampilkan error pertama yang ditemukan --}}
+                {{ $errors->first('email') ?: $errors->first('password') }}
+            </div>
+        @endif
 
-  <label class="label" for="username">Username</label>
-  <input class="input" id="username" name="username" type="text"
-         value="{{ old('username') }}"
-         autocomplete="username">
+        {{-- Input Email (Breeze default menggunakan email) --}}
+        <label class="label" for="email">Email</label>
+        <input class="input" id="email" name="email" type="email"
+               value="{{ old('email') }}"
+               required autofocus autocomplete="username">
 
-  <label class="label" for="password">Password</label>
-  <input class="input" id="password" name="password" type="password"
-         autocomplete="current-password">
+        {{-- Input Password --}}
+        <label class="label" for="password">Password</label>
+        <input class="input" id="password" name="password" type="password"
+               required autocomplete="current-password">
 
-  <button class="btn login-anim-btn" type="submit">LOGIN</button>
-</form>
+        {{-- Opsi Remember Me (Opsional, tapi disarankan) --}}
+        <div style="margin-bottom: 15px; display: flex; align-items: center; font-size: 0.85em;">
+            <input id="remember_me" type="checkbox" name="remember" style="margin-right: 5px;">
+            <label for="remember_me" style="color: #666;">Ingat Saya</label>
+        </div>
 
+        <button class="btn login-anim-btn" type="submit">LOGIN</button>
+      </form>
 
     </section>
   </main>

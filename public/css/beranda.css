@@ -183,7 +183,7 @@
   border: 1px solid rgba(15,23,42,.10);
   border-radius: 14px;
   padding: 20px 18px;
-  min-height: 210px; /* card lebih panjang */
+  min-height: 250px; /* card lebih panjang */
 
   box-shadow: 0 10px 24px rgba(2,6,23,.08);
   text-decoration: none;
