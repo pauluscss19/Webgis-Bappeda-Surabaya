@@ -3,51 +3,172 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DataStatistikController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil parameter tab, default ke 'sampah'
-        $tab = $request->query('tab', 'sampah');
+        // 1. Ambil Tab dari URL, default ke 'sarpras'
+        $tab = $request->query('tab', 'sarpras');
 
-        // Data Hardcoded dari Excel DLH (Data Sampah)
-        $dataSampah = [
-            // Ringkasan Atas (Scorecards)
-            'summary' => [
-                'total_tpa' => '592.029', // Ton (2025)
-                'avg_harian' => '1.621',  // Ton/Hari
-                'bank_sampah' => '670',   // Unit
-                'armada' => '513'         // Unit Truk
-            ],
+        // Variabel untuk menyimpan data list detail (Pagination)
+        $listData = null;
 
-            // A. Grafik Tren TPA (2018-2025)
-            'tpa' => [
-                'tahun' => [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
-                'tonase' => [616617, 618404, 605610, 580409, 585856, 561076, 560060, 592029]
-            ],
-
-            // B. Efektivitas TPS 3R (Top Lokasi)
-            'tps3r' => [
-                'lokasi' => ["Sutorejo", "Jambangan", "Bratang", "Osowilangun", "Tenggilis", "Kedung Cowek", "Gunung Anyar", "Karang Pilang", "Waru Gunung", "Banjarsugihan", "Tambak Wedi", "Sumber Rejo"],
-                'terolah' => [4.95, 2.94, 0.81, 5.47, 2.12, 2.28, 2.29, 2.04, 2.4, 2.8, 1.87, 4.36],
-                'residu' => [4.94, 3.37, 0.9, 2.7, 3.28, 2.46, 2.48, 1.58, 2.38, 3.21, 6.51, 4.84]
-            ],
-
-            // C. Bank Sampah
-            'bank_sampah' => [
-                'wilayah_label' => ['Surabaya Selatan', 'Surabaya Timur', 'Surabaya Barat', 'Surabaya Pusat', 'Surabaya Utara'],
-                'wilayah_data' => [203, 170, 115, 105, 77],
-                'top_5' => [
-                    ['nama' => 'PIONEER', 'wilayah' => 'UTARA', 'tonase' => 789.2],
-                    ['nama' => 'SUMBER BAROKAH', 'wilayah' => 'PUSAT', 'tonase' => 601.6],
-                    ['nama' => 'SDN UJUNG 9', 'wilayah' => 'UTARA', 'tonase' => 600.5],
-                    ['nama' => 'OTORITAS JASA KEUANGAN', 'wilayah' => 'UTARA', 'tonase' => 573.2],
-                    ['nama' => 'THE BODY SHOP PAKUWON', 'wilayah' => 'SELATAN', 'tonase' => 502.4],
-                ]
-            ]
+        // ==========================================
+        // A. DATA SARPRAS (Global)
+        // ==========================================
+        $summary = [
+            'fasilitas' => DB::table('master_fasilitas_rinci')->count(),
+            'bank_sampah' => DB::table('master_bank_sampah')->count(),
         ];
 
-        return view('pages.data-statistik', compact('tab', 'dataSampah'));
+        // Grafik Donut Fasilitas
+        $rawFasilitas = DB::table('master_fasilitas_rinci')
+            ->select('jenis_fasilitas', DB::raw('count(*) as total'))
+            ->whereNotNull('jenis_fasilitas')
+            ->groupBy('jenis_fasilitas')
+            ->pluck('total', 'jenis_fasilitas')
+            ->toArray();
+
+        if (empty($rawFasilitas)) {
+            $sarpras_labels = ['Data Kosong'];
+            $sarpras_values = [0];
+        } else {
+            $sarpras_labels = array_keys($rawFasilitas);
+            $sarpras_values = array_map('intval', array_values($rawFasilitas));
+        }
+
+        // --- AMBIL DATA DETAIL JIKA TAB SARPRAS (PAGINATION) ---
+        if ($tab == 'sarpras') {
+            $listData = DB::table('master_fasilitas_rinci')
+                ->select('nama_fasilitas', 'jenis_fasilitas', 'alamat', 'kecamatan', 'kelurahan')
+                ->orderBy('jenis_fasilitas', 'asc')
+                ->paginate(10)
+                ->appends(['tab' => 'sarpras']);
+        }
+
+        // ==========================================
+        // B. DATA ARMADA & BBM (FIXED LOGIC)
+        // ==========================================
+
+        // 1. Grafik Pie Armada
+        $rawArmada = DB::table('master_armada')
+            ->select('jenis_kendaraan', DB::raw('SUM(jumlah_unit) as total'))
+            ->groupBy('jenis_kendaraan')
+            ->pluck('total', 'jenis_kendaraan')
+            ->toArray();
+
+        if (empty($rawArmada)) {
+            $armada_labels = ['Belum Ada Data'];
+            $armada_values = [0];
+        } else {
+            $armada_labels = array_keys($rawArmada);
+            $armada_values = array_map('intval', array_values($rawArmada));
+        }
+
+        // 2. Grafik BBM Multi-Series & Costs
+        $bbmData = DB::table('laporan_bbm')->orderBy('bulan_ke', 'asc')->get();
+
+        if ($bbmData->isEmpty()) {
+            // Default Data Dummy jika tabel kosong (biar tidak error)
+            $bbm_labels = ['Jan', 'Feb', 'Mar'];
+            $bbm_series = [
+                ['name' => 'Solar', 'data' => [0, 0, 0]],
+                ['name' => 'Dexlite', 'data' => [0, 0, 0]],
+                ['name' => 'Pertamax', 'data' => [0, 0, 0]]
+            ];
+            // FIX: Siapkan struktur costs dummy juga
+            $bbm_costs = [
+                ['total_liter' => 0, 'total_biaya' => 0],
+                ['total_liter' => 0, 'total_biaya' => 0],
+                ['total_liter' => 0, 'total_biaya' => 0]
+            ];
+        } else {
+            $bbm_labels = $bbmData->pluck('nama_bulan')->toArray();
+            $bbm_series = [
+                ['name' => 'Solar', 'data' => $bbmData->pluck('solar_liter')->map(fn($v) => (float)$v)->toArray()],
+                ['name' => 'Dexlite', 'data' => $bbmData->pluck('dexlite_liter')->map(fn($v) => (float)$v)->toArray()],
+                ['name' => 'Pertamax', 'data' => $bbmData->pluck('pertamax_liter')->map(fn($v) => (float)$v)->toArray()]
+            ];
+
+            // FIX: Hitung Costs (Biaya) Real
+            $bbm_costs = $bbmData->map(function ($row) {
+                return [
+                    'total_liter' => $row->solar_liter + $row->dexlite_liter + $row->pertamax_liter,
+                    'total_biaya' => $row->biaya_solar + $row->biaya_dexlite + $row->biaya_pertamax
+                ];
+            })->toArray();
+        }
+
+        // ==========================================
+        // C. DATA TPA (Tren Tahunan)
+        // ==========================================
+        $rawTPA = DB::table('laporan_tpa_rekap')->orderBy('tahun', 'asc')->get();
+
+        if ($rawTPA->isEmpty()) {
+            $tpa_labels = ['2023', '2024', '2025'];
+            $tpa_values = [0, 0, 0];
+            $tpa_biaya = [0, 0, 0];
+        } else {
+            $tpa_labels = $rawTPA->pluck('tahun')->toArray();
+            $tpa_values = $rawTPA->pluck('total_tonase')->map(fn($v) => (float)$v)->toArray();
+            $tpa_biaya = $rawTPA->pluck('biaya_tipping_fee')->map(fn($v) => (float)$v)->toArray();
+        }
+
+        // ==========================================
+        // D. DATA TPS3R (Top 10)
+        // ==========================================
+        $tps3rData = DB::table('laporan_tps3r_harian')
+            ->select(
+                'lokasi',
+                DB::raw('SUM(sampah_masuk_ton_hari) as total_masuk'),
+                DB::raw('SUM(residu_ton_hari) as total_residu')
+            )
+            ->groupBy('lokasi')
+            ->orderByDesc('total_masuk')
+            ->limit(10)
+            ->get();
+
+        $chart_tps3r = [
+            'label' => $tps3rData->pluck('lokasi')->toArray(),
+            'masuk' => $tps3rData->pluck('total_masuk')->map(fn($v) => (float)$v)->toArray(),
+            'residu' => $tps3rData->pluck('total_residu')->map(fn($v) => (float)$v)->toArray()
+        ];
+
+        // ==========================================
+        // E. DATA LIMBAH B3
+        // ==========================================
+        $b3Data = DB::table('laporan_b3_rt')
+            ->select('jenis_limbah', DB::raw('SUM(berat_kg) as total'))
+            ->groupBy('jenis_limbah')
+            ->get();
+
+        $chart_b3 = [
+            'label' => $b3Data->pluck('jenis_limbah')->toArray(),
+            'value' => $b3Data->pluck('total')->map(fn($v) => (float)$v)->toArray()
+        ];
+
+        // ==========================================
+        // FINAL PACKING
+        // ==========================================
+        $data = [
+            'summary' => $summary,
+            'chart_sarpras' => ['label' => $sarpras_labels, 'value' => $sarpras_values],
+            'chart_armada' => ['label' => $armada_labels, 'value' => $armada_values],
+
+            // BAGIAN PENTING: Pastikan key 'costs' ada di sini!
+            'chart_bbm' => [
+                'label' => $bbm_labels,
+                'series' => $bbm_series,
+                'costs' => $bbm_costs // <--- INI SOLUSINYA
+            ],
+
+            'trend_tpa' => ['label' => $tpa_labels, 'value' => $tpa_values, 'biaya' => $tpa_biaya],
+            'chart_tps3r' => $chart_tps3r,
+            'chart_b3' => $chart_b3
+        ];
+
+        return view('pages.data-statistik', compact('tab', 'data', 'listData'));
     }
 }
