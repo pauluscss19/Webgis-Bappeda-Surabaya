@@ -155,7 +155,7 @@
 
                 <label class="layer-item">
                     <input type="checkbox" class="layer-toggle me-2" data-layer="CCTV_EKSISTING" checked>
-                    <span class="layer-color" style="background: #ef4444;"></span>
+                    <span class="layer-color" style="background: #B153D7;"></span>
                     <span style="font-size:14px;">CCTV Eksisting</span>
                 </label>
 
@@ -167,19 +167,19 @@
 
                 <label class="layer-item">
                     <input type="checkbox" class="layer-toggle me-2" data-layer="CCTV_RENCANA" checked>
-                    <span class="layer-color" style="background: #22c55e;"></span>
+                    <span class="layer-color" style="background: #f97316;"></span>
                     <span style="font-size:14px;">CCTV Rencana</span>
                 </label>
 
                 <label class="layer-item">
                     <input type="checkbox" class="layer-toggle me-2" data-layer="TITIK_SAMPAH_RENCANA" checked>
-                    <span class="layer-color" style="background: #f97316;"></span>
+                    <span class="layer-color" style="background: #22c55e;"></span>
                     <span style="font-size:14px;">Sampah Rencana</span>
                 </label>
 
                 <label class="layer-item">
                     <input type="checkbox" class="layer-toggle me-2" data-layer="DAMKAR" checked>
-                    <span class="layer-color" style="background: #ec4899;"></span>
+                    <span class="layer-color" style="background: #FF0000;"></span>
                     <span style="font-size:14px;">Pos Damkar</span>
                 </label>
 
@@ -246,7 +246,7 @@
         // --- KONFIGURASI DATA ---
         // Tips: Anda bisa tambahkan 'locationField' manual jika tahu nama kolom alamatnya
         const layerConfig = {
-            'CCTV_EKSISTING': { file: 'CCTV_EKSISTING.geojson', color: '#ef4444', label: 'CCTV Eksisting' },
+            'CCTV_EKSISTING': { file: 'CCTV_EKSISTING.geojson', color: '#B153D7', label: 'CCTV Eksisting' },
             'TITIK_SAMPAH': { 
                 file: 'TITIK_SAMPAH.geojson', 
                 color: '#facc15', 
@@ -254,9 +254,9 @@
                 // Script akan otomatis cari 'Jalan'/'Alamat', tapi kalau masih gagal,
                 // isi nama kolom alamat di sini, misal: locationField: 'Alamat_Lengkap'
             },
-            'CCTV_RENCANA': { file: 'CCTV_RENCANA.geojson', color: '#22c55e', label: 'CCTV Rencana' },
-            'TITIK_SAMPAH_RENCANA': { file: 'TITIK_SAMPAH_RENCANA.geojson', color: '#f97316', label: 'Sampah Rencana' },
-            'DAMKAR': { file: 'Damkar.geojson', color: '#ec4899', label: 'Pos Damkar', nameField: 'Pos_Ekst' },
+            'CCTV_RENCANA': { file: 'CCTV_RENCANA.geojson', color: '#f97316', label: 'CCTV Rencana' },
+            'TITIK_SAMPAH_RENCANA': { file: 'TITIK_SAMPAH_RENCANA.geojson', color: '#22c55e', label: 'Sampah Rencana' },
+            'DAMKAR': { file: 'Damkar.geojson', color: '#FF0000', label: 'Pos Damkar', nameField: 'Pos_Ekst' },
             'MAKAM': { file: 'MAKAM.geojson', color: '#3b82f6', label: 'Makam', nameField: 'Nama_Lokas', isPolygon: true }
         };
 

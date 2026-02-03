@@ -199,3 +199,69 @@ body {
     border-radius: 20px;
     border: 2px dashed #cbd5e1;
 }
+
+/* ... CSS sebelumnya ... */
+
+/* STYLE TAMBAHAN UNTUK DASHBOARD BARU */
+
+/* Scorecard (Kartu Atas) */
+.stats-card-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    border: 1px solid #eef2f6;
+    transition: transform 0.3s ease;
+}
+.stats-card-box:hover {
+    transform: translateY(-5px);
+    border-color: #3b82f6;
+}
+.stats-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+.stats-content h3 {
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0;
+    color: #1e293b;
+}
+.stats-content p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Warna Tema Ikon */
+.theme-green { background: #dcfce7; color: #166534; }
+.theme-blue { background: #dbeafe; color: #1e40af; }
+.theme-purple { background: #f3e8ff; color: #6b21a8; }
+
+/* Chart Container */
+.chart-container {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    border: 1px solid #eef2f6;
+    height: 100%; /* Agar tinggi sama */
+}
+.chart-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+}

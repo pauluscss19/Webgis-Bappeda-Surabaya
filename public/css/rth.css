@@ -1,0 +1,105 @@
+:root {
+    --nature-primary: #10b981;   /* Emerald 500 */
+    --nature-dark: #047857;      /* Emerald 700 */
+    --nature-light: #ecfdf5;     /* Emerald 50 */
+    --nature-bg: #f0fdf4;        /* Background */
+    --text-dark: #064e3b;
+    --text-muted: #64748b;
+    --card-bg: #ffffff;
+    --border-color: #d1fae5;
+}
+
+body {
+    background-color: var(--nature-bg);
+    color: var(--text-dark);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.nature-section {
+    padding-top: 100px;
+    padding-bottom: 60px;
+    min-height: 100vh;
+}
+
+/* HEADER */
+.page-header-nature {
+    background: linear-gradient(135deg, var(--nature-primary), var(--nature-dark));
+    padding: 40px;
+    border-radius: 24px;
+    color: white;
+    margin-bottom: 40px;
+    box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+.page-header-nature h1 { font-weight: 800; font-size: 2.5rem; margin-bottom: 10px; }
+.page-header-nature p { font-size: 1.1rem; opacity: 0.9; margin: 0; }
+.tree-deco {
+    position: absolute; right: -20px; bottom: -30px; font-size: 12rem;
+    color: rgba(255,255,255,0.15); transform: rotate(-5deg); pointer-events: none;
+}
+
+/* SCORECARDS */
+.stat-card-nature {
+    background: white; border-radius: 20px; padding: 24px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); height: 100%;
+    transition: all 0.3s; display: flex; align-items: center;
+}
+.stat-card-nature:hover {
+    transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(16,185,129,0.15);
+}
+.nature-icon {
+    width: 64px; height: 64px; background: var(--nature-light); color: var(--nature-dark);
+    border-radius: 16px; display: flex; align-items: center; justify-content: center;
+    font-size: 28px; margin-right: 20px; flex-shrink: 0;
+}
+.nature-info h3 { font-size: 26px; font-weight: 800; margin: 0; color: var(--text-dark); line-height: 1.2; }
+.nature-info p { margin: 4px 0 0; font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+
+/* CONTAINER CARD */
+.nature-card {
+    background: white; border-radius: 20px; padding: 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #e5e7eb;
+    height: 100%; margin-bottom: 24px; overflow: hidden;
+}
+.nature-card-title {
+    font-size: 18px; font-weight: 700; color: var(--text-dark);
+    margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px dashed var(--nature-light);
+    display: flex; align-items: center; gap: 10px;
+}
+
+/* NAV TABS */
+.nav-pills-nature {
+    background: #f8fafc; padding: 6px; border-radius: 14px;
+    display: inline-flex; border: 1px solid #e2e8f0; flex-wrap: wrap; justify-content: center;
+}
+.nav-pills-nature .nav-item { margin: 2px; }
+.nav-pills-nature .nav-link {
+    color: var(--text-muted); font-weight: 600; padding: 10px 20px;
+    border-radius: 10px; transition: all 0.2s ease; font-size: 0.9rem;
+}
+.nav-pills-nature .nav-link:hover { color: var(--nature-dark); background: rgba(16, 185, 129, 0.05); }
+.nav-pills-nature .nav-link.active {
+    background-color: white; color: var(--nature-dark);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
+}
+
+/* TABLE STYLING */
+.table-nature thead th {
+    background-color: var(--nature-light); color: var(--nature-dark);
+    border: none; text-transform: uppercase; font-size: 0.75rem;
+    font-weight: 700; padding: 16px; vertical-align: middle;
+}
+.table-nature tbody td {
+    padding: 16px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem;
+    color: #334155; vertical-align: middle;
+}
+.table-nature tbody tr:hover { background-color: #f8fafc; }
+.table-nature tfoot { background-color: #f8fafc; font-weight: 700; border-top: 2px solid var(--nature-primary); }
+
+/* BADGES KHUSUS */
+.badge-status-baik { background: #dcfce7; color: #166534; padding: 5px 10px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; border: 1px solid #bbf7d0; }
+.badge-status-rusak { background: #fee2e2; color: #991b1b; padding: 5px 10px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; border: 1px solid #fecaca; }
+.badge-fuel-blue { background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+.badge-fuel-orange { background: #ffedd5; color: #9a3412; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }

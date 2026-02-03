@@ -1,0 +1,112 @@
+:root {
+    --water-primary: #0284c7; /* Biru Laut */
+    --water-light: #e0f2fe;   /* Biru Muda */
+    --water-dark: #0c4a6e;    /* Biru Gelap */
+    --text-color: #334155;
+    --bg-page: #f8fafc;
+}
+
+body {
+    background-color: var(--bg-page);
+    color: var(--text-color);
+}
+
+.water-section {
+    padding-top: 100px;
+    padding-bottom: 60px;
+    min-height: 100vh;
+}
+
+/* Header Halaman */
+.page-header-water {
+    background: linear-gradient(135deg, var(--water-primary), var(--water-dark));
+    padding: 30px;
+    border-radius: 16px;
+    color: white;
+    margin-bottom: 40px;
+    box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.page-header-water h1 {
+    font-weight: 800;
+    margin-bottom: 10px;
+    font-size: 2.2rem;
+}
+
+.page-header-water p {
+    opacity: 0.9;
+    font-size: 1.1rem;
+    max-width: 600px;
+}
+
+/* Card Style */
+.water-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-bottom: 30px;
+    transition: transform 0.2s;
+}
+
+.water-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.water-card-header {
+    background-color: white;
+    padding: 20px;
+    border-bottom: 2px solid var(--water-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.water-title {
+    color: var(--water-dark);
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.icon-box {
+    width: 40px;
+    height: 40px;
+    background-color: var(--water-light);
+    color: var(--water-primary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+/* Table Styling */
+.table-water thead th {
+    background-color: var(--water-light);
+    color: var(--water-dark);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    border-bottom: 2px solid var(--water-primary);
+}
+
+.table-water tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+.badge-coord {
+    font-family: monospace;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    border: 1px solid #cbd5e1;
+}
