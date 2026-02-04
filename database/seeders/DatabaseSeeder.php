@@ -16,6 +16,13 @@ class DatabaseSeeder extends Seeder
         // PANGGIL FILE SEEDER KITA DI SINI
         $this->call([
             SarprasSeeder::class,
+            komposSeeder::class,
+            krematoriumSeeder::class,
+            luasanRthSeeder::class,
+            ujiairSeeder::class,
+            ujiudaraSeeder::class,
+            bbm::class,
+            completedataSeeder::class,
         ]);
     }
 }

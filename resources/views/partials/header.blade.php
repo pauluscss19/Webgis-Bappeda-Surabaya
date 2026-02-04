@@ -34,20 +34,20 @@
           
           {{-- Tambahkan ID unik: "statDropdown" --}}
           <div id="statDropdown" class="dropdown-menu-custom">
-              <a href="{{ url('/data-statistik?tab=sampah') }}" class="dropdown-item-custom">
-                  1. Pengelolaan Sampah
+              <a href="{{ url('/data-statistik') }}" class="dropdown-item-custom">
+                  1. Data Sampah
               </a>
               <a href="{{ url('/rth-surabaya') }}" class="dropdown-item-custom">
-                  2. Ruang Terbuka Hijau
+                  2. Data Kualitas Lingkungan
               </a>
               <a href="{{ url('/data-statistik?tab=sarpras') }}" class="dropdown-item-custom">
-                  3. Sarana Prasarana
+                  3. Data?
               </a>
               <a href="{{ url('/data-statistik?tab=sdm') }}" class="dropdown-item-custom">
-                  4. Kepegawaian
+                  4. Data?
               </a>
               <a href="{{ url('/data-statistik?tab=ringkasan') }}" class="dropdown-item-custom">
-                  5. Ringkasan Eksekutif
+                  5. Data?
               </a>
           </div>
       </div>
@@ -55,7 +55,7 @@
     </nav>
 
     {{-- TOMBOL LOGOUT --}}
-    <a class="logout" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+    <a class="logout" href="login" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
       <i class="bi bi-box-arrow-right logout-icon"></i>
       Logout
     </a>

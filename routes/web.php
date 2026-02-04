@@ -1,14 +1,10 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-<<<<<<< HEAD
 use App\Http\Controllers\DataStatistikController;
 use App\Http\Controllers\UjiAirController;
 use App\Http\Controllers\UjiUdaraController;
 use App\Http\Controllers\RthController;
-=======
-use App\Http\Controllers\DataStatistikController; // ✅ Pastikan Controller ini di-import
->>>>>>> 1dfeaf17f3c1e38f179bf280b21c8dabe71e2c10
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -28,7 +24,7 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-<<<<<<< HEAD
+
 // 2. GROUP ROUTE YANG BUTUH LOGIN (Halaman Admin/User)
 Route::middleware('auth')->group(function () {
     
@@ -38,10 +34,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/uji-air', [UjiAirController::class, 'index'])->name('uji-air');
     Route::get('/uji-udara', [UjiUdaraController::class, 'index'])->name('uji-udara');
     Route::get('/rth-surabaya', [RthController::class, 'index'])->name('rth-surabaya');
-=======
+});
+
 // 2. GROUP ROUTE YANG BUTUH LOGIN (Middleware 'auth')
 Route::middleware(['auth', 'verified'])->group(function () {
->>>>>>> 1dfeaf17f3c1e38f179bf280b21c8dabe71e2c10
 
     // --- Dashboard & Menu Utama ---
     // Pastikan file: resources/views/pages/beranda.blade.php ADA

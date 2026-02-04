@@ -28,7 +28,7 @@
         <ul class="sby-footer__list sby-footer__list--icon">
           <li>
             <i class="bi bi-geo-alt" aria-hidden="true"></i>
-            <span>Jl. Jimerto No.25–27, Ketabang, Kec. Genteng, Kota Surabaya, Jawa Timur 60272</span>
+            <span>Jl. Pacar No. 8, Ketabang, Kec. Genteng, Kota Surabaya, Jawa Timur 60272</span>
           </li>
           <li>
             <i class="bi bi-telephone" aria-hidden="true"></i>

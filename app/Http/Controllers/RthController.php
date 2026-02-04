@@ -28,13 +28,13 @@ class RthController extends Controller
         // =================================================================
         $dataTaman = DB::table('rekapitulasi_rth_tamans')->orderBy('wilayah', 'asc')->get();
         $totalTaman = [
+            'luas_total' => $dataTaman->sum('luas_per_wilayah'),
             'jml_pasif' => $dataTaman->sum('jumlah_taman_pasif_jalur_hijau'),
             'luas_pasif' => $dataTaman->sum('luas_taman_pasif_jalur_hijau'),
             'jml_aktif' => $dataTaman->sum('jumlah_taman_aktif'),
             'luas_aktif' => $dataTaman->sum('luas_taman_aktif'),
             'jml_kota' => $dataTaman->sum('jumlah_taman_kota'),
             'luas_kota' => $dataTaman->sum('luas_taman_kota'),
-            'luas_total' => $dataTaman->sum('luas_per_wilayah'),
         ];
         $chartBarTaman = [
             'labels' => $dataTaman->pluck('wilayah')->toArray(),
@@ -61,19 +61,46 @@ class RthController extends Controller
         $komporBaik = $krematoriumKompor->where('kondisi', 'Bisa Digunakan')->sum('jumlah');
 
         // =================================================================
-        // BAGIAN 5: DATA SARPRAS (BBM) & CSR (BARU)
+        // BAGIAN 5: DATA SARPRAS (BBM) & CSR
         // =================================================================
         $bbmKendaraan = DB::table('kebutuhan_bbm_kendaraan_operasionals')->get();
         $bbmPeralatan = DB::table('kebutuhan_bbm_peralatan_operasionals')->get();
         $dataCSR = DB::table('rth_skema_csrs')->orderBy('tahun', 'desc')->orderBy('bulan', 'desc')->get();
 
-        // Hitung Total Kebutuhan BBM (Setahun)
         $totalBBM = [
             'kendaraan_pertamax' => $bbmKendaraan->sum('kebutuhan_1_tahun_pertamax'),
             'kendaraan_dexlite' => $bbmKendaraan->sum('kebutuhan_1_tahun_dexlite'),
             'peralatan_pertamax' => $bbmPeralatan->sum('kebutuhan_1_tahun_pertamax'),
             'unit_kendaraan' => $bbmKendaraan->sum('jumlah_total'),
             'unit_peralatan' => $bbmPeralatan->sum('jumlah_total'),
+        ];
+
+        // =================================================================
+        // BAGIAN 6: UJI KUALITAS AIR
+        // =================================================================
+        $badanAir = DB::table('uji_air_badan_air')->orderBy('id', 'asc')->get();
+        $pelabuhan = DB::table('uji_air_laut_pelabuhan')->orderBy('id', 'asc')->get();
+        $wisata = DB::table('uji_air_laut_wisata_bahari')->orderBy('id', 'asc')->get();
+        $biota = DB::table('uji_air_laut_biota_laut')->orderBy('id', 'asc')->get();
+
+        // =================================================================
+        // BAGIAN 7: UJI KUALITAS UDARA
+        // =================================================================
+        $ambien = DB::table('uji_udara_ambien_particulate_counters')->get();
+        $passive = DB::table('uji_udara_passive_samplers')->get();
+        $sumur = DB::table('sumur_pantaus')->get();
+        $spkua = DB::table('spkuas')->get();
+
+        // Data Scorecard Udara
+        $totalAmbien = $ambien->count();
+        $totalPassive = $passive->count();
+        $totalAlat = $sumur->count() + $spkua->count();
+
+        // Data Grafik Udara (Pie Chart berdasarkan Kawasan)
+        $chartDataAmbien = $ambien->groupBy('peruntukan_kawasan')->map(fn($item) => $item->count());
+        $chartAmbien = [
+            'labels' => $chartDataAmbien->keys()->toArray(),
+            'series' => $chartDataAmbien->values()->toArray()
         ];
 
         return view('pages.rth-surabaya', compact(
@@ -86,7 +113,11 @@ class RthController extends Controller
             // Krematorium
             'krematoriumKompor', 'krematoriumPegawai', 'krematoriumJabatan', 'totalPegawaiKrematorium', 'komporRusak', 'komporBaik',
             // Sarpras & CSR
-            'bbmKendaraan', 'bbmPeralatan', 'dataCSR', 'totalBBM'
+            'bbmKendaraan', 'bbmPeralatan', 'dataCSR', 'totalBBM',
+            // Uji Air
+            'badanAir', 'pelabuhan', 'wisata', 'biota',
+            // Uji Udara
+            'ambien', 'passive', 'sumur', 'spkua', 'totalAmbien', 'totalPassive', 'totalAlat', 'chartAmbien'
         ));
     }
 }
