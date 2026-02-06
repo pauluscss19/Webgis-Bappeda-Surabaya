@@ -9,229 +9,6 @@
   <link rel="stylesheet" href="{{ asset('css/peta.css') }}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  
-  <style>
-    /* --- CSS UTAMA --- */
-    .peta-card {
-        border-radius: 15px;
-        overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        background: #fff;
-        position: relative;
-        height: 85vh;
-        min-height: 600px;
-    }
-
-    #map {
-        height: 100%; width: 100%; z-index: 1;
-    }
-
-    /* --- SIDEBAR FILTER (FLOATING) --- */
-    #filter-sidebar {
-        position: absolute;
-        top: 10px; left: 10px; bottom: 10px;
-        width: 340px;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(5px);
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        z-index: 2000;
-        display: flex;
-        flex-direction: column;
-        transition: transform 0.3s ease-in-out;
-        transform: translateX(0);
-    }
-
-    #filter-sidebar.hidden {
-        transform: translateX(-380px);
-    }
-
-    .sidebar-header {
-        padding: 15px 20px;
-        border-bottom: 1px solid #eee;
-        display: flex; justify-content: space-between; align-items: center;
-        background: #f8fafc;
-        border-radius: 12px 12px 0 0;
-    }
-
-    .sidebar-content {
-        flex: 1;
-        overflow-y: auto;
-        padding: 15px;
-    }
-    
-    .sidebar-content::-webkit-scrollbar { width: 6px; }
-    .sidebar-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-
-    .sidebar-footer {
-        padding: 15px;
-        border-top: 1px solid #eee;
-        background: #fff;
-        border-radius: 0 0 12px 12px;
-    }
-
-    /* --- TOMBOL TOGGLE --- */
-    #toggle-btn {
-        position: absolute;
-        top: 20px; left: 20px;
-        z-index: 2001;
-        background: #3b82f6; color: white;
-        border: none; padding: 10px 14px;
-        border-radius: 8px; cursor: pointer;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        transition: all 0.3s;
-        display: none;
-    }
-    #toggle-btn:hover { background: #2563eb; transform: scale(1.05); }
-
-    .close-btn {
-        background: none; border: none; font-size: 20px; color: #64748b; cursor: pointer;
-    }
-    .close-btn:hover { color: #ef4444; }
-
-    /* --- STYLE ITEM LAYER --- */
-    .layer-item {
-        display: flex; align-items: center; cursor: pointer;
-        padding: 10px; margin-bottom: 8px;
-        border-radius: 8px; border: 1px solid #e2e8f0;
-        background: #fff; transition: all 0.2s;
-    }
-    .layer-item:hover { border-color: #3b82f6; background: #eff6ff; }
-    .layer-color {
-        width: 16px; height: 16px; border-radius: 4px; 
-        display: inline-block; margin-right: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    /* --- SECTION ANALISIS --- */
-    .analysis-box {
-        background: #f0f9ff; border: 1px solid #bae6fd;
-        padding: 15px; border-radius: 10px; margin-bottom: 20px;
-    }
-    .analysis-title { 
-        font-size: 14px; font-weight: 700; color: #0369a1; 
-        margin-bottom: 10px; display: flex; align-items: center; gap: 8px; 
-    }
-    .form-group { margin-bottom: 10px; }
-    .form-group label { 
-        display: block; font-size: 12px; color: #64748b; 
-        margin-bottom: 6px; font-weight: 600; 
-    }
-    
-    .checkbox-list {
-        background: white; border: 1px solid #cbd5e1; border-radius: 6px;
-        padding: 8px; max-height: 120px; overflow-y: auto;
-    }
-    .checkbox-list::-webkit-scrollbar { width: 5px; }
-    .checkbox-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-    
-    .checkbox-item { 
-        display: flex; align-items: center; font-size: 12px; margin-bottom: 5px; 
-    }
-    .checkbox-item:last-child { margin-bottom: 0; }
-    .checkbox-item input { margin-right: 8px; }
-
-    .form-control { 
-        width: 100%; padding: 8px; border: 1px solid #cbd5e1; 
-        border-radius: 6px; font-size: 13px; 
-    }
-    .btn-analysis {
-        width: 100%; padding: 8px; background: #0ea5e9; color: white; border: none;
-        border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s;
-        margin-top: 5px;
-    }
-    .btn-analysis:hover { background: #0284c7; }
-
-    /* --- LEGEND STATISTIK --- */
-    .info-legend {
-        padding: 10px 15px; font: 13px Arial; background: rgba(255,255,255,0.9);
-        box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 8px; min-width: 160px;
-    }
-    .info-legend h4 { margin: 0 0 8px; border-bottom: 1px solid #ccc; padding-bottom: 5px; font-size:14px; }
-    .legend-item { display: flex; justify-content: space-between; margin-bottom: 4px; }
-
-    /* --- STYLE UNTUK POPUP RANKING --- */
-    .rank-badge {
-        display: inline-block;
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-weight: 700;
-        font-size: 13px;
-        margin-bottom: 8px;
-    }
-    .rank-1 { background: #ffd700; color: #000; }
-    .rank-2 { background: #c0c0c0; color: #000; }
-    .rank-3 { background: #cd7f32; color: #fff; }
-    .rank-other { background: #3b82f6; color: #fff; }
-
-    .score-bar {
-        width: 100%;
-        height: 8px;
-        background: #e5e7eb;
-        border-radius: 10px;
-        overflow: hidden;
-        margin-top: 4px;
-    }
-    .score-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
-        border-radius: 10px;
-        transition: width 0.3s ease;
-    }
-
-    .metric-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 6px 0;
-        border-bottom: 1px solid #f1f5f9;
-        font-size: 12px;
-    }
-    .metric-item:last-child {
-        border-bottom: none;
-    }
-    .metric-label {
-        color: #64748b;
-        font-weight: 500;
-    }
-    .metric-value {
-        color: #1e293b;
-        font-weight: 700;
-    }
-
-    /* --- STYLE LABEL KECAMATAN --- */
-    .kecamatan-label {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        font-weight: 700;
-        font-size: 12px;
-        color: #1e293b;
-        text-shadow: 
-            -1px -1px 0 #fff,
-            1px -1px 0 #fff,
-            -1px 1px 0 #fff,
-            1px 1px 0 #fff,
-            -2px 0 0 #fff,
-            2px 0 0 #fff,
-            0 -2px 0 #fff,
-            0 2px 0 #fff;
-        pointer-events: none;
-    }
-
-    /* --- SECTION SEPARATOR --- */
-    .section-separator {
-        margin: 20px 0 15px 0;
-        padding: 8px 0;
-        border-top: 2px solid #e2e8f0;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .section-title {
-        font-size: 11px;
-        font-weight: 700;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-  </style>
 </head>
 <body>
 
@@ -289,6 +66,15 @@
                             </label>
                             <label class="checkbox-item">
                                 <input type="checkbox" class="analysis-source" value="MAKAM"> Makam
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" class="analysis-source" value="PAUD"> PAUD/TK
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" class="analysis-source" value="SD_MI"> SD/MI
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" class="analysis-source" value="SMP_MTS"> SMP/MTS
                             </label>
                         </div>
                     </div>
@@ -349,6 +135,24 @@
                     <span style="font-size:14px;">Makam</span>
                 </label>
 
+                <label class="layer-item">
+                    <input type="checkbox" class="layer-toggle me-2" data-layer="PAUD">
+                    <span class="layer-color" style="background: #ec4899;"></span>
+                    <span style="font-size:14px;">PAUD/TK</span>
+                </label>
+
+                <label class="layer-item">
+                    <input type="checkbox" class="layer-toggle me-2" data-layer="SD_MI">
+                    <span class="layer-color" style="background: #8b5cf6;"></span>
+                    <span style="font-size:14px;">SD/MI</span>
+                </label>
+
+                <label class="layer-item">
+                    <input type="checkbox" class="layer-toggle me-2" data-layer="SMP_MTS">
+                    <span class="layer-color" style="background: #06b6d4;"></span>
+                    <span style="font-size:14px;">SMP/MTS</span>
+                </label>
+
                 <!-- SECTION BATAS WILAYAH -->
                 <div class="section-separator">
                     <div class="section-title">Batas Wilayah</div>
@@ -366,6 +170,24 @@
                     <span style="font-size:14px;">Nama Kecamatan</span>
                 </label>
 
+                <label class="layer-item">
+                    <input type="checkbox" class="layer-toggle me-2" data-layer="KELURAHAN">
+                    <span class="layer-color" style="background: transparent; border: 2px solid #f59e0b;"></span>
+                    <span style="font-size:14px;">Batas Kelurahan</span>
+                </label>
+
+                <label class="layer-item">
+                    <input type="checkbox" class="layer-label-toggle me-2" data-layer="KELURAHAN">
+                    <span class="layer-color" style="background: transparent; border: 2px solid #f59e0b;"></span>
+                    <span style="font-size:14px;">Nama Kelurahan</span>
+                </label>
+
+                <label class="layer-item">
+                    <input type="checkbox" class="mask-toggle me-2" id="surabaya-mask-toggle" checked>
+                    <span class="layer-color" style="background: #e2e8f0; border: 2px solid #94a3b8;"></span>
+                    <span style="font-size:14px;">Tampilkan Hanya Surabaya</span>
+                </label>
+
             </div>
 
             <div class="sidebar-footer">
@@ -380,6 +202,28 @@
         <div id="loading-overlay">Sedang memuat data peta...</div>
         <div id="map"></div>
         
+        <!-- SECTION PRINT PDF -->
+        <div class="print-section">
+            <div class="print-title">
+                <i class="bi bi-printer"></i>
+                Export Peta
+            </div>
+            <div class="print-buttons">
+                <button class="btn-print" onclick="printMap('current')">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    Ukuran Layar
+                </button>
+                <button class="btn-print" onclick="printMap('a4portrait')">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    A4 Portrait
+                </button>
+                <button class="btn-print" onclick="printMap('a4landscape')">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    A4 Landscape
+                </button>
+            </div>
+        </div>
+        
       </div>
     </section>
   </main>
@@ -388,6 +232,9 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/leaflet-simple-map-screenshoter"></script>
 
   <script>
         // --- LOGIC UI SIDEBAR ---
@@ -404,7 +251,8 @@
         }
 
         // --- KONFIGURASI PETA ---
-        const surabayaBounds = [[-7.3600, 112.5900], [-7.1200, 112.8500]];
+        // Bounds yang lebih luas mencakup area sekitar Surabaya
+        const surabayaBounds = [[-7.5500, 112.4000], [-6.9500, 113.0000]];
         const centerPoint = [-7.2575, 112.7521];
 
         const defaultLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -427,9 +275,13 @@
         });
 
         const map = L.map('map', {
-            center: centerPoint, zoom: 13, minZoom: 12,
-            maxBounds: surabayaBounds, maxBoundsViscosity: 1.0,
-            layers: [defaultLayer], zoomControl: false
+            center: centerPoint, 
+            zoom: 12, 
+            minZoom: 10,
+            maxBounds: surabayaBounds, 
+            maxBoundsViscosity: 0.8,
+            layers: [defaultLayer], 
+            zoomControl: false
         });
 
         L.control.zoom({ position: 'topright' }).addTo(map);
@@ -455,7 +307,11 @@
             'TITIK_SAMPAH_RENCANA': { file: 'TITIK_SAMPAH_RENCANA.geojson', color: '#22c55e', label: 'Sampah Rencana' },
             'DAMKAR': { file: 'Damkar.geojson', color: '#FF0000', label: 'Pos Damkar', nameField: 'Pos_Ekst' },
             'MAKAM': { file: 'MAKAM.geojson', color: '#3b82f6', label: 'Makam', nameField: 'Nama_Lokas', isPolygon: true },
-            'KECAMATAN': { file: 'Kecamatan.geojson', color: '#6366f1', label: 'Batas Kecamatan', nameField: 'Name', isPolygon: true, isBoundary: true }
+            'PAUD': { file: 'paud.geojson', color: '#ec4899', label: 'PAUD/TK', nameField: 'NAMA SEKOL', locationField: 'ALAMAT SEK' },
+            'SD_MI': { file: 'sd-mi.geojson', color: '#8b5cf6', label: 'SD/MI', nameField: 'NAMA SEKOL', locationField: 'ALAMAT SEK' },
+            'SMP_MTS': { file: 'smp-mts.geojson', color: '#06b6d4', label: 'SMP/MTS', nameField: 'NAMA SEKOL', locationField: 'ALAMAT SEK' },
+            'KECAMATAN': { file: 'Kecamatan.geojson', color: '#6366f1', label: 'Batas Kecamatan', nameField: 'Name', isPolygon: true, isBoundary: true },
+            'KELURAHAN': { file: 'kelurahan.geojson', color: '#f59e0b', label: 'Batas Kelurahan', nameField: 'KELURAHAN', isPolygon: true, isBoundary: true }
         };
 
         const mapLayers = {};
@@ -539,15 +395,16 @@
                     onEachFeature: (feature, layer) => {
                         const props = feature.properties; 
                         
-                        const nameKey = config.nameField || Object.keys(props).find(k => /name|nama|pos|kecamatan/i.test(k)) || 'Name';
+                        const nameKey = config.nameField || Object.keys(props).find(k => /name|nama|pos|kecamatan|kelurahan/i.test(k)) || 'Name';
                         const nameVal = props[nameKey] || '-';
 
-                        // Untuk layer kecamatan, tampilkan informasi khusus
+                        // Untuk layer kecamatan dan kelurahan, tampilkan informasi khusus
                         if (config.isBoundary) {
+                            const wilayahType = layerKey === 'KECAMATAN' ? 'Kecamatan' : 'Kelurahan';
                             const popupContent = `
                                 <div style="min-width:200px; font-family:sans-serif;">
                                     <h5 style="margin:0 0 10px 0; color:${config.color}; font-weight:bold; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
-                                        Kecamatan
+                                        ${wilayahType}
                                     </h5>
                                     <div style="background:#f8fafc; padding:12px; border-radius:8px; font-size:13px; border:1px solid #e2e8f0;">
                                         <div style="font-weight:700; font-size:16px; margin-bottom:8px; color:#1e293b;">
@@ -560,28 +417,43 @@
                                 </div>`;
                             layer.bindPopup(popupContent);
                             
-                            // Tambahkan tooltip untuk nama kecamatan 
-                            // Tooltip akan permanen jika checkbox "Nama Kecamatan" dicentang
+                            // Tambahkan tooltip untuk nama
                             layer.bindTooltip(nameVal, {
                                 permanent: false,
                                 direction: 'center',
-                                className: 'kecamatan-label',
+                                className: layerKey === 'KECAMATAN' ? 'kecamatan-label' : 'kelurahan-label',
                                 sticky: false
                             });
                             
                             return;
                         }
 
+                        // Untuk layer pendidikan dan layer lainnya
                         let lokasiVal = null;
                         if (config.locationField && props[config.locationField]) {
                             lokasiVal = props[config.locationField];
                         } else {
-                            const locationKey = Object.keys(props).find(k => /jalan|alamat|lokasi/i.test(k));
+                            const locationKey = Object.keys(props).find(k => /jalan|alamat|lokasi|alamat sek/i.test(k));
                             if (locationKey) lokasiVal = props[locationKey];
                         }
 
-                        const kecKey = Object.keys(props).find(k => /kecamatan|kec/i.test(k));
-                        const kecVal = kecKey ? props[kecKey] : null;
+                        // Cari kecamatan dari berbagai field
+                        let kecVal = null;
+                        if (props.KECAMATAN) {
+                            kecVal = props.KECAMATAN;
+                        } else {
+                            const kecKey = Object.keys(props).find(k => /kecamatan|kec/i.test(k));
+                            if (kecKey) kecVal = props[kecKey];
+                        }
+
+                        // Cari kelurahan
+                        let kelVal = null;
+                        if (props.KELURAHAN) {
+                            kelVal = props.KELURAHAN;
+                        } else {
+                            const kelKey = Object.keys(props).find(k => /kelurahan|kel/i.test(k));
+                            if (kelKey) kelVal = props[kelKey];
+                        }
 
                         let detailHtml = '';
 
@@ -593,11 +465,28 @@
                             </div>`;
                         }
 
+                        if (kelVal) {
+                            detailHtml += `
+                            <div style="display:flex; align-items:start; margin-bottom:6px; color:#334155;">
+                                <i class="bi bi-building" style="font-size:14px; margin-right:8px; color:#f59e0b; width:15px; margin-top:2px;"></i>
+                                <span>Kel. ${kelVal}</span>
+                            </div>`;
+                        }
+
                         if (kecVal) {
                             detailHtml += `
                             <div style="display:flex; align-items:start; margin-bottom:6px; color:#334155;">
                                 <i class="bi bi-map-fill" style="font-size:14px; margin-right:8px; color:#3b82f6; width:15px; margin-top:2px;"></i>
-                                <span>${kecVal}</span>
+                                <span>Kec. ${kecVal}</span>
+                            </div>`;
+                        }
+                        
+                        // Info tambahan untuk sekolah
+                        if (props.JENJANG) {
+                            detailHtml += `
+                            <div style="display:flex; align-items:start; margin-bottom:6px; color:#64748b;">
+                                <i class="bi bi-mortarboard-fill" style="font-size:14px; margin-right:8px; width:15px; margin-top:2px;"></i>
+                                <span>${props.JENJANG}${props.STATUS ? ' - ' + (props.STATUS === 'N' ? 'Negeri' : 'Swasta') : ''}</span>
                             </div>`;
                         }
                         
@@ -641,60 +530,151 @@
             const loadingOverlay = document.getElementById('loading-overlay');
             const promises = Object.keys(layerConfig).map(key => loadLayer(key));
             await Promise.all(promises);
+            
+            // Tambahkan mask layer Surabaya jika data kecamatan sudah dimuat
+            if (geoJsonStore['KECAMATAN']) {
+                addSurabayaMask();
+            }
+            
             if(loadingOverlay) loadingOverlay.style.display = 'none';
         }
 
-        document.querySelectorAll('.layer-toggle').forEach(checkbox => {
-            checkbox.addEventListener('change', (e) => {
-                const layerKey = e.target.dataset.layer;
-                if (mapLayers[layerKey]) {
-                    if (e.target.checked) {
-                        map.addLayer(mapLayers[layerKey]);
-                        // Kirim layer boundary ke belakang
-                        if (layerConfig[layerKey].isBoundary) {
-                            mapLayers[layerKey].bringToBack();
-                        }
-                    } else {
-                        map.removeLayer(mapLayers[layerKey]);
+        // Fungsi untuk menambahkan mask - hanya menampilkan area Surabaya
+        function addSurabayaMask() {
+            try {
+                // Ambil semua polygon kecamatan dan gabungkan menjadi satu
+                const kecamatanFeatures = geoJsonStore['KECAMATAN'].features;
+                
+                // Buat polygon besar yang mencakup seluruh dunia
+                const worldPolygon = {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Polygon',
+                        coordinates: [[
+                            [-180, -90],
+                            [-180, 90],
+                            [180, 90],
+                            [180, -90],
+                            [-180, -90]
+                        ]]
                     }
-                    infoLegend.update();
-                }
-            });
-        });
+                };
 
-        // Event listener untuk toggle label nama kecamatan
-        document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
-            checkbox.addEventListener('change', (e) => {
-                const layerKey = e.target.dataset.layer;
-                if (mapLayers[layerKey]) {
-                    mapLayers[layerKey].eachLayer(function(layer) {
-                        if (layer.getTooltip()) {
-                            const tooltip = layer.getTooltip();
-                            
-                            if (e.target.checked) {
-                                // Set permanent dan buka tooltip
-                                tooltip.options.permanent = true;
-                                tooltip.options.sticky = false;
-                                layer.unbindTooltip();
-                                layer.bindTooltip(tooltip.getContent(), {
-                                    permanent: true,
-                                    direction: 'center',
-                                    className: 'kecamatan-label',
-                                    sticky: false
-                                });
-                            } else {
-                                // Set tidak permanent dan tutup tooltip
-                                tooltip.options.permanent = false;
-                                layer.closeTooltip();
-                            }
-                        }
-                    });
+                // Gabungkan semua polygon kecamatan
+                let surabayaUnion = null;
+                kecamatanFeatures.forEach(feature => {
+                    if (feature.geometry && feature.geometry.type === 'MultiPolygon') {
+                        // Konversi MultiPolygon ke Polygon array
+                        feature.geometry.coordinates.forEach(polyCoords => {
+                            const poly = turf.polygon(polyCoords);
+                            surabayaUnion = surabayaUnion ? turf.union(surabayaUnion, poly) : poly;
+                        });
+                    } else if (feature.geometry && feature.geometry.type === 'Polygon') {
+                        const poly = turf.polygon(feature.geometry.coordinates);
+                        surabayaUnion = surabayaUnion ? turf.union(surabayaUnion, poly) : poly;
+                    }
+                });
+
+                if (surabayaUnion) {
+                    // Buat difference: world - surabaya = area di luar surabaya
+                    const maskArea = turf.difference(worldPolygon, surabayaUnion);
+                    
+                    if (maskArea) {
+                        // Tambahkan mask layer dengan opacity tinggi
+                        const maskLayer = L.geoJSON(maskArea, {
+                            style: {
+                                fillColor: '#f0f0f0',
+                                fillOpacity: 0.8,
+                                color: '#999',
+                                weight: 1,
+                                interactive: false
+                            },
+                            pane: 'overlayPane'
+                        }).addTo(map);
+
+                        // Simpan reference untuk kontrol
+                        mapLayers['SURABAYA_MASK'] = maskLayer;
+                    }
+                }
+            } catch (error) {
+                console.warn('Tidak dapat membuat mask Surabaya:', error);
+            }
+        }
+
+        // Event listener untuk toggle batas wilayah (kecamatan/kelurahan)
+document.querySelectorAll('.layer-toggle').forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+        const layerKey = e.target.dataset.layer;
+        if (mapLayers[layerKey]) {
+            if (e.target.checked) {
+                map.addLayer(mapLayers[layerKey]);
+                // Kirim layer boundary ke belakang
+                if (layerConfig[layerKey].isBoundary) {
+                    mapLayers[layerKey].bringToBack();
+                }
+            } else {
+                map.removeLayer(mapLayers[layerKey]);
+            }
+            infoLegend.update();
+        }
+    });
+});
+
+// Event listener untuk toggle label nama kecamatan/kelurahan - DIPERBAIKI
+document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+        const layerKey = e.target.dataset.layer;
+        if (mapLayers[layerKey]) {
+            // CEK: Jika layer belum ada di peta, tambahkan terlebih dahulu
+            if (e.target.checked && !map.hasLayer(mapLayers[layerKey])) {
+                map.addLayer(mapLayers[layerKey]);
+                if (layerConfig[layerKey].isBoundary) {
+                    mapLayers[layerKey].bringToBack();
+                }
+            }
+            
+            // Update tooltip untuk semua feature dalam layer
+            mapLayers[layerKey].eachLayer(function(layer) {
+                if (layer.getTooltip()) {
+                    const tooltip = layer.getTooltip();
+                    if (e.target.checked) {
+                        // Set permanent dan buka tooltip
+                        tooltip.options.permanent = true;
+                        tooltip.options.sticky = false;
+                        layer.unbindTooltip();
+                        layer.bindTooltip(tooltip.getContent(), {
+                            permanent: true,
+                            direction: 'center',
+                            className: layerKey === 'KECAMATAN' ? 'kecamatan-label' : 'kelurahan-label',
+                            sticky: false
+                        });
+                    } else {
+                        // Set tidak permanent dan tutup tooltip
+                        tooltip.options.permanent = false;
+                        layer.closeTooltip();
+                        layer.unbindTooltip();
+                        layer.bindTooltip(tooltip.getContent(), {
+                            permanent: false,
+                            direction: 'center',
+                            className: layerKey === 'KECAMATAN' ? 'kecamatan-label' : 'kelurahan-label',
+                            sticky: false
+                        });
+                    }
                 }
             });
-        });
+            
+            // Jika toggle label dimatikan, cek apakah toggle batas juga mati
+            // Jika iya, hapus layer dari peta
+            const boundaryCheckbox = document.querySelector(`input.layer-toggle[data-layer="${layerKey}"]`);
+            if (!e.target.checked && boundaryCheckbox && !boundaryCheckbox.checked) {
+                map.removeLayer(mapLayers[layerKey]);
+            }
+        }
+    });
+});
 
         function resetMap() {
-            map.setView(centerPoint, 13);
+            map.setView(centerPoint, 12);
             
             if (mapLayers['ANALYSIS_RESULT']) {
                 map.removeLayer(mapLayers['ANALYSIS_RESULT']);
@@ -737,6 +717,16 @@
             document.querySelectorAll('.analysis-source').forEach(cb => cb.checked = false);
             document.getElementById('analysis-result').style.display = 'none';
             document.getElementById('analysis-result').innerHTML = '';
+            
+            // Reset mask toggle - aktifkan kembali
+            const maskToggle = document.getElementById('surabaya-mask-toggle');
+            if (maskToggle) {
+                maskToggle.checked = true;
+                if (mapLayers['SURABAYA_MASK'] && !map.hasLayer(mapLayers['SURABAYA_MASK'])) {
+                    map.addLayer(mapLayers['SURABAYA_MASK']);
+                    mapLayers['SURABAYA_MASK'].bringToBack();
+                }
+            }
             
             if (!map.hasLayer(defaultLayer)) {
                 map.addLayer(defaultLayer); map.removeLayer(satelliteLayer);
@@ -990,6 +980,219 @@
                     statusDiv.innerHTML = `<span style="color:#ef4444;"><i class="bi bi-x-circle-fill"></i> Gagal: ${error.message}</span>`;
                 }
             }, 100);
+        }
+
+        // ============================================================
+        // FUNGSI PRINT MAP KE PDF - METODE ALTERNATIF LEBIH RELIABLE
+        // ============================================================
+        
+        // Inisialisasi screenshoter plugin
+        let screenshoter = null;
+        
+        function initScreenshoter() {
+            if (!screenshoter && window.SimpleMapScreenshoter) {
+                screenshoter = new SimpleMapScreenshoter({
+                    hideElementsWithSelectors: [
+                        '.leaflet-control-container',
+                        '.leaflet-popup',
+                        '#filter-sidebar',
+                        '#toggle-btn',
+                        '.print-section'
+                    ]
+                }).addTo(map);
+            }
+        }
+        
+        function printMap(size) {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            
+            // Tampilkan loading
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.innerHTML = 'Mempersiapkan export PDF...';
+            }
+            
+            // Simpan state peta saat ini
+            const currentZoom = map.getZoom();
+            const currentCenter = map.getCenter();
+            
+            // Tentukan bounds Surabaya untuk fokus export
+            let surabayaBoundsForExport = null;
+            if (geoJsonStore['KECAMATAN']) {
+                const kecamatanFeatures = geoJsonStore['KECAMATAN'].features;
+                let minLat = Infinity, maxLat = -Infinity;
+                let minLng = Infinity, maxLng = -Infinity;
+                
+                kecamatanFeatures.forEach(feature => {
+                    const coords = feature.geometry.coordinates;
+                    const flattenCoords = (coordArray) => {
+                        coordArray.forEach(item => {
+                            if (Array.isArray(item[0])) {
+                                flattenCoords(item);
+                            } else {
+                                const [lng, lat] = item;
+                                minLat = Math.min(minLat, lat);
+                                maxLat = Math.max(maxLat, lat);
+                                minLng = Math.min(minLng, lng);
+                                maxLng = Math.max(maxLng, lng);
+                            }
+                        });
+                    };
+                    flattenCoords(coords);
+                });
+                
+                surabayaBoundsForExport = [[minLat, minLng], [maxLat, maxLng]];
+            }
+
+            // Atur ukuran dan orientasi
+            let width, height, orientation;
+            switch(size) {
+                case 'a4portrait':
+                    width = 1587;  // A4 at 192 DPI for better quality
+                    height = 2245;
+                    orientation = 'portrait';
+                    break;
+                case 'a4landscape':
+                    width = 2245;
+                    height = 1587;
+                    orientation = 'landscape';
+                    break;
+                case 'current':
+                default:
+                    width = 1600;
+                    height = 1200;
+                    orientation = width > height ? 'landscape' : 'portrait';
+                    break;
+            }
+
+            // Fit bounds ke Surabaya
+            const padding = size === 'a4portrait' ? [80, 80] : [60, 60];
+            if (surabayaBoundsForExport) {
+                map.fitBounds(surabayaBoundsForExport, {
+                    padding: padding,
+                    animate: false
+                });
+            }
+            
+            // Tutup popup
+            map.closePopup();
+            
+            if (loadingOverlay) {
+                loadingOverlay.innerHTML = 'Mengambil screenshot peta...';
+            }
+            
+            // Gunakan dom-to-image sebagai fallback yang lebih reliable
+            setTimeout(() => {
+                const mapContainer = document.getElementById('map');
+                
+                domtoimage.toPng(mapContainer, {
+                    width: width,
+                    height: height,
+                    style: {
+                        'transform': 'scale(1)',
+                        'transform-origin': 'top left'
+                    },
+                    filter: function(node) {
+                        // Filter out unwanted elements
+                        if (node.id === 'filter-sidebar' || 
+                            node.id === 'toggle-btn' || 
+                            node.className && node.className.includes('print-section') ||
+                            node.className && node.className.includes('leaflet-control')) {
+                            return false;
+                        }
+                        return true;
+                    }
+                })
+                .then(function(dataUrl) {
+                    if (loadingOverlay) {
+                        loadingOverlay.innerHTML = 'Membuat PDF...';
+                    }
+                    
+                    // Buat PDF
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+                        orientation: orientation,
+                        unit: 'mm',
+                        format: 'a4',
+                        compress: true
+                    });
+
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    
+                    // Hitung area untuk map
+                    const headerHeight = 15;
+                    const footerHeight = 10;
+                    const mapMargin = 3;
+                    
+                    const mapAreaY = headerHeight;
+                    const mapAreaHeight = pdfHeight - headerHeight - footerHeight;
+                    
+                    // Tambahkan image map
+                    pdf.addImage(dataUrl, 'PNG', mapMargin, mapAreaY, 
+                                pdfWidth - (mapMargin * 2), mapAreaHeight);
+
+                    // Header dengan background
+                    pdf.setFillColor(51, 65, 85);
+                    pdf.rect(0, 0, pdfWidth, headerHeight - 2, 'F');
+                    
+                    pdf.setFontSize(14);
+                    pdf.setTextColor(255, 255, 255);
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text('PETA PEMBANGUNAN KOTA SURABAYA', pdfWidth / 2, 9, { align: 'center' });
+
+                    // Footer dengan border
+                    pdf.setDrawColor(200, 200, 200);
+                    pdf.line(mapMargin, pdfHeight - footerHeight, pdfWidth - mapMargin, pdfHeight - footerHeight);
+                    
+                    pdf.setFontSize(8);
+                    pdf.setTextColor(100);
+                    pdf.setFont(undefined, 'normal');
+                    const timestamp = new Date().toLocaleString('id-ID', {
+                        dateStyle: 'long',
+                        timeStyle: 'short'
+                    });
+                    pdf.text('SIDAPETA SBY', mapMargin + 2, pdfHeight - 4);
+                    pdf.text(timestamp, pdfWidth - mapMargin - 2, pdfHeight - 4, { align: 'right' });
+                    
+                    // Info layer aktif
+                    pdf.setFontSize(7);
+                    pdf.setTextColor(80);
+                    let layerInfo = 'Layer: ';
+                    const activeLayers = [];
+                    Object.keys(layerConfig).forEach(key => {
+                        if (!layerConfig[key].isBoundary && mapLayers[key] && map.hasLayer(mapLayers[key])) {
+                            activeLayers.push(layerConfig[key].label);
+                        }
+                    });
+                    layerInfo += activeLayers.length > 0 ? activeLayers.join(', ') : 'Tidak ada';
+                    pdf.text(layerInfo, pdfWidth / 2, pdfHeight - 4, { align: 'center' });
+
+                    // Download
+                    const dateStr = new Date().toISOString().split('T')[0];
+                    pdf.save(`Peta_Surabaya_${size}_${dateStr}.pdf`);
+
+                    // Restore state
+                    map.setView(currentCenter, currentZoom, { animate: false });
+                    
+                    if (loadingOverlay) {
+                        loadingOverlay.style.display = 'none';
+                        loadingOverlay.innerHTML = 'Sedang memuat data peta...';
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error exporting map:', error);
+                    alert('Gagal mengexport peta. Silakan coba lagi.\nError: ' + error.message);
+                    
+                    // Restore state
+                    map.setView(currentCenter, currentZoom, { animate: false });
+                    
+                    if (loadingOverlay) {
+                        loadingOverlay.style.display = 'none';
+                        loadingOverlay.innerHTML = 'Sedang memuat data peta...';
+                    }
+                });
+            }, 1500); // Delay untuk memastikan render selesai
         }
 
         initMapData();
