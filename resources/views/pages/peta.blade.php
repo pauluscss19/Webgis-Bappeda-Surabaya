@@ -177,12 +177,6 @@
                 </label>
 
                 <label class="layer-item">
-                    <input type="checkbox" class="layer-label-toggle me-2" data-layer="KELURAHAN">
-                    <span class="layer-color" style="background: transparent; border: 2px solid #f59e0b;"></span>
-                    <span style="font-size:14px;">Nama Kelurahan</span>
-                </label>
-
-                <label class="layer-item">
                     <input type="checkbox" class="mask-toggle me-2" id="surabaya-mask-toggle" checked>
                     <span class="layer-color" style="background: #e2e8f0; border: 2px solid #94a3b8;"></span>
                     <span style="font-size:14px;">Tampilkan Hanya Surabaya</span>
@@ -620,6 +614,25 @@ document.querySelectorAll('.layer-toggle').forEach(checkbox => {
     });
 });
 
+// Event listener untuk toggle batas wilayah (kecamatan/kelurahan)
+document.querySelectorAll('.layer-toggle').forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+        const layerKey = e.target.dataset.layer;
+        if (mapLayers[layerKey]) {
+            if (e.target.checked) {
+                map.addLayer(mapLayers[layerKey]);
+                // Kirim layer boundary ke belakang
+                if (layerConfig[layerKey].isBoundary) {
+                    mapLayers[layerKey].bringToBack();
+                }
+            } else {
+                map.removeLayer(mapLayers[layerKey]);
+            }
+            infoLegend.update();
+        }
+    });
+});
+
 // Event listener untuk toggle label nama kecamatan/kelurahan - DIPERBAIKI
 document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
     checkbox.addEventListener('change', (e) => {
@@ -631,6 +644,46 @@ document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
                 if (layerConfig[layerKey].isBoundary) {
                     mapLayers[layerKey].bringToBack();
                 }
+            }
+            
+            // Update style polygon berdasarkan status toggle batas dan nama
+            const boundaryCheckbox = document.querySelector(`input.layer-toggle[data-layer="${layerKey}"]`);
+            const config = layerConfig[layerKey];
+            
+            // Hanya update style jika layer adalah boundary
+            if (config.isBoundary) {
+                mapLayers[layerKey].setStyle((feature) => {
+                    // Jika toggle batas aktif: tampilkan batas
+                    if (boundaryCheckbox && boundaryCheckbox.checked) {
+                        return {
+                            color: config.color,
+                            weight: 2,
+                            opacity: 0.8,
+                            fillOpacity: 0.1,
+                            fillColor: config.color,
+                            dashArray: '5, 5'
+                        };
+                    }
+                    // Jika hanya toggle nama aktif: sembunyikan batas polygon
+                    else if (e.target.checked) {
+                        return {
+                            color: config.color,
+                            weight: 0,
+                            opacity: 0,
+                            fillOpacity: 0,
+                            fillColor: 'transparent'
+                        };
+                    }
+                    // Default
+                    return {
+                        color: config.color,
+                        weight: 2,
+                        opacity: 0.8,
+                        fillOpacity: 0.1,
+                        fillColor: config.color,
+                        dashArray: '5, 5'
+                    };
+                });
             }
             
             // Update tooltip untuk semua feature dalam layer
@@ -648,6 +701,7 @@ document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
                             className: layerKey === 'KECAMATAN' ? 'kecamatan-label' : 'kelurahan-label',
                             sticky: false
                         });
+                        layer.openTooltip();
                     } else {
                         // Set tidak permanent dan tutup tooltip
                         tooltip.options.permanent = false;
@@ -665,13 +719,14 @@ document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
             
             // Jika toggle label dimatikan, cek apakah toggle batas juga mati
             // Jika iya, hapus layer dari peta
-            const boundaryCheckbox = document.querySelector(`input.layer-toggle[data-layer="${layerKey}"]`);
             if (!e.target.checked && boundaryCheckbox && !boundaryCheckbox.checked) {
                 map.removeLayer(mapLayers[layerKey]);
             }
         }
     });
 });
+
+
 
         function resetMap() {
             map.setView(centerPoint, 12);
@@ -718,15 +773,20 @@ document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
             document.getElementById('analysis-result').style.display = 'none';
             document.getElementById('analysis-result').innerHTML = '';
             
-            // Reset mask toggle - aktifkan kembali
-            const maskToggle = document.getElementById('surabaya-mask-toggle');
-            if (maskToggle) {
-                maskToggle.checked = true;
-                if (mapLayers['SURABAYA_MASK'] && !map.hasLayer(mapLayers['SURABAYA_MASK'])) {
-                    map.addLayer(mapLayers['SURABAYA_MASK']);
-                    mapLayers['SURABAYA_MASK'].bringToBack();
-                }
+            // Event listener untuk toggle mask Surabaya - DIPERBAIKI
+const maskToggle = document.getElementById('surabaya-mask-toggle');
+if (maskToggle) {
+    maskToggle.addEventListener('change', (e) => {
+        if (mapLayers['SURABAYA_MASK']) {
+            if (e.target.checked) {
+                map.addLayer(mapLayers['SURABAYA_MASK']);
+                mapLayers['SURABAYA_MASK'].bringToBack();
+            } else {
+                map.removeLayer(mapLayers['SURABAYA_MASK']);
             }
+        }
+    });
+}
             
             if (!map.hasLayer(defaultLayer)) {
                 map.addLayer(defaultLayer); map.removeLayer(satelliteLayer);
