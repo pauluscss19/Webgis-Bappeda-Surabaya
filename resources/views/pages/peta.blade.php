@@ -152,7 +152,7 @@
     /* --- STYLE UNTUK POPUP RANKING --- */
     .rank-badge {
         display: inline-block;
-        padding: 4px 12px;
+        padding: 6px 16px;
         border-radius: 20px;
         font-weight: 700;
         font-size: 13px;
@@ -195,6 +195,41 @@
     .metric-value {
         color: #1e293b;
         font-weight: 700;
+    }
+
+    /* --- STYLE LABEL KECAMATAN --- */
+    .kecamatan-label {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        font-weight: 700;
+        font-size: 12px;
+        color: #1e293b;
+        text-shadow: 
+            -1px -1px 0 #fff,
+            1px -1px 0 #fff,
+            -1px 1px 0 #fff,
+            1px 1px 0 #fff,
+            -2px 0 0 #fff,
+            2px 0 0 #fff,
+            0 -2px 0 #fff,
+            0 2px 0 #fff;
+        pointer-events: none;
+    }
+
+    /* --- SECTION SEPARATOR --- */
+    .section-separator {
+        margin: 20px 0 15px 0;
+        padding: 8px 0;
+        border-top: 2px solid #e2e8f0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .section-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
   </style>
 </head>
@@ -313,6 +348,24 @@
                     <span class="layer-color" style="background: #3b82f6;"></span>
                     <span style="font-size:14px;">Makam</span>
                 </label>
+
+                <!-- SECTION BATAS WILAYAH -->
+                <div class="section-separator">
+                    <div class="section-title">Batas Wilayah</div>
+                </div>
+
+                <label class="layer-item">
+                    <input type="checkbox" class="layer-toggle me-2" data-layer="KECAMATAN">
+                    <span class="layer-color" style="background: transparent; border: 2px solid #6366f1;"></span>
+                    <span style="font-size:14px;">Batas Kecamatan</span>
+                </label>
+
+                <label class="layer-item">
+                    <input type="checkbox" class="layer-label-toggle me-2" data-layer="KECAMATAN">
+                    <span class="layer-color" style="background: transparent; border: 2px solid #6366f1;"></span>
+                    <span style="font-size:14px;">Nama Kecamatan</span>
+                </label>
+
             </div>
 
             <div class="sidebar-footer">
@@ -360,6 +413,18 @@
         const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri', maxZoom: 19
         });
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
+        });
+        const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 20
+        });
+        const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenTopoMap contributors', maxZoom: 17
+        });
+        const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
+        });
 
         const map = L.map('map', {
             center: centerPoint, zoom: 13, minZoom: 12,
@@ -368,7 +433,14 @@
         });
 
         L.control.zoom({ position: 'topright' }).addTo(map);
-        L.control.layers({ "Peta Default": defaultLayer, "Satelit": satelliteLayer }, null, { position: 'topright' }).addTo(map);
+        L.control.layers({ 
+            "Peta Default": defaultLayer, 
+            "Satelit": satelliteLayer,
+            "OpenStreetMap": osmLayer,
+            "Dark Mode": darkLayer,
+            "Topografi": topoLayer,
+            "Humanitarian": streetLayer
+        }, null, { position: 'topright' }).addTo(map);
 
         // --- KONFIGURASI DATA ---
         const geoJsonStore = {};
@@ -382,7 +454,8 @@
             'CCTV_RENCANA': { file: 'CCTV_RENCANA.geojson', color: '#f97316', label: 'CCTV Rencana' },
             'TITIK_SAMPAH_RENCANA': { file: 'TITIK_SAMPAH_RENCANA.geojson', color: '#22c55e', label: 'Sampah Rencana' },
             'DAMKAR': { file: 'Damkar.geojson', color: '#FF0000', label: 'Pos Damkar', nameField: 'Pos_Ekst' },
-            'MAKAM': { file: 'MAKAM.geojson', color: '#3b82f6', label: 'Makam', nameField: 'Nama_Lokas', isPolygon: true }
+            'MAKAM': { file: 'MAKAM.geojson', color: '#3b82f6', label: 'Makam', nameField: 'Nama_Lokas', isPolygon: true },
+            'KECAMATAN': { file: 'Kecamatan.geojson', color: '#6366f1', label: 'Batas Kecamatan', nameField: 'Name', isPolygon: true, isBoundary: true }
         };
 
         const mapLayers = {};
@@ -400,6 +473,10 @@
             Object.keys(layerConfig).forEach(key => {
                 const config = layerConfig[key];
                 const layer = mapLayers[key];
+                
+                // Skip boundary layers dari statistik
+                if (config.isBoundary) return;
+                
                 if (layer && map.hasLayer(layer)) {
                     hasActiveLayer = true;
                     const count = layer.getLayers().length;
@@ -436,7 +513,20 @@
 
                 geoJsonStore[layerKey] = data;
 
-                const defaultStyle = { color: config.color, weight: 2, opacity: 1, fillOpacity: 0.5 };
+                // Style khusus untuk batas wilayah
+                const defaultStyle = config.isBoundary ? {
+                    color: config.color,
+                    weight: 2,
+                    opacity: 0.8,
+                    fillOpacity: 0.1,
+                    fillColor: config.color,
+                    dashArray: '5, 5'
+                } : {
+                    color: config.color,
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.5
+                };
 
                 const layer = L.geoJSON(data, {
                     pointToLayer: (feature, latlng) => {
@@ -449,8 +539,38 @@
                     onEachFeature: (feature, layer) => {
                         const props = feature.properties; 
                         
-                        const nameKey = config.nameField || Object.keys(props).find(k => /name|nama|pos/i.test(k)) || 'Name';
+                        const nameKey = config.nameField || Object.keys(props).find(k => /name|nama|pos|kecamatan/i.test(k)) || 'Name';
                         const nameVal = props[nameKey] || '-';
+
+                        // Untuk layer kecamatan, tampilkan informasi khusus
+                        if (config.isBoundary) {
+                            const popupContent = `
+                                <div style="min-width:200px; font-family:sans-serif;">
+                                    <h5 style="margin:0 0 10px 0; color:${config.color}; font-weight:bold; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+                                        Kecamatan
+                                    </h5>
+                                    <div style="background:#f8fafc; padding:12px; border-radius:8px; font-size:13px; border:1px solid #e2e8f0;">
+                                        <div style="font-weight:700; font-size:16px; margin-bottom:8px; color:#1e293b;">
+                                            ${nameVal}
+                                        </div>
+                                        <div style="font-size:11px; color:#64748b;">
+                                            Kota Surabaya
+                                        </div>
+                                    </div>
+                                </div>`;
+                            layer.bindPopup(popupContent);
+                            
+                            // Tambahkan tooltip untuk nama kecamatan 
+                            // Tooltip akan permanen jika checkbox "Nama Kecamatan" dicentang
+                            layer.bindTooltip(nameVal, {
+                                permanent: false,
+                                direction: 'center',
+                                className: 'kecamatan-label',
+                                sticky: false
+                            });
+                            
+                            return;
+                        }
 
                         let lokasiVal = null;
                         if (config.locationField && props[config.locationField]) {
@@ -528,9 +648,47 @@
             checkbox.addEventListener('change', (e) => {
                 const layerKey = e.target.dataset.layer;
                 if (mapLayers[layerKey]) {
-                    if (e.target.checked) map.addLayer(mapLayers[layerKey]);
-                    else map.removeLayer(mapLayers[layerKey]);
+                    if (e.target.checked) {
+                        map.addLayer(mapLayers[layerKey]);
+                        // Kirim layer boundary ke belakang
+                        if (layerConfig[layerKey].isBoundary) {
+                            mapLayers[layerKey].bringToBack();
+                        }
+                    } else {
+                        map.removeLayer(mapLayers[layerKey]);
+                    }
                     infoLegend.update();
+                }
+            });
+        });
+
+        // Event listener untuk toggle label nama kecamatan
+        document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const layerKey = e.target.dataset.layer;
+                if (mapLayers[layerKey]) {
+                    mapLayers[layerKey].eachLayer(function(layer) {
+                        if (layer.getTooltip()) {
+                            const tooltip = layer.getTooltip();
+                            
+                            if (e.target.checked) {
+                                // Set permanent dan buka tooltip
+                                tooltip.options.permanent = true;
+                                tooltip.options.sticky = false;
+                                layer.unbindTooltip();
+                                layer.bindTooltip(tooltip.getContent(), {
+                                    permanent: true,
+                                    direction: 'center',
+                                    className: 'kecamatan-label',
+                                    sticky: false
+                                });
+                            } else {
+                                // Set tidak permanent dan tutup tooltip
+                                tooltip.options.permanent = false;
+                                layer.closeTooltip();
+                            }
+                        }
+                    });
                 }
             });
         });
@@ -543,10 +701,37 @@
                 delete mapLayers['ANALYSIS_RESULT'];
             }
             
+            if (mapLayers['CLUSTER_BOUNDARIES']) {
+                map.removeLayer(mapLayers['CLUSTER_BOUNDARIES']);
+                delete mapLayers['CLUSTER_BOUNDARIES'];
+            }
+            
             document.querySelectorAll('.layer-toggle').forEach(cb => {
                 cb.checked = false; 
                 const key = cb.dataset.layer;
                 if (mapLayers[key] && map.hasLayer(mapLayers[key])) map.removeLayer(mapLayers[key]);
+            });
+            
+            // Reset label toggle untuk nama kecamatan
+            document.querySelectorAll('.layer-label-toggle').forEach(cb => {
+                cb.checked = false;
+                const key = cb.dataset.layer;
+                if (mapLayers[key]) {
+                    mapLayers[key].eachLayer(function(layer) {
+                        if (layer.getTooltip()) {
+                            layer.closeTooltip();
+                            const tooltip = layer.getTooltip();
+                            tooltip.options.permanent = false;
+                            layer.unbindTooltip();
+                            layer.bindTooltip(tooltip.getContent(), {
+                                permanent: false,
+                                direction: 'center',
+                                className: 'kecamatan-label',
+                                sticky: false
+                            });
+                        }
+                    });
+                }
             });
             
             document.querySelectorAll('.analysis-source').forEach(cb => cb.checked = false);
@@ -578,6 +763,11 @@
             if (mapLayers['ANALYSIS_RESULT']) {
                 map.removeLayer(mapLayers['ANALYSIS_RESULT']);
                 delete mapLayers['ANALYSIS_RESULT'];
+            }
+            
+            if (mapLayers['CLUSTER_BOUNDARIES']) {
+                map.removeLayer(mapLayers['CLUSTER_BOUNDARIES']);
+                delete mapLayers['CLUSTER_BOUNDARIES'];
             }
 
             setTimeout(() => {
@@ -634,9 +824,6 @@
                         const density = area > 0 ? pointCount / area : pointCount;
                         
                         // Hitung skor total (weighted scoring)
-                        // Semakin banyak titik = lebih baik (40%)
-                        // Semakin kecil jarak rata-rata = lebih baik (30%)
-                        // Semakin tinggi density = lebih baik (30%)
                         const maxPoints = Math.max(...Object.keys(clusterGroups).map(id => clusterGroups[id].length));
                         const maxDensity = Math.max(...Object.keys(clusterGroups).map(id => {
                             const cf = turf.featureCollection(clusterGroups[id]);
@@ -646,7 +833,7 @@
                         }));
                         
                         const pointScore = (pointCount / maxPoints) * 40;
-                        const distanceScore = (1 / (1 + avgDistance)) * 30; // Inverse, semakin kecil semakin baik
+                        const distanceScore = (1 / (1 + avgDistance)) * 30;
                         const densityScore = (density / maxDensity) * 30;
                         
                         const totalScore = pointScore + distanceScore + densityScore;
@@ -668,51 +855,47 @@
                     clusterScores.sort((a, b) => b.score - a.score);
 
                     const recommendations = L.featureGroup();
+                    const boundaries = L.featureGroup();
 
                     clusterScores.forEach((cluster, index) => {
                         const rank = index + 1;
                         const coord = cluster.center.geometry.coordinates;
                         
-                        // Tentukan badge ranking
+                        // Tentukan badge ranking dengan ikon
                         let rankBadgeClass = 'rank-other';
-                        let rankIcon = '🏆';
+                        let rankIcon = `<i class="bi bi-hash"></i> ${rank}`;
+                        let rankLabel = '';
+                        
                         if (rank === 1) {
                             rankBadgeClass = 'rank-1';
-                            rankIcon = '🥇';
+                            rankIcon = '<i class="bi bi-trophy-fill"></i>';
+                            rankLabel = 'Ranking 1';
                         } else if (rank === 2) {
                             rankBadgeClass = 'rank-2';
-                            rankIcon = '🥈';
+                            rankIcon = '<i class="bi bi-award-fill"></i>';
+                            rankLabel = 'Ranking 2';
                         } else if (rank === 3) {
                             rankBadgeClass = 'rank-3';
-                            rankIcon = '🥉';
+                            rankIcon = '<i class="bi bi-star-fill"></i>';
+                            rankLabel = 'Ranking 3';
                         } else {
-                            rankIcon = `#${rank}`;
+                            rankLabel = `Ranking ${rank}`;
                         }
 
-                        // Popup dengan ranking, penjelasan detail, dan scoring
+                        // Popup dengan ranking, penjelasan singkat, dan scoring
                         const popupContent = `
-                            <div style="min-width: 280px; font-family: sans-serif;">
+                            <div style="min-width: 240px; font-family: sans-serif;">
                                 <div style="text-align: center; margin-bottom: 12px;">
                                     <span class="${rankBadgeClass} rank-badge">
-                                        ${rankIcon} Ranking ${rank}
+                                        ${rankIcon} ${rankLabel}
                                     </span>
                                 </div>
                                 
-                                <h6 style="color:#ef4444; font-weight:bold; margin:0 0 8px 0; text-align:center; font-size:15px;">
-                                    Rekomendasi Lokasi Strategis
-                                </h6>
-                                
-                                <div style="background:#fff3cd; border-left:4px solid #ffc107; padding:10px; margin-bottom:10px; border-radius:4px;">
-                                    <div style="font-size:11px; color:#856404; line-height:1.5;">
-                                        <strong>Tingkat Kepentingan:</strong> ${rank === 1 ? 'SANGAT TINGGI ⭐⭐⭐' : rank === 2 ? 'TINGGI ⭐⭐' : rank === 3 ? 'SEDANG ⭐' : 'RENDAH'}
+                                <div style="border:1px solid #e2e8f0; padding:10px; border-radius:6px; margin-bottom:10px;">
+                                    <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:6px;">
+                                        Skor Kelayakan
                                     </div>
-                                </div>
-
-                                <div style="background:#f0fdf4; border:1px solid #86efac; padding:12px; border-radius:8px; margin-bottom:12px;">
-                                    <div style="font-size:12px; font-weight:700; color:#15803d; margin-bottom:8px;">
-                                        📊 SKOR KELAYAKAN
-                                    </div>
-                                    <div style="font-size:20px; font-weight:900; color:#16a34a; text-align:center; margin-bottom:6px;">
+                                    <div style="font-size:16px; font-weight:700; color:#1e293b; text-align:center; margin-bottom:4px;">
                                         ${cluster.score.toFixed(1)} / 100
                                     </div>
                                     <div class="score-bar">
@@ -720,13 +903,13 @@
                                     </div>
                                 </div>
 
-                                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:8px; margin-bottom:10px;">
-                                    <div style="font-size:11px; font-weight:700; color:#334155; margin-bottom:8px;">
-                                        📈 METRIK ANALISIS
+                                <div style="border:1px solid #e2e8f0; padding:10px; border-radius:6px; margin-bottom:10px;">
+                                    <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:8px;">
+                                        Data Analisis
                                     </div>
                                     
                                     <div class="metric-item">
-                                        <span class="metric-label">Jumlah Objek Terdekat</span>
+                                        <span class="metric-label">Jumlah Objek</span>
                                         <span class="metric-value">${cluster.pointCount} titik</span>
                                     </div>
                                     
@@ -741,68 +924,61 @@
                                     </div>
                                     
                                     <div class="metric-item">
-                                        <span class="metric-label">Kepadatan Lokasi</span>
+                                        <span class="metric-label">Kepadatan</span>
                                         <span class="metric-value">${cluster.density.toFixed(1)} titik/km²</span>
                                     </div>
                                 </div>
 
-                                <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:10px; border-radius:8px; margin-bottom:10px;">
-                                    <div style="font-size:11px; font-weight:700; color:#1e40af; margin-bottom:6px;">
-                                        💡 INTERPRETASI
-                                    </div>
-                                    <div style="font-size:11px; color:#1e3a8a; line-height:1.5;">
-                                        Lokasi ini merupakan <strong>pusat gravitasi</strong> dari ${cluster.pointCount} objek infrastruktur. 
-                                        ${rank === 1 ? 'Lokasi ini SANGAT DIREKOMENDASIKAN sebagai prioritas utama pembangunan karena memiliki skor tertinggi.' : 
-                                          rank === 2 ? 'Lokasi ini DIREKOMENDASIKAN sebagai prioritas kedua dengan potensi strategis yang baik.' :
-                                          rank === 3 ? 'Lokasi ini dapat dipertimbangkan sebagai alternatif ketiga.' :
-                                          'Lokasi ini memiliki potensi lebih rendah dibanding alternatif lain.'}
-                                    </div>
-                                </div>
-
-                                <div style="background:#fef2f2; border:1px solid #fecaca; padding:10px; border-radius:8px; margin-bottom:10px;">
-                                    <div style="font-size:11px; font-weight:700; color:#991b1b; margin-bottom:6px;">
-                                        ✅ KEUNGGULAN STRATEGIS
-                                    </div>
-                                    <div style="font-size:11px; color:#7f1d1d; line-height:1.6;">
-                                        • Meminimalkan jarak rata-rata ke ${cluster.pointCount} objek<br>
-                                        • Efisiensi aksesibilitas tinggi<br>
-                                        • Optimasi cakupan layanan area<br>
-                                        • Kepadatan ${cluster.density.toFixed(1)} titik/km²
+                                <div style="background:#f8fafc; padding:8px; border-radius:4px; margin-bottom:10px;">
+                                    <div style="font-size:11px; color:#475569; line-height:1.4;">
+                                        ${rank === 1 ? 'Prioritas utama dengan skor tertinggi.' : 
+                                          rank === 2 ? 'Prioritas kedua dengan potensi strategis baik.' :
+                                          rank === 3 ? 'Alternatif ketiga yang layak dipertimbangkan.' :
+                                          'Potensi lebih rendah dari alternatif lain.'}
                                     </div>
                                 </div>
 
                                 <a href="http://maps.google.com/maps?q=${coord[1]},${coord[0]}" target="_blank" 
-                                   style="display:block; text-align:center; background:#ef4444; color:white; padding:8px; 
-                                          border-radius:6px; text-decoration:none; font-weight:600; font-size:12px;">
-                                   📍 Buka di Google Maps
+                                   style="display:block; text-align:center; background:#334155; color:white; padding:8px; 
+                                          border-radius:4px; text-decoration:none; font-weight:600; font-size:12px;">
+                                   Buka di Google Maps
                                 </a>
                             </div>
                         `;
 
                         // Marker dengan label ranking
                         const markerSize = rank === 1 ? 16 : rank === 2 ? 14 : 12;
-                        L.circleMarker([coord[1], coord[0]], {
+                        const markerColor = rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : '#ef4444';
+                        
+                        const marker = L.circleMarker([coord[1], coord[0]], {
                             radius: markerSize, 
-                            fillColor: rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : '#ef4444',
+                            fillColor: markerColor,
                             color: '#fff', 
                             weight: 3, 
                             fillOpacity: 0.95
-                        }).bindPopup(popupContent, { maxWidth: 320 }).addTo(recommendations);
+                        }).bindPopup(popupContent, { maxWidth: 320 });
+                        
+                        marker.addTo(recommendations);
 
-                        // Convex hull untuk area cluster
+                        // Convex hull untuk area cluster - langsung ditampilkan semua
                         if(cluster.hull) {
                             L.geoJSON(cluster.hull, {
                                 style: { 
-                                    color: rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : '#ef4444',
+                                    color: markerColor,
                                     weight: 2, 
                                     dashArray: '5, 5', 
-                                    fillOpacity: 0.1 
+                                    fillOpacity: 0.15,
+                                    fillColor: markerColor
                                 }
-                            }).addTo(recommendations);
+                            }).addTo(boundaries);
                         }
                     });
 
                     mapLayers['ANALYSIS_RESULT'] = recommendations;
+                    mapLayers['CLUSTER_BOUNDARIES'] = boundaries;
+                    
+                    map.addLayer(boundaries);
+                    boundaries.bringToBack();
                     map.addLayer(recommendations);
                     map.fitBounds(recommendations.getBounds(), { padding: [50, 50] });
 
@@ -811,7 +987,7 @@
 
                 } catch (error) {
                     console.error(error);
-                    statusDiv.innerHTML = `<span style="color:#ef4444;">❌ Gagal: ${error.message}</span>`;
+                    statusDiv.innerHTML = `<span style="color:#ef4444;"><i class="bi bi-x-circle-fill"></i> Gagal: ${error.message}</span>`;
                 }
             }, 100);
         }

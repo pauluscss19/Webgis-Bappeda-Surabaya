@@ -65,10 +65,10 @@
         <h4 class="sby-footer__title">Tautan Cepat</h4>
 
         <ul class="sby-footer__list sby-footer__links">
-          <li><a href="https://surabaya.go.id" target="_blank" rel="noopener">Website Resmi Kota Surabaya</a></li>
-          <li><a href="https://bappeda.surabaya.go.id" target="_blank" rel="noopener">Portal BAPPEDA</a></li>
-          <li><a href="{{ url('/kebijakan-privasi') }}">Kebijakan Privasi</a></li>
-          <li><a href="{{ url('/syarat-ketentuan') }}">Syarat dan Ketentuan</a></li>
+          <li><a href="https://surabaya.go.id" target="_blank" rel="noopener">Portal Website Resmi Kota Surabaya</a></li>
+          <li><a href="https://bappeda.surabaya.go.id" target="_blank" rel="noopener">Portal Bappeda Surabaya</a></li>
+          <li><a href="https://www.bappenas.go.id/id">Portal Bappenas</a></li>
+          <li><a href="https://bappeda.jatimprov.go.id/">Portal Bappeda Jatim</a></li>
         </ul>
       </div>
 
