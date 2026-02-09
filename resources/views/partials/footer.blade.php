@@ -7,7 +7,7 @@
       <div class="sby-footer__col sby-footer__brandcol">
         <div class="sby-footer__brand">
           <a class="sby-footer__logo" href="https://link-logo-kamu" target="_blank" rel="noopener">
-            <img src="{{ asset('images/jasobundo.png') }}" alt="Logo Jasobundo">
+            <img src="{{ asset('images/Jasobundo.png') }}" alt="Logo Jasobundo">
           </a>
 
           <div>

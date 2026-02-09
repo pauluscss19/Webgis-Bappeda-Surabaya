@@ -4,7 +4,7 @@
     {{-- LOGO BRAND --}}
     <div class="brand">
       <a href="#" class="brand-logo">
-        <img src="{{ asset('images/jasobundo.png') }}" alt="Logo" onerror="this.style.display='none'">
+        <img src="{{ asset('images/Jasobundo.png') }}" alt="Logo" onerror="this.style.display='none'">
       </a>
       <span class="brand-text1">Jaso</span>
       <span class="brand-text2">Bundo</span>

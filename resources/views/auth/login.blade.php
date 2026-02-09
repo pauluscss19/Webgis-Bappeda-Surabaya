@@ -9,15 +9,15 @@
 </head>
 <body>
 
-  <main class="login-page" style="background-image: url('{{ asset('images/jasobundo.png') }}')">
+  <main class="login-page" style="background-image: url('{{ asset('images/Jasobundo.png') }}')">
      <section class="card login-anim">
 
       <div class="logos">
         <a href="#" target="_blank" rel="noopener">
-          <img class="logo" src="{{ asset('images/jasobundo.png') }}" alt="Logo 1">
+          <img class="logo" src="{{ asset('images/Jasobundo.png') }}" alt="Logo 1">
         </a>
         <a href="#" target="_blank" rel="noopener">
-          <img class="logo" src="{{ asset('images/jasobundo.png') }}" alt="Logo 2">
+          <img class="logo" src="{{ asset('images/Jasobundo.png') }}" alt="Logo 2">
         </a>
       </div>
 
