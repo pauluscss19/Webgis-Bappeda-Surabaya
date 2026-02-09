@@ -4,10 +4,10 @@
     {{-- LOGO BRAND --}}
     <div class="brand">
       <a href="#" class="brand-logo">
-        <img src="{{ asset('images/logo-2.png') }}" alt="Logo" onerror="this.style.display='none'">
+        <img src="{{ asset('images/jasobundo.png') }}" alt="Logo" onerror="this.style.display='none'">
       </a>
-      <span class="brand-text1">Bappeda</span>
-      <span class="brand-text2">Surabaya</span>
+      <span class="brand-text1">Jaso</span>
+      <span class="brand-text2">Bundo</span>
     </div>
 
     {{-- MENU NAVIGASI --}}
