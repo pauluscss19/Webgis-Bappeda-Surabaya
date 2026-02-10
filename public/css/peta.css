@@ -537,3 +537,184 @@ body{
         min-width: auto;
     }
 }
+
+
+/* CSS Tambahan untuk Loading Overlay - Tambahkan ke peta.css jika diperlukan */
+
+#loading-overlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
+    z-index: 3000;
+    border-radius: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+#loading-overlay .spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #e2e8f0;
+    border-top: 5px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+#loading-overlay .loading-text {
+    font-weight: 600;
+    color: #334155;
+    font-size: 15px;
+    text-align: center;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Heatmap Legend Styling */
+#heatmap-legend {
+    position: absolute;
+    bottom: 110px;
+    left: 20px;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    min-width: 200px;
+}
+
+#heatmap-legend .legend-title {
+    font-weight: 700;
+    font-size: 13px;
+    color: #334155;
+    margin-bottom: 10px;
+}
+
+#legend-gradient {
+    height: 20px;
+    background: linear-gradient(to right, #ffe0e0, #ff4d4d, #cc0000, #800000);
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+#legend-values {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #475569;
+}
+
+/* Kelurahan Label Styling */
+.kelurahan-label {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-weight: 600;
+    font-size: 11px;
+    color: #475569;
+    text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        -1.5px 0 0 #fff,
+        1.5px 0 0 #fff,
+        0 -1.5px 0 #fff,
+        0 1.5px 0 #fff;
+    pointer-events: none;
+}
+/* === TOMBOL FULLSCREEN === */
+#fullscreen-btn {
+    position: absolute;
+    top: 85px;
+    right: 0px;
+    z-index: 2001;
+    color: white;
+    border: none;
+    padding: 12px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+}
+
+#fullscreen-btn:hover {
+    background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.5);
+}
+
+#fullscreen-btn:active {
+    transform: translateY(0) scale(1);
+}
+
+#fullscreen-btn i {
+    transition: transform 0.3s;
+}
+
+/* Fullscreen mode styles */
+.peta-card.fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    z-index: 9999 !important;
+}
+
+.peta-card.fullscreen #map {
+    height: 100vh !important;
+    border-radius: 0 !important;
+}
+
+.peta-card.fullscreen #fullscreen-btn {
+    top: 85px;
+    right: 0px;
+}
+
+.peta-card.fullscreen #filter-sidebar {
+    top: 10px;
+    bottom: 10px;
+}
+
+/* Hide banner and other elements in fullscreen */
+body.fullscreen-active .peta-banner,
+body.fullscreen-active .peta-content > :not(.peta-card) {
+    display: none !important;
+}
+
+body.fullscreen-active {
+    overflow: hidden;
+}
+
+body.fullscreen-active .peta-content {
+    padding: 0 !important;
+}
+
+/* Responsive fullscreen button */
+@media (max-width: 768px) {
+    #fullscreen-btn {
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+        padding: 10px 12px;
+    }
+}
