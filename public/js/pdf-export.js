@@ -467,16 +467,6 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
     ctx.fillText("Administrasi & Batas Wilayah", legIndent, curY);
     curY += 15 * scale;
     
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 0.8 * scale;
-    ctx.strokeRect(legSymbolX, curY - 4 * scale, 10 * scale, 10 * scale);
-    ctx.fillStyle = '#000';
-    ctx.fillRect(legSymbolX + 2 * scale, curY - 2 * scale, 6 * scale, 6 * scale);
-    ctx.font = `${9 * scale}px Arial`;
-    ctx.fillStyle = 'black';
-    ctx.fillText("Ibukota Pemerintahan", legTextX, curY + 4 * scale);
-    curY += 16 * scale;
-    
     ctx.beginPath();
     ctx.strokeStyle = '#6366f1';
     ctx.lineWidth = 2 * scale;
@@ -498,6 +488,17 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
     ctx.setLineDash([]);
     ctx.fillText("Batas Kelurahan", legTextX, curY + 3 * scale);
     curY += 20 * scale;
+
+     ctx.beginPath();
+    ctx.strokeStyle = '#14b8a6';
+    ctx.lineWidth = 2 * scale;
+    ctx.setLineDash([4 * scale, 2 * scale]);
+    ctx.moveTo(legSymbolX - 2 * scale, curY);
+    ctx.lineTo(legSymbolX + 12 * scale, curY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillText("Batas RW", legTextX, curY + 3 * scale);
+    curY += 16 * scale;
     
     // Jika ada layer KEPADATAN_PENDUDUK, gambar legend khusus di sini
     if (hasKepadatanPenduduk) {
