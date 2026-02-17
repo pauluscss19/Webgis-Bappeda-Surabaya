@@ -1,5 +1,7 @@
 // ============================================================
 // PETA-MAP.JS - JavaScript untuk Peta Pembangunan Surabaya
+// VERSI FIXED - Grid Tipis, Sidebar Real, Tanpa Emoji
+// PERBAIKAN: Loading overlay dan duplikasi fungsi
 // ============================================================
 
 // --- LOGIC UI SIDEBAR ---
@@ -16,14 +18,11 @@ function toggleSidebar() {
 }
 
 // --- KONFIGURASI PETA ---
-// ========================================
-// BOUNDS TERKUNCI KETAT KHUSUS SURABAYA - LEBIH ZOOM IN
-// ========================================
 const surabayaBounds = [
-    [-7.3500, 112.6500],  // Southwest (batas selatan-barat Surabaya)
-    [-7.1800, 112.8500]   // Northeast (batas utara-timur Surabaya)
+    [-7.3500, 112.6500],
+    [-7.1800, 112.8500]
 ];
-const centerPoint = [-7.2575, 112.7400]; // Titik pusat Kota Surabaya
+const centerPoint = [-7.2575, 112.7400];
 
 const defaultLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 20
@@ -44,42 +43,25 @@ const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{
     attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
 });
 
-const map = L.map('map', {
+window.map = L.map('map', {
     center: centerPoint, 
     zoom: 12, 
-    minZoom: 11,
+    minZoom: 2,
     maxZoom: 18,
-    maxBounds: surabayaBounds, 
-    maxBoundsViscosity: 1.0,
     layers: [defaultLayer], 
-    zoomControl: false
-});
-
-// Tambahkan event listener untuk mencegah zoom/pan keluar bounds
-map.on('drag', function() {
-    map.panInsideBounds(surabayaBounds, { animate: false });
-});
-
-map.on('zoomend', function() {
-    if (!surabayaBounds[0] || !surabayaBounds[1]) return;
-    
-    const bounds = map.getBounds();
-    const mapBounds = L.latLngBounds(surabayaBounds[0], surabayaBounds[1]);
-    
-    if (!mapBounds.contains(bounds)) {
-        map.fitBounds(mapBounds);
-    }
+    zoomControl: false,
+    wheelPxPerZoomLevel: 60,
+    worldCopyJump: true
 });
 
 L.control.zoom({ position: 'topright' }).addTo(map);
 
-// Fullscreen Button - DIPINDAH KE DALAM MAP DI BAWAH LAYER CONTROL
+// Fullscreen Button
 const fullscreenControl = L.control({ position: 'topright' });
 fullscreenControl.onAdd = function(map) {
     const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
     div.innerHTML = '<button id="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen" style="background: white; color: #334155; border: none; border-radius: 4px; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px;"><i class="bi bi-arrows-fullscreen" id="fullscreen-icon"></i></button>';
     
-    // Prevent click propagation
     L.DomEvent.disableClickPropagation(div);
     return div;
 };
@@ -112,6 +94,7 @@ const layerConfig = {
     'SMP_MTS': { file: 'smp-mts.geojson', color: '#06b6d4', label: 'SMP/MTS', nameField: 'NAMA SEKOL', locationField: 'ALAMAT SEK' },
     'KECAMATAN': { file: 'Kecamatan.geojson', color: '#6366f1', label: 'Batas Kecamatan', nameField: 'Name', isPolygon: true, isBoundary: true },
     'KELURAHAN': { file: 'kelurahan.geojson', color: '#f59e0b', label: 'Batas Kelurahan', nameField: 'K', isPolygon: true, isBoundary: true }
+    
 };
 
 const mapLayers = {};
@@ -130,7 +113,6 @@ infoLegend.update = function () {
         const config = layerConfig[key];
         const layer = mapLayers[key];
         
-        // Skip boundary layers dari statistik
         if (config.isBoundary) return;
         
         if (layer && map.hasLayer(layer)) {
@@ -169,7 +151,6 @@ async function loadLayer(layerKey) {
 
         geoJsonStore[layerKey] = data;
 
-        // Style khusus untuk batas wilayah
         const defaultStyle = config.isBoundary ? {
             color: config.color,
             weight: 2,
@@ -198,7 +179,6 @@ async function loadLayer(layerKey) {
                 const nameKey = config.nameField || Object.keys(props).find(k => /name|nama|pos|kecamatan|kelurahan|^k$/i.test(k)) || 'Name';
                 const nameVal = props[nameKey] || props.K || props.KELURAHAN || props.Name || '-';
 
-                // Untuk layer kecamatan dan kelurahan, tampilkan informasi khusus
                 if (config.isBoundary) {
                     const wilayahType = layerKey === 'KECAMATAN' ? 'Kecamatan' : 'Kelurahan';
                     const popupContent = `
@@ -217,7 +197,6 @@ async function loadLayer(layerKey) {
                         </div>`;
                     layer.bindPopup(popupContent);
                     
-                    // Tambahkan tooltip untuk nama
                     layer.bindTooltip(nameVal, {
                         permanent: false,
                         direction: 'center',
@@ -228,7 +207,6 @@ async function loadLayer(layerKey) {
                     return;
                 }
 
-                // Untuk layer pendidikan dan layer lainnya
                 let lokasiVal = null;
                 if (config.locationField && props[config.locationField]) {
                     lokasiVal = props[config.locationField];
@@ -237,7 +215,6 @@ async function loadLayer(layerKey) {
                     if (locationKey) lokasiVal = props[locationKey];
                 }
 
-                // Cari kecamatan dari berbagai field
                 let kecVal = null;
                 if (props.KECAMATAN) {
                     kecVal = props.KECAMATAN;
@@ -246,7 +223,6 @@ async function loadLayer(layerKey) {
                     if (kecKey) kecVal = props[kecKey];
                 }
 
-                // Cari kelurahan
                 let kelVal = null;
                 if (props.KELURAHAN) {
                     kelVal = props.KELURAHAN;
@@ -281,7 +257,6 @@ async function loadLayer(layerKey) {
                     </div>`;
                 }
                 
-                // Info tambahan untuk sekolah
                 if (props.JENJANG) {
                     detailHtml += `
                     <div style="display:flex; align-items:start; margin-bottom:6px; color:#64748b;">
@@ -328,26 +303,57 @@ async function loadLayer(layerKey) {
 
 async function initMapData() {
     const loadingOverlay = document.getElementById('loading-overlay');
-    if(loadingOverlay) loadingOverlay.style.display = 'flex';
     
-    const promises = Object.keys(layerConfig).map(key => loadLayer(key));
-    await Promise.all(promises);
-    
-    // Tambahkan mask layer Surabaya jika data kecamatan sudah dimuat
-    if (geoJsonStore['KECAMATAN']) {
-        addSurabayaMask();
+    try {
+        if(loadingOverlay) {
+            loadingOverlay.style.display = 'flex';
+        }
+        
+        const promises = Object.keys(layerConfig).map(key => loadLayer(key));
+        await Promise.all(promises);
+        
+        const maskCheckbox = document.getElementById('surabaya-mask-toggle');
+        if (maskCheckbox && maskCheckbox.checked) {
+            toggleSurabayaMask(true);
+        }
+        
+        console.log('Data peta berhasil dimuat. Peta bebas untuk navigasi.');
+        
+    } catch (error) {
+        console.error('Error saat memuat data peta:', error);
+        alert('Gagal memuat data peta. Silakan refresh halaman.');
+    } finally {
+        // Pastikan loading overlay selalu disembunyikan
+        if(loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
     }
-    
-    if(loadingOverlay) loadingOverlay.style.display = 'none';
 }
 
-// Fungsi untuk menambahkan mask - hanya menampilkan area Surabaya
-function addSurabayaMask() {
+function toggleSurabayaMask(show = true) {
     try {
-        // Ambil semua polygon kecamatan dan gabungkan menjadi satu
+        if (!show) {
+            if (mapLayers['SURABAYA_MASK']) {
+                map.removeLayer(mapLayers['SURABAYA_MASK']);
+                delete mapLayers['SURABAYA_MASK'];
+            }
+            return;
+        }
+
+        if (mapLayers['SURABAYA_MASK']) {
+            if (!map.hasLayer(mapLayers['SURABAYA_MASK'])) {
+                map.addLayer(mapLayers['SURABAYA_MASK']);
+            }
+            return;
+        }
+
+        if (!geoJsonStore['KECAMATAN'] || !geoJsonStore['KECAMATAN'].features) {
+            console.warn('Data kecamatan belum dimuat, tidak dapat membuat mask');
+            return;
+        }
+
         const kecamatanFeatures = geoJsonStore['KECAMATAN'].features;
         
-        // Buat polygon besar yang mencakup seluruh dunia
         const worldPolygon = {
             type: 'Feature',
             geometry: {
@@ -362,11 +368,9 @@ function addSurabayaMask() {
             }
         };
 
-        // Gabungkan semua polygon kecamatan
         let surabayaUnion = null;
         kecamatanFeatures.forEach(feature => {
             if (feature.geometry && feature.geometry.type === 'MultiPolygon') {
-                // Konversi MultiPolygon ke Polygon array
                 feature.geometry.coordinates.forEach(polyCoords => {
                     const poly = turf.polygon(polyCoords);
                     surabayaUnion = surabayaUnion ? turf.union(surabayaUnion, poly) : poly;
@@ -378,11 +382,9 @@ function addSurabayaMask() {
         });
 
         if (surabayaUnion) {
-            // Buat difference: world - surabaya = area di luar surabaya
             const maskArea = turf.difference(worldPolygon, surabayaUnion);
             
             if (maskArea) {
-                // Tambahkan mask layer dengan opacity tinggi
                 const maskLayer = L.geoJSON(maskArea, {
                     style: {
                         fillColor: '#f0f0f0',
@@ -392,10 +394,11 @@ function addSurabayaMask() {
                         interactive: false
                     },
                     pane: 'overlayPane'
-                }).addTo(map);
+                });
 
-                // Simpan reference untuk kontrol
                 mapLayers['SURABAYA_MASK'] = maskLayer;
+                maskLayer.addTo(map);
+                maskLayer.bringToBack();
             }
         }
     } catch (error) {
@@ -403,7 +406,11 @@ function addSurabayaMask() {
     }
 }
 
-// Event listener untuk toggle layer
+function addSurabayaMask() {
+    toggleSurabayaMask(true);
+}
+
+// Event listeners
 document.querySelectorAll('.layer-toggle').forEach(checkbox => {
     checkbox.addEventListener('change', (e) => {
         const layerKey = e.target.dataset.layer;
@@ -411,17 +418,13 @@ document.querySelectorAll('.layer-toggle').forEach(checkbox => {
             if (e.target.checked) {
                 map.addLayer(mapLayers[layerKey]);
                 
-                // Atur urutan z-index
                 if (layerConfig[layerKey].isBoundary) {
-                    // Boundary di belakang
                     mapLayers[layerKey].bringToBack();
                     
-                    // Pastikan heatmap di bawah boundary jika ada
                     if (mapLayers['HEATMAP_LAYER'] && map.hasLayer(mapLayers['HEATMAP_LAYER'])) {
                         mapLayers['HEATMAP_LAYER'].bringToBack();
                     }
                 } else {
-                    // Layer data (titik-titik) di depan
                     mapLayers[layerKey].bringToFront();
                 }
             } else {
@@ -432,12 +435,21 @@ document.querySelectorAll('.layer-toggle').forEach(checkbox => {
     });
 });
 
-// Event listener untuk toggle label nama kecamatan/kelurahan
+const surabayaMaskToggle = document.getElementById('surabaya-mask-toggle');
+if (surabayaMaskToggle) {
+    surabayaMaskToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            toggleSurabayaMask(true);
+        } else {
+            toggleSurabayaMask(false);
+        }
+    });
+}
+
 document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
     checkbox.addEventListener('change', (e) => {
         const layerKey = e.target.dataset.layer;
         if (mapLayers[layerKey]) {
-            // CEK: Jika layer belum ada di peta, tambahkan terlebih dahulu
             if (e.target.checked && !map.hasLayer(mapLayers[layerKey])) {
                 map.addLayer(mapLayers[layerKey]);
                 if (layerConfig[layerKey].isBoundary) {
@@ -445,14 +457,11 @@ document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
                 }
             }
             
-            // Update style polygon berdasarkan status toggle batas dan nama
             const boundaryCheckbox = document.querySelector(`input.layer-toggle[data-layer="${layerKey}"]`);
             const config = layerConfig[layerKey];
             
-            // Hanya update style jika layer adalah boundary
             if (config.isBoundary) {
                 mapLayers[layerKey].setStyle((feature) => {
-                    // Jika toggle batas aktif: tampilkan batas
                     if (boundaryCheckbox && boundaryCheckbox.checked) {
                         return {
                             color: config.color,
@@ -463,7 +472,6 @@ document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
                             dashArray: '5, 5'
                         };
                     }
-                    // Jika hanya toggle nama aktif: sembunyikan batas polygon
                     else if (e.target.checked) {
                         return {
                             color: config.color,
@@ -473,7 +481,6 @@ document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
                             fillColor: 'transparent'
                         };
                     }
-                    // Default
                     return {
                         color: config.color,
                         weight: 2,
@@ -485,12 +492,10 @@ document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
                 });
             }
             
-            // Update tooltip untuk semua feature dalam layer
             mapLayers[layerKey].eachLayer(function(layer) {
                 if (layer.getTooltip()) {
                     const tooltip = layer.getTooltip();
                     if (e.target.checked) {
-                        // Set permanent dan buka tooltip
                         tooltip.options.permanent = true;
                         tooltip.options.sticky = false;
                         layer.unbindTooltip();
@@ -502,7 +507,6 @@ document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
                         });
                         layer.openTooltip();
                     } else {
-                        // Set tidak permanent dan tutup tooltip
                         tooltip.options.permanent = false;
                         layer.closeTooltip();
                         layer.unbindTooltip();
@@ -516,8 +520,6 @@ document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
                 }
             });
             
-            // Jika toggle label dimatikan, cek apakah toggle batas juga mati
-            // Jika iya, hapus layer dari peta
             if (!e.target.checked && boundaryCheckbox && !boundaryCheckbox.checked) {
                 map.removeLayer(mapLayers[layerKey]);
             }
@@ -526,8 +528,7 @@ document.querySelectorAll('.layer-label-toggle').forEach(checkbox => {
 });
 
 function resetMap() {
-    // Reset ke center point Surabaya dengan zoom 12
-    map.setView(centerPoint, 12);
+    map.setView(centerPoint, 12, { animate: true, duration: 1 });
     
     if (mapLayers['ANALYSIS_RESULT']) {
         map.removeLayer(mapLayers['ANALYSIS_RESULT']);
@@ -539,13 +540,11 @@ function resetMap() {
         delete mapLayers['CLUSTER_BOUNDARIES'];
     }
     
-    // Hapus heatmap layer jika ada
     if (mapLayers['HEATMAP_LAYER']) {
         map.removeLayer(mapLayers['HEATMAP_LAYER']);
         delete mapLayers['HEATMAP_LAYER'];
     }
     
-    // Sembunyikan legend heatmap
     const heatmapLegend = document.getElementById('heatmap-legend');
     if (heatmapLegend) {
         heatmapLegend.style.display = 'none';
@@ -554,10 +553,17 @@ function resetMap() {
     document.querySelectorAll('.layer-toggle').forEach(cb => {
         cb.checked = false; 
         const key = cb.dataset.layer;
-        if (mapLayers[key] && map.hasLayer(mapLayers[key])) map.removeLayer(mapLayers[key]);
+        if (mapLayers[key] && map.hasLayer(mapLayers[key])) {
+            map.removeLayer(mapLayers[key]);
+        }
     });
     
-    // Reset label toggle untuk nama kecamatan
+    const maskCheckbox = document.getElementById('surabaya-mask-toggle');
+    if (maskCheckbox) {
+        maskCheckbox.checked = true;
+    }
+    toggleSurabayaMask(true);
+    
     document.querySelectorAll('.layer-label-toggle').forEach(cb => {
         cb.checked = false;
         const key = cb.dataset.layer;
@@ -580,17 +586,24 @@ function resetMap() {
     });
     
     document.querySelectorAll('.analysis-source').forEach(cb => cb.checked = false);
-    document.getElementById('analysis-result').style.display = 'none';
-    document.getElementById('analysis-result').innerHTML = '';
+    
+    const analysisResult = document.getElementById('analysis-result');
+    if (analysisResult) {
+        analysisResult.style.display = 'none';
+        analysisResult.innerHTML = '';
+    }
     
     if (!map.hasLayer(defaultLayer)) {
-        map.addLayer(defaultLayer); map.removeLayer(satelliteLayer);
+        map.addLayer(defaultLayer);
     }
+    
     infoLegend.update();
+    
+    console.log('Map direset ke koordinat Surabaya:', centerPoint);
 }
 
 // ============================================================
-// FITUR ANALISIS KLUSTERING DENGAN RANKING & SCORING
+// FITUR ANALISIS KLUSTERING
 // ============================================================
 function runClustering() {
     const statusDiv = document.getElementById('analysis-result');
@@ -603,7 +616,7 @@ function runClustering() {
     }
 
     statusDiv.style.display = 'block';
-    statusDiv.innerHTML = '<i class="bi bi-hourglass-split"></i> Menggabungkan data & menghitung...';
+    statusDiv.innerHTML = 'Menggabungkan data & menghitung...';
 
     if (mapLayers['ANALYSIS_RESULT']) {
         map.removeLayer(mapLayers['ANALYSIS_RESULT']);
@@ -643,17 +656,14 @@ function runClustering() {
                 clusterGroups[clusterId].push(feature);
             });
 
-            // Hitung score untuk setiap cluster
             const clusterScores = [];
             Object.keys(clusterGroups).forEach(clusterId => {
                 const clusterFeatures = turf.featureCollection(clusterGroups[clusterId]);
                 const center = turf.center(clusterFeatures);
                 const points = clusterGroups[clusterId];
                 
-                // Hitung berbagai metrik
                 const pointCount = points.length;
                 
-                // Hitung jarak rata-rata ke pusat
                 let totalDistance = 0;
                 points.forEach(point => {
                     const distance = turf.distance(center, point, { units: 'kilometers' });
@@ -661,14 +671,11 @@ function runClustering() {
                 });
                 const avgDistance = totalDistance / pointCount;
                 
-                // Hitung area coverage (convex hull)
                 const hull = turf.convex(clusterFeatures);
-                const area = hull ? turf.area(hull) / 1000000 : 0; // km²
+                const area = hull ? turf.area(hull) / 1000000 : 0;
                 
-                // Hitung density (titik per km²)
                 const density = area > 0 ? pointCount / area : pointCount;
                 
-                // Hitung skor total (weighted scoring)
                 const maxPoints = Math.max(...Object.keys(clusterGroups).map(id => clusterGroups[id].length));
                 const maxDensity = Math.max(...Object.keys(clusterGroups).map(id => {
                     const cf = turf.featureCollection(clusterGroups[id]);
@@ -696,7 +703,6 @@ function runClustering() {
                 });
             });
 
-            // Urutkan berdasarkan score (tertinggi ke terendah)
             clusterScores.sort((a, b) => b.score - a.score);
 
             const recommendations = L.featureGroup();
@@ -706,28 +712,26 @@ function runClustering() {
                 const rank = index + 1;
                 const coord = cluster.center.geometry.coordinates;
                 
-                // Tentukan badge ranking dengan ikon
                 let rankBadgeClass = 'rank-other';
-                let rankIcon = `<i class="bi bi-hash"></i> ${rank}`;
+                let rankIcon = `${rank}`;
                 let rankLabel = '';
                 
                 if (rank === 1) {
                     rankBadgeClass = 'rank-1';
-                    rankIcon = '<i class="bi bi-trophy-fill"></i>';
+                    rankIcon = 'PRIORITAS 1';
                     rankLabel = 'Ranking 1';
                 } else if (rank === 2) {
                     rankBadgeClass = 'rank-2';
-                    rankIcon = '<i class="bi bi-award-fill"></i>';
+                    rankIcon = 'PRIORITAS 2';
                     rankLabel = 'Ranking 2';
                 } else if (rank === 3) {
                     rankBadgeClass = 'rank-3';
-                    rankIcon = '<i class="bi bi-star-fill"></i>';
+                    rankIcon = 'PRIORITAS 3';
                     rankLabel = 'Ranking 3';
                 } else {
                     rankLabel = `Ranking ${rank}`;
                 }
 
-                // Popup dengan ranking, penjelasan singkat, dan scoring
                 const popupContent = `
                     <div style="min-width: 240px; font-family: sans-serif;">
                         <div style="text-align: center; margin-bottom: 12px;">
@@ -791,7 +795,6 @@ function runClustering() {
                     </div>
                 `;
 
-                // Marker dengan label ranking
                 const markerSize = rank === 1 ? 16 : rank === 2 ? 14 : 12;
                 const markerColor = rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : '#ef4444';
                 
@@ -805,7 +808,6 @@ function runClustering() {
                 
                 marker.addTo(recommendations);
 
-                // Convex hull untuk area cluster - langsung ditampilkan semua
                 if(cluster.hull) {
                     L.geoJSON(cluster.hull, {
                         style: { 
@@ -827,18 +829,18 @@ function runClustering() {
             map.addLayer(recommendations);
             map.fitBounds(recommendations.getBounds(), { padding: [50, 50] });
 
-            statusDiv.innerHTML = `<i class="bi bi-check-circle-fill" style="color:#10b981;"></i> Selesai! ${k} titik rekomendasi dengan ranking.`;
+            statusDiv.innerHTML = `Selesai! ${k} titik rekomendasi dengan ranking.`;
             infoLegend.update();
 
         } catch (error) {
             console.error(error);
-            statusDiv.innerHTML = `<span style="color:#ef4444;"><i class="bi bi-x-circle-fill"></i> Gagal: ${error.message}</span>`;
+            statusDiv.innerHTML = `<span style="color:#ef4444;">Gagal: ${error.message}</span>`;
         }
     }, 100);
 }
 
 // ============================================================
-// FITUR ANALISIS HEATMAP CHOROPLETH
+// FITUR ANALISIS HEATMAP
 // ============================================================
 function runHeatmapAnalysis() {
     const statusDiv = document.getElementById('analysis-result');
@@ -850,15 +852,13 @@ function runHeatmapAnalysis() {
     }
 
     statusDiv.style.display = 'block';
-    statusDiv.innerHTML = '<i class="bi bi-hourglass-split"></i> Menghitung intensitas per kelurahan...';
+    statusDiv.innerHTML = 'Menghitung intensitas per kelurahan...';
 
-    // Hapus heatmap layer sebelumnya jika ada
     if (mapLayers['HEATMAP_LAYER']) {
         map.removeLayer(mapLayers['HEATMAP_LAYER']);
         delete mapLayers['HEATMAP_LAYER'];
     }
 
-    // Hapus juga cluster jika ada
     if (mapLayers['ANALYSIS_RESULT']) {
         map.removeLayer(mapLayers['ANALYSIS_RESULT']);
         delete mapLayers['ANALYSIS_RESULT'];
@@ -871,7 +871,6 @@ function runHeatmapAnalysis() {
 
     setTimeout(() => {
         try {
-            // Kumpulkan semua titik dari sumber yang dipilih
             let allPoints = [];
             
             selectedCheckboxes.forEach(cb => {
@@ -888,18 +887,14 @@ function runHeatmapAnalysis() {
                 throw new Error("Data sumber kosong atau belum dimuat.");
             }
 
-            // Pastikan data kelurahan tersedia
             if (!geoJsonStore['KELURAHAN'] || !geoJsonStore['KELURAHAN'].features) {
                 throw new Error("Data kelurahan belum dimuat. Silakan muat data kelurahan terlebih dahulu.");
             }
 
-            // Hitung jumlah titik di setiap kelurahan
             const kelurahanData = geoJsonStore['KELURAHAN'].features.map(kelFeature => {
                 let pointCount = 0;
                 
-                // Untuk setiap polygon di kelurahan (bisa MultiPolygon)
                 try {
-                    // Validasi geometry
                     if (!kelFeature.geometry || !kelFeature.geometry.coordinates) {
                         console.warn("Invalid kelurahan geometry:", kelFeature.properties);
                         return {
@@ -909,27 +904,23 @@ function runHeatmapAnalysis() {
                         };
                     }
 
-                    // Validasi koordinat polygon - minimal 4 posisi (ring harus close)
                     const coords = kelFeature.geometry.coordinates;
                     let isValid = false;
 
-                    // Fungsi untuk validasi ring
                     const isValidRing = (ring) => {
                         return Array.isArray(ring) && ring.length >= 4;
                     };
 
                     if (kelFeature.geometry.type === 'Polygon') {
-                        // Polygon: harus punya minimal 1 ring dengan >= 4 koordinat
                         isValid = coords.length > 0 && isValidRing(coords[0]);
                     } else if (kelFeature.geometry.type === 'MultiPolygon') {
-                        // MultiPolygon: harus punya minimal 1 polygon dengan 1 ring >= 4 koordinat
                         isValid = coords.length > 0 && 
                                  coords[0].length > 0 && 
                                  isValidRing(coords[0][0]);
                     }
 
                     if (!isValid) {
-                        console.warn("Invalid polygon coordinates (< 4 positions):", kelFeature.properties);
+                        console.warn("Invalid polygon coordinates:", kelFeature.properties);
                         return {
                             feature: kelFeature,
                             count: 0,
@@ -937,7 +928,6 @@ function runHeatmapAnalysis() {
                         };
                     }
 
-                    // Validasi lebih dalam - pastikan semua ring valid
                     let allRingsValid = true;
                     if (kelFeature.geometry.type === 'Polygon') {
                         allRingsValid = coords.every(ring => isValidRing(ring));
@@ -956,7 +946,6 @@ function runHeatmapAnalysis() {
                         };
                     }
 
-                    // Buat polygon atau multipolygon sesuai tipe geometry
                     let kelPoly;
                     if (kelFeature.geometry.type === 'Polygon') {
                         kelPoly = turf.polygon(coords);
@@ -966,14 +955,13 @@ function runHeatmapAnalysis() {
                         throw new Error('Unsupported geometry type: ' + kelFeature.geometry.type);
                     }
                     
-                    // Hitung berapa banyak titik yang ada di dalam polygon kelurahan ini
                     allPoints.forEach(point => {
                         try {
                             if (turf.booleanPointInPolygon(point, kelPoly)) {
                                 pointCount++;
                             }
                         } catch (e) {
-                            // Abaikan error untuk titik yang tidak valid
+                            // Abaikan
                         }
                     });
                 } catch (e) {
@@ -987,25 +975,16 @@ function runHeatmapAnalysis() {
                 };
             });
 
-            // Temukan nilai min dan max untuk normalisasi
             const counts = kelurahanData.map(d => d.count);
             const minCount = Math.min(...counts);
             const maxCount = Math.max(...counts);
 
-            // Fungsi untuk menghasilkan warna berdasarkan nilai
-            // Nilai tinggi = merah tua (#800000)
-            // Nilai rendah = merah muda/pink muda (#ffe0e0)
             function getColor(count) {
                 if (maxCount === minCount) {
-                    return '#ff6666'; // Warna default jika semua sama
+                    return '#ff6666';
                 }
                 
-                // Normalisasi nilai antara 0 dan 1
                 const normalized = (count - minCount) / (maxCount - minCount);
-                
-                // Gradasi dari pink muda ke merah tua
-                // Pink muda: rgb(255, 224, 224) = #ffe0e0
-                // Merah tua: rgb(128, 0, 0) = #800000
                 
                 const r = Math.round(255 - (127 * normalized));
                 const g = Math.round(224 * (1 - normalized));
@@ -1014,7 +993,6 @@ function runHeatmapAnalysis() {
                 return `rgb(${r}, ${g}, ${b})`;
             }
 
-            // Buat layer choropleth
             const heatmapLayer = L.geoJSON(geoJsonStore['KELURAHAN'], {
                 style: (feature) => {
                     const data = kelurahanData.find(d => d.feature === feature);
@@ -1033,7 +1011,6 @@ function runHeatmapAnalysis() {
                     const count = data ? data.count : 0;
                     const name = data ? data.name : 'Tidak Diketahui';
                     
-                    // Hitung persentase dari maksimal
                     const percentage = maxCount > 0 ? ((count / maxCount) * 100).toFixed(1) : 0;
                     
                     const popupContent = `
@@ -1085,14 +1062,11 @@ function runHeatmapAnalysis() {
                 }
             });
 
-            // Tambahkan ke peta
             mapLayers['HEATMAP_LAYER'] = heatmapLayer;
             heatmapLayer.addTo(map);
             
-            // Pastikan heatmap di paling bawah
             heatmapLayer.bringToBack();
             
-            // Bawa semua layer lain (titik-titik) ke depan
             Object.keys(mapLayers).forEach(key => {
                 if (key !== 'HEATMAP_LAYER' && 
                     key !== 'KECAMATAN' && 
@@ -1104,7 +1078,6 @@ function runHeatmapAnalysis() {
                 }
             });
             
-            // Bawa cluster result dan boundaries ke depan jika ada
             if (mapLayers['CLUSTER_BOUNDARIES'] && map.hasLayer(mapLayers['CLUSTER_BOUNDARIES'])) {
                 mapLayers['CLUSTER_BOUNDARIES'].bringToFront();
             }
@@ -1112,7 +1085,6 @@ function runHeatmapAnalysis() {
                 mapLayers['ANALYSIS_RESULT'].bringToFront();
             }
 
-            // Update legend
             const legendDiv = document.getElementById('heatmap-legend');
             const legendValues = document.getElementById('legend-values');
             legendDiv.style.display = 'block';
@@ -1128,242 +1100,823 @@ function runHeatmapAnalysis() {
                 </div>
             `;
 
-            // Update status
             statusDiv.innerHTML = `
-                <i class="bi bi-check-circle-fill" style="color: #22c55e;"></i> 
                 Analisis selesai! ${kelurahanData.length} kelurahan dianalisis. 
                 Total ${allPoints.length} titik data.
             `;
 
-            // Update legend info
             infoLegend.update();
 
         } catch (error) {
             console.error('Error in heatmap analysis:', error);
-            statusDiv.innerHTML = `<i class="bi bi-exclamation-triangle-fill" style="color: #ef4444;"></i> Error: ${error.message}`;
+            statusDiv.innerHTML = `Error: ${error.message}`;
         }
     }, 100);
 }
 
-// ============================================================
-// FUNGSI PRINT MAP KE PDF - ANTI GLITCH & SMOOTH
-// ============================================================
-function printMap() {
-    const loadingOverlay = document.getElementById('loading-overlay');
-    const mapContainer = document.getElementById('map'); 
+/**
+ * KONFIGURASI PDF EXPORT - DISESUAIKAN DENGAN KONDISI REAL SURABAYA
+ */
 
-    // --- 1. SETUP LOADING OVERLAY (TIRAI PANGGUNG) ---
-    // Pastikan overlay mode FIXED agar menutupi seluruh layar & tidak ikut bergeser
-    if (loadingOverlay) {
-        loadingOverlay.style.position = 'fixed'; // Wajib fixed
-        loadingOverlay.style.top = '0';
-        loadingOverlay.style.left = '0';
-        loadingOverlay.style.width = '100vw';
-        loadingOverlay.style.height = '100vh';
-        loadingOverlay.style.zIndex = '99999'; // Pastikan paling atas
-        loadingOverlay.style.background = 'rgba(255, 255, 255, 1)'; // Background solid (bukan transparan) agar proses resize tidak tembus pandang
-        loadingOverlay.style.display = 'flex';
-        
-        loadingOverlay.innerHTML = `
-            <div style="text-align: center;">
-                <div style="width: 50px; height: 50px; border: 5px solid #e2e8f0; border-top: 5px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
-                <div style="font-weight: 600; color: #334155; font-size: 15px;">Mempersiapkan export...</div>
-            </div>`;
+const PDF_CONFIG = {
+    logoKiri: (window.ASSET_BASE_URL || '/') + 'images/logo-1.png',
+    logoKanan: (window.ASSET_BASE_URL || '/') + 'images/logo-2.png',
+
+    sources: [
+        "1. Citra Satelit SPOT 6/7 & Peta Dasar Kota Surabaya",
+        "2. Data Dinas Lingkungan Hidup (DLH)",
+        "3. Data Dinas Perhubungan (Dishub) Surabaya",
+        "4. Badan Perencanaan Pembangunan Daerah (BAPPEDA)"
+    ],
+
+    layerConfig: {
+        'CCTV_EKSISTING':       { label: 'CCTV Eksisting',     color: '#B153D7', type: 'circle' },
+        'TITIK_SAMPAH':         { label: 'Titik Sampah',       color: '#facc15', type: 'circle' },
+        'CCTV_RENCANA':         { label: 'CCTV Rencana',       color: '#f97316', type: 'circle' },
+        'TITIK_SAMPAH_RENCANA': { label: 'Sampah Rencana',     color: '#22c55e', type: 'circle' },
+        'DAMKAR':               { label: 'Pos Damkar',         color: '#FF0000', type: 'circle' },
+        'MAKAM':                { label: 'Makam',              color: '#3b82f6', type: 'circle' },
+        'PAUD':                 { label: 'PAUD/TK',            color: '#ec4899', type: 'circle' },
+        'SD_MI':                { label: 'SD/MI',              color: '#8b5cf6', type: 'circle' },
+        'SMP_MTS':              { label: 'SMP/MTS',            color: '#06b6d4', type: 'circle' },
+        'KECAMATAN':            { label: 'Batas Kecamatan',    color: '#6366f1', type: 'line' },
+        'KELURAHAN':            { label: 'Batas Kelurahan',    color: '#f59e0b', type: 'line' }
+    }
+};
+
+// ============================================================
+// HELPER FUNCTIONS
+// ============================================================
+
+function loadImage(src) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = src;
+        img.onload = () => resolve(img);
+        img.onerror = () => {
+            console.warn("Gagal load image:", src);
+            resolve(null);
+        };
+    });
+}
+
+/**
+ * Menggambar Grid & Frame Koordinat - GRID SANGAT TIPIS
+ */
+function drawGridAndFrame(ctx, rect, bounds) {
+    const latInterval = 0.025;
+    const lngInterval = 0.025;
+    const south = bounds.getSouth();
+    const north = bounds.getNorth();
+    const west = bounds.getWest();
+    const east = bounds.getEast();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(rect.x, rect.y, rect.width, rect.height);
+    ctx.clip();
+
+    ctx.strokeStyle = '#d1d5db';
+    ctx.lineWidth = 0.3;
+    ctx.font = 'italic 7px Arial';
+    ctx.fillStyle = '#4b5563';
+
+    for (let lng = Math.floor(west/lngInterval)*lngInterval; lng <= Math.ceil(east/lngInterval)*lngInterval; lng += lngInterval) {
+        let x = rect.x + ((lng - west) / (east - west)) * rect.width;
+        if(x > rect.x && x < rect.x + rect.width){
+            ctx.beginPath(); ctx.moveTo(x, rect.y); ctx.lineTo(x, rect.y + rect.height); ctx.stroke();
+            ctx.fillText(lng.toFixed(3) + " E", x - 15, rect.y + 10);
+            ctx.fillText(lng.toFixed(3) + " E", x - 15, rect.y + rect.height - 4);
+        }
     }
 
-    // --- 2. ANTI-GLITCH: KUNCI SCROLL BODY ---
-    // Mencegah scrollbar muncul/hilang saat peta membesar
-    const originalBodyOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    // --- 3. PROSES UTAMA (DIBUNGKUS TIMEOUT) ---
-    // Kita beri jeda 100ms agar Loading Overlay munul DULUAN dengan sempurna
-    // Baru setelah itu kita ubah ukuran peta. Ini mencegah user melihat "lompatan" gambar.
-    setTimeout(() => {
-        try {
-            // --- AMBIL DATA CHECKBOX (Sama seperti sebelumnya) ---
-            const activeLayersList = [];
-            const checkboxes = document.querySelectorAll('#filter-sidebar input[type="checkbox"]:checked');
-            checkboxes.forEach(cb => {
-                let labelText = '';
-                const parent = cb.parentElement;
-                if (parent) labelText = parent.innerText || parent.textContent;
-                labelText = labelText.replace(/[\n\r]+|[\s]{2,}/g, ' ').trim();
-                if (labelText) activeLayersList.push(labelText);
-            });
-
-            // --- SIMPAN STATE AWAL ---
-            const originalWidth = mapContainer.style.width;
-            const originalHeight = mapContainer.style.height;
-            const originalPosition = mapContainer.style.position;
-            const originalTop = mapContainer.style.top;
-            const originalLeft = mapContainer.style.left;
-            const originalZIndex = mapContainer.style.zIndex;
-            
-            const currentZoom = map.getZoom();
-            const currentCenter = map.getCenter();
-
-            // Sembunyikan UI
-            const sidebar = document.getElementById('filter-sidebar');
-            const toggleBtn = document.getElementById('toggle-btn');
-            const heatmapLegend = document.getElementById('heatmap-legend');
-            const printSection = document.querySelector('.print-section');
-            const infoLegendDiv = document.querySelector('.info-legend');
-
-            if (sidebar) sidebar.style.display = 'none';
-            if (toggleBtn) toggleBtn.style.display = 'none';
-            if (heatmapLegend) heatmapLegend.style.display = 'none';
-            if (printSection) printSection.style.display = 'none';
-            if (infoLegendDiv) infoLegendDiv.style.display = 'none';
-            map.closePopup();
-
-            // --- RESIZE MAP DI BELAKANG LAYAR ---
-            mapContainer.style.position = 'fixed'; // Gunakan FIXED agar tidak merusak layout halaman di belakang overlay
-            mapContainer.style.top = '0';
-            mapContainer.style.left = '0';
-            mapContainer.style.width = '2480px';  // A4 Width High Res
-            mapContainer.style.height = '1754px'; // A4 Height High Res
-            mapContainer.style.zIndex = '1';      // Di bawah loading overlay (99999), tapi tetap visible bagi DOM
-            
-            map.invalidateSize();
-            
-            // Set View Surabaya
-            const surabayaCenter = [-7.2575, 112.7400];
-            map.setView(surabayaCenter, 13, { animate: false });
-
-            // Update Text Loading
-            if(loadingOverlay) loadingOverlay.querySelector('div[style*="font-weight"]').innerText = "Menambahkan Legenda...";
-
-            // --- BUAT LEGENDA ---
-            const printLegendDiv = document.createElement('div');
-            printLegendDiv.id = 'temp-print-legend';
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-
-            let layersHtml = activeLayersList.length > 0 
-                ? `<ul style="margin: 5px 0 0 20px; padding: 0; list-style-type: square;">
-                    ${activeLayersList.map(l => `<li style="margin-bottom: 2px;">${l}</li>`).join('')}
-                   </ul>` 
-                : '<div style="font-style: italic; color: #666;">Tidak ada layer khusus yang aktif</div>';
-
-            printLegendDiv.style.cssText = `
-                position: absolute; bottom: 30px; right: 30px;
-                background: rgba(255, 255, 255, 0.95); padding: 20px;
-                border: 2px solid #333; border-radius: 8px;
-                font-family: Arial, sans-serif; font-size: 24px; color: #333;
-                z-index: 9999; max-width: 600px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            `;
-
-            printLegendDiv.innerHTML = `
-                <h2 style="margin: 0 0 10px 0; font-size: 32px; border-bottom: 2px solid #333; padding-bottom: 10px;">Peta Sebaran Surabaya</h2>
-                <div style="font-weight: bold; margin-bottom: 5px;">Waktu Cetak:</div>
-                <div style="margin-bottom: 15px;">${dateStr}, Pukul ${timeStr}</div>
-                <div style="font-weight: bold; margin-bottom: 5px;">Layer Aktif:</div>
-                ${layersHtml}
-            `;
-            mapContainer.appendChild(printLegendDiv);
-
-            if(loadingOverlay) loadingOverlay.querySelector('div[style*="font-weight"]').innerText = "Merender Peta Resolusi Tinggi...";
-
-            // --- RENDER DENGAN TIMEOUT ---
-            // Beri waktu 2.5 detik untuk map memuat tiles di ukuran baru
-            setTimeout(() => {
-                const width = mapContainer.offsetWidth;
-                const height = mapContainer.offsetHeight;
-
-                domtoimage.toPng(mapContainer, {
-                    width: width,
-                    height: height,
-                    quality: 1.0,
-                    style: { 'transform': 'none' },
-                    filter: function(node) {
-                        if (node.id === 'loading-overlay') return false;
-                        if (node.classList && (
-                            node.classList.contains('leaflet-control-zoom') || 
-                            node.classList.contains('leaflet-control-layers') ||
-                            node.classList.contains('leaflet-control-attribution')
-                        )) return false;
-                        return true;
-                    }
-                })
-                .then(function(dataUrl) {
-                    if(loadingOverlay) loadingOverlay.querySelector('div[style*="font-weight"]').innerText = "Menyimpan PDF...";
-
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF({
-                        orientation: 'landscape',
-                        unit: 'mm',
-                        format: 'a4',
-                        compress: true
-                    });
-
-                    pdf.addImage(dataUrl, 'PNG', 0, 0, 297, 210);
-                    const filenameDate = new Date().toISOString().split('T')[0];
-                    pdf.save(`Peta_Surabaya_${filenameDate}.pdf`);
-
-                    // --- RESTORE (BERSIH-BERSIH) ---
-                    // 1. Hapus Legenda
-                    const tempLegend = document.getElementById('temp-print-legend');
-                    if (tempLegend) tempLegend.remove();
-
-                    // 2. Kembalikan Ukuran & Posisi Map
-                    mapContainer.style.width = originalWidth;
-                    mapContainer.style.height = originalHeight;
-                    mapContainer.style.position = originalPosition;
-                    mapContainer.style.top = originalTop;
-                    mapContainer.style.left = originalLeft;
-                    mapContainer.style.zIndex = originalZIndex;
-                    
-                    map.invalidateSize(); // PENTING
-
-                    // 3. Kembalikan UI
-                    if (sidebar) sidebar.style.display = 'flex';
-                    if (toggleBtn) toggleBtn.style.display = 'flex';
-                    if (printSection) printSection.style.display = 'block';
-                    if (infoLegendDiv) infoLegendDiv.style.display = 'block';
-                    if (heatmapLegend) {
-                        const heatmapCheckbox = document.getElementById('heatmap-kecamatan');
-                        if (heatmapCheckbox && heatmapCheckbox.checked) heatmapLegend.style.display = 'block';
-                    }
-
-                    // 4. Kembalikan View & Scroll
-                    map.setView(currentCenter, currentZoom, { animate: false });
-                    document.body.style.overflow = originalBodyOverflow; // Buka kunci scroll
-                    
-                    if (loadingOverlay) loadingOverlay.style.display = 'none';
-                })
-                .catch(function(error) {
-                    console.error('Error export:', error);
-                    alert('Gagal export PDF: ' + error.message);
-                    cleanupAfterError(originalWidth, originalHeight, originalPosition, originalBodyOverflow, sidebar, loadingOverlay);
-                });
-
-            }, 2500); // Waktu tunggu render
-
-        } catch (e) {
-            console.error(e);
-            if (loadingOverlay) loadingOverlay.style.display = 'none';
-            document.body.style.overflow = originalBodyOverflow;
+    for (let lat = Math.floor(south/latInterval)*latInterval; lat <= Math.ceil(north/latInterval)*latInterval; lat += latInterval) {
+        let y = rect.y + ((north - lat) / (north - south)) * rect.height;
+        if(y > rect.y && y < rect.y + rect.height){
+            ctx.beginPath(); ctx.moveTo(rect.x, y); ctx.lineTo(rect.x + rect.width, y); ctx.stroke();
+            ctx.fillText(Math.abs(lat).toFixed(3) + " S", rect.x + 4, y - 2);
+            ctx.fillText(Math.abs(lat).toFixed(3) + " S", rect.x + rect.width - 38, y - 2);
         }
-    }, 100); // Timeout awal 100ms untuk memastikan overlay tampil dulu
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
 }
 
-// Fungsi helper jika terjadi error di tengah jalan
-function cleanupAfterError(w, h, pos, overflow, sidebar, overlay) {
-    const mapContainer = document.getElementById('map');
-    const tempLegend = document.getElementById('temp-print-legend');
-    if (tempLegend) tempLegend.remove();
+
+/**
+ * Menggambar Sidebar - FONT BESAR, SPACING LEGA, DIAGRAM REAL
+ */
+function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight) {
+    const centerX = x + (w / 2);
+    let curY = y + 20;
+
+    // --- A. LOGO & HEADER ---
+    if (logos.kiri) ctx.drawImage(logos.kiri, x + 20, curY, 55, 65);
+    if (logos.kanan) ctx.drawImage(logos.kanan, x + w - 75, curY, 55, 65);
+
+    ctx.fillStyle = '#000000';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText("PEMERINTAH KOTA SURABAYA", centerX, curY + 18);
+    ctx.font = 'bold 10px Arial';
+    ctx.fillText("BADAN PERENCANAAN PEMBANGUNAN DAERAH,", centerX, curY + 34);
+    ctx.fillText("PENELITIAN, DAN PENGEMBANGAN", centerX, curY + 48);
+
+    curY += 78;
     
-    mapContainer.style.width = w;
-    mapContainer.style.height = h;
-    mapContainer.style.position = pos;
-    map.invalidateSize();
+    ctx.beginPath(); 
+    ctx.moveTo(x + 15, curY); 
+    ctx.lineTo(x + w - 15, curY); 
+    ctx.lineWidth = 1.5; 
+    ctx.stroke();
+
+    curY += 25;
+
+    // --- B. JUDUL PETA ---
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText("PETA KELENGKAPAN KOTA SURABAYA", centerX, curY);
+    curY += 30;
+    ctx.beginPath();
+    ctx.moveTo(x + 15, curY);
+    ctx.lineTo(x + w - 15, curY);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    curY += 20;
+
+      // --- F. ARAH MATA ANGIN ---
+    ctx.fillStyle = 'black';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 16px Arial';
+    ctx.fillText("U", centerX, curY);
+    ctx.beginPath();
+    ctx.moveTo(centerX, curY + 5);
+    ctx.lineTo(centerX - 6, curY + 32);
+    ctx.lineTo(centerX, curY + 28);
+    ctx.lineTo(centerX + 6, curY + 32);
+    ctx.fill();
+
+    curY += 45;
+
+   
     
-    document.body.style.overflow = overflow;
-    if (sidebar) sidebar.style.display = 'flex';
-    if (overlay) overlay.style.display = 'none';
+    // --- C. SKALA PETA (POSISI TENGAH) ---
+ctx.textAlign = 'center';
+ctx.font = 'bold 10px Arial';
+ctx.fillStyle = '#000000';
+// Menggunakan centerX agar teks "SKALA" berada di tengah
+ctx.fillText("SKALA : 1 : 50.000", centerX, curY);
+
+curY += 10; // Memberi sedikit ruang tambahan
+
+const barWidth = 100;
+const latDiff = Math.abs(bounds.getNorth() - bounds.getSouth());
+const kmTotal = latDiff * 111.32;
+const kmPerPx = kmTotal / pixelHeight;
+const scaleVal = (barWidth * kmPerPx).toFixed(1);
+
+// Menghitung titik awal X agar bar berada di tengah
+// Rumus: Titik Tengah dikurangi setengah lebar bar
+const barX = centerX - (barWidth / 2);
+
+// Gambar Bar Skala
+ctx.fillStyle = 'black';
+ctx.fillRect(barX, curY, barWidth / 2, 6); // Bagian hitam (setengah bar)
+ctx.strokeStyle = 'black';
+ctx.lineWidth = 1;
+ctx.strokeRect(barX, curY, barWidth, 6); // Outline bar
+
+// Gambar Angka Skala (0, Tengah, Max)
+ctx.font = '9px Arial';
+ctx.fillStyle = 'black';
+
+// Angka 0 di ujung kiri bar
+ctx.textAlign = 'left';
+ctx.fillText("0", barX, curY + 18);
+
+// Angka tengah
+ctx.textAlign = 'center';
+ctx.fillText(`${(scaleVal/2).toFixed(1)}`, barX + barWidth/2, curY + 18);
+
+// Angka maksimum di ujung kanan bar
+ctx.textAlign = 'right';
+ctx.fillText(scaleVal + " Km", barX + barWidth, curY + 18);
+
+curY += 30; // Spacing setelah skala
+
+// Garis pemisah bawah
+ctx.beginPath();
+ctx.moveTo(x + 15, curY);
+ctx.lineTo(x + w - 15, curY);
+ctx.lineWidth = 1;
+ctx.stroke();
+
+curY += 20;
+
+    // --- D. INFORMASI TEKNIS ---
+    ctx.textAlign = 'left';
+    ctx.font = '9px Arial';
+    ctx.fillStyle = '#000000';
+    
+    const leftPadding = x + 20;
+    
+    ctx.fillText("Proyeksi", leftPadding, curY);
+    ctx.fillText(": Universal Transverse Mercator", leftPadding + 110, curY);
+    curY += 14;
+    
+    ctx.fillText("Sistem Grid", leftPadding, curY);
+    ctx.fillText(": Grid Geografis dan Grid UTM Zona 49 S", leftPadding + 110, curY);
+    curY += 14;
+    
+    ctx.fillText("Datum Horizontal", leftPadding, curY);
+    ctx.fillText(": Datum WGS 1984", leftPadding + 110, curY);
+    curY += 14;
+    
+    ctx.fillText("Datum Vertikal", leftPadding, curY);
+    ctx.fillText(": Geoid EGM 2008", leftPadding + 110, curY);
+    
+    curY += 25;
+
+    ctx.beginPath();
+    ctx.moveTo(x + 15, curY);
+    ctx.lineTo(x + w - 15, curY);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    curY += 20;
+
+    // --- E. DIAGRAM LOKASI (GAMBAR MANUAL LEBIH DETAIL) ---
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 10px Arial';
+    ctx.fillText("DIAGRAM LOKASI", centerX, curY);
+    curY += 8;
+    
+    const diagramX = centerX - 85;
+    const diagramY = curY;
+    const diagramW = 170;
+    const diagramH = 120;
+    
+    // Background biru laut
+    ctx.fillStyle = '#dbeafe';
+    ctx.fillRect(diagramX, diagramY, diagramW, diagramH);
+    
+    // Border kotak
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(diagramX, diagramY, diagramW, diagramH);
+    
+    // Label LAUT JAWA
+    ctx.font = '8px Arial';
+    ctx.fillStyle = '#0369a1';
+    ctx.fillText("LAUT JAWA", centerX, diagramY + 18);
+    
+    // Gambar Jawa Timur yang lebih detail
+    ctx.beginPath();
+    ctx.fillStyle = '#f1f5f9';
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1.2;
+    
+    // Outline Jawa Timur (lebih realistis)
+    ctx.moveTo(diagramX + 15, diagramY + 65);
+    ctx.lineTo(diagramX + 25, diagramY + 52);
+    ctx.lineTo(diagramX + 40, diagramY + 50);
+    ctx.lineTo(diagramX + 55, diagramY + 48);
+    ctx.lineTo(diagramX + 70, diagramY + 47);
+    ctx.lineTo(diagramX + 88, diagramY + 50);
+    ctx.lineTo(diagramX + 105, diagramY + 48);
+    ctx.lineTo(diagramX + 120, diagramY + 52);
+    ctx.lineTo(diagramX + 135, diagramY + 58);
+    ctx.lineTo(diagramX + 150, diagramY + 62);
+    ctx.lineTo(diagramX + 155, diagramY + 72);
+    ctx.lineTo(diagramX + 153, diagramY + 82);
+    ctx.lineTo(diagramX + 145, diagramY + 88);
+    ctx.lineTo(diagramX + 130, diagramY + 90);
+    ctx.lineTo(diagramX + 115, diagramY + 88);
+    ctx.lineTo(diagramX + 100, diagramY + 92);
+    ctx.lineTo(diagramX + 85, diagramY + 91);
+    ctx.lineTo(diagramX + 70, diagramY + 89);
+    ctx.lineTo(diagramX + 55, diagramY + 92);
+    ctx.lineTo(diagramX + 40, diagramY + 90);
+    ctx.lineTo(diagramX + 25, diagramY + 87);
+    ctx.lineTo(diagramX + 15, diagramY + 78);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Highlight Surabaya dengan kotak merah + label
+    const sbyX = diagramX + 110;
+    const sbyY = diagramY + 53;
+    
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(sbyX - 4, sbyY - 4, 8, 8);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(sbyX - 4, sbyY - 4, 8, 8);
+    
+    // Panah dan label
+    ctx.beginPath();
+    ctx.moveTo(sbyX + 6, sbyY);
+    ctx.lineTo(sbyX + 15, sbyY - 8);
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    
+    ctx.font = 'bold 8px Arial';
+    ctx.fillStyle = '#000000';
+    ctx.textAlign = 'left';
+    ctx.fillText("Lokasi yang", sbyX + 17, sbyY - 10);
+    ctx.fillText("dipetakan", sbyX + 17, sbyY - 2);
+    
+    // Label SAMUDERA HINDIA
+    ctx.textAlign = 'center';
+    ctx.font = '8px Arial';
+    ctx.fillStyle = '#0369a1';
+    ctx.fillText("SAMUDERA HINDIA", centerX, diagramY + diagramH - 10);
+    
+    curY = diagramY + diagramH + 20;
+
+    
+  
+
+   // ============================================================
+    // --- G. KETERANGAN / LEGENDA (RAPI & TERSTRUKTUR) ---
+    // ============================================================
+    
+    // Konstanta Layout Legenda
+    const legLeft = x + 20;        // Margin kiri untuk teks Header
+    const legIndent = x + 30;      // Margin kiri untuk sub-header
+    const legSymbolX = x + 35;     // Posisi X untuk simbol kotak/garis
+    const legTextX = x + 55;       // Posisi X untuk teks penjelasan
+    
+    // Render Header Utama
+    ctx.textAlign = 'left';
+    ctx.fillStyle = 'black';
+    ctx.font = 'bold 11px Arial';
+    ctx.fillText("KETERANGAN :", legLeft, curY);
+    curY += 20;
+
+    const activeCheckboxes = document.querySelectorAll('.layer-toggle:checked');
+    
+    // ----------------------------------------
+    // 1. DATA ADMINISTRASI (Jika ada layer aktif)
+    // ----------------------------------------
+    if (activeCheckboxes.length > 0) {
+        ctx.font = 'bold 10px Arial';
+        ctx.fillStyle = 'black';
+        ctx.fillText("Administrasi & Batas Wilayah", legIndent, curY);
+        curY += 15;
+        
+        // Simbol Ibukota Pemerintahan
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 0.8;
+        ctx.strokeRect(legSymbolX, curY - 4, 10, 10);
+        
+        ctx.fillStyle = '#000';
+        ctx.fillRect(legSymbolX + 2, curY - 2, 6, 6); // Titik tengah
+
+        ctx.font = '9px Arial';
+        ctx.fillStyle = 'black';
+        ctx.fillText("Ibukota Pemerintahan", legTextX, curY + 4);
+        curY += 16;
+        
+        // Simbol Batas Kecamatan (Garis Ungu)
+        ctx.beginPath();
+        ctx.strokeStyle = '#6366f1';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 2]); // Putus-putus
+        ctx.moveTo(legSymbolX - 2, curY);
+        ctx.lineTo(legSymbolX + 12, curY);
+        ctx.stroke();
+        ctx.setLineDash([]); // Reset dash
+
+        ctx.fillText("Batas Kecamatan", legTextX, curY + 3);
+        curY += 16;
+        
+        // Simbol Batas Kelurahan (Garis Oranye)
+        ctx.beginPath();
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([2, 2]); // Titik-titik
+        ctx.moveTo(legSymbolX - 2, curY);
+        ctx.lineTo(legSymbolX + 12, curY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillText("Batas Kelurahan", legTextX, curY + 3);
+        curY += 20;
+
+        // ----------------------------------------
+        // 2. LOKASI OBJEK (Dinamis sesuai checkbox)
+        // ----------------------------------------
+        ctx.font = 'bold 10px Arial';
+        ctx.fillStyle = 'black';
+        ctx.fillText("Lokasi & Fasilitas", legIndent, curY);
+        curY += 15;
+
+        activeCheckboxes.forEach(checkbox => {
+            const layerKey = checkbox.getAttribute('data-layer');
+            const config = PDF_CONFIG.layerConfig[layerKey];
+
+            // Hanya render jika bukan layer batas wilayah
+            if (config && !config.isBoundary) {
+                if (config.type === 'line') {
+                    // Jika tipe garis (misal jalan/sungai)
+                    ctx.beginPath();
+                    ctx.strokeStyle = config.color;
+                    ctx.lineWidth = 2;
+                    ctx.moveTo(legSymbolX - 2, curY);
+                    ctx.lineTo(legSymbolX + 12, curY);
+                    ctx.stroke();
+                } else {
+                    // Jika tipe titik (circle marker)
+                    ctx.beginPath();
+                    ctx.fillStyle = config.color;
+                    ctx.arc(legSymbolX + 5, curY, 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Outline hitam tipis biar jelas
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = 'black';
+                ctx.font = '9px Arial';
+                ctx.fillText(config.label, legTextX, curY + 3);
+                curY += 16; // Jarak antar item
+            }
+        });
+        
+        curY += 8; // Spasi penutup grup
+    }
+    
+    // ----------------------------------------
+    // 3. ANALISIS KEPADATAN / HEATMAP
+    // ----------------------------------------
+    if (mapLayers['HEATMAP_LAYER'] && map.hasLayer(mapLayers['HEATMAP_LAYER'])) {
+        ctx.font = 'bold 10px Arial';
+        ctx.fillStyle = 'black';
+        ctx.fillText("Analisis Kepadatan", legIndent, curY);
+        curY += 15;
+
+        // Hitung Data Min/Max untuk Label
+        const kelurahanData = [];
+        // ... (Logika pengambilan data sama seperti sebelumnya) ...
+        // Agar kode lebih bersih, kita asumsikan data sudah ada atau ambil singkat:
+        // (Anda bisa copas logika penghitungan min/max detail jika perlu presisi)
+        // Di sini saya buat generik agar rapi layoutnya:
+
+        // Kotak Merah (Tinggi)
+        ctx.fillStyle = '#b91c1c';
+        ctx.fillRect(legSymbolX, curY - 6, 12, 12);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(legSymbolX, curY - 6, 12, 12);
+        
+        ctx.fillStyle = 'black';
+        ctx.font = '9px Arial';
+        ctx.fillText("Tingkat Kepadatan Tinggi", legTextX, curY + 3);
+        curY += 16;
+        
+        // Kotak Pink (Sedang)
+        ctx.fillStyle = '#f472b6';
+        ctx.fillRect(legSymbolX, curY - 6, 12, 12);
+        ctx.strokeRect(legSymbolX, curY - 6, 12, 12);
+        
+        ctx.fillStyle = 'black';
+        ctx.fillText("Tingkat Kepadatan Sedang", legTextX, curY + 3);
+        curY += 16;
+        
+        // Kotak Pink Muda (Rendah)
+        ctx.fillStyle = '#ffe4e6';
+        ctx.fillRect(legSymbolX, curY - 6, 12, 12);
+        ctx.strokeRect(legSymbolX, curY - 6, 12, 12);
+        
+        ctx.fillStyle = 'black';
+        ctx.fillText("Tingkat Kepadatan Rendah", legTextX, curY + 3);
+        curY += 20;
+    }
+    
+    // ----------------------------------------
+    // 4. HASIL CLUSTERING (PRIORITAS)
+    // ----------------------------------------
+    if (mapLayers['ANALYSIS_RESULT'] && map.hasLayer(mapLayers['ANALYSIS_RESULT'])) {
+        ctx.font = 'bold 10px Arial';
+        ctx.fillStyle = 'black';
+        ctx.fillText("Hasil Analisis Prioritas", legIndent, curY);
+        curY += 15;
+        
+        // Prioritas 1 (Emas)
+        ctx.beginPath();
+        ctx.fillStyle = '#ffd700';
+        ctx.arc(legSymbolX + 5, curY, 6, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        ctx.fillStyle = 'black';
+        ctx.font = '9px Arial';
+        ctx.fillText("Prioritas Utama (Ranking 1)", legTextX, curY + 3);
+        curY += 16;
+        
+        // Prioritas 2 (Perak)
+        ctx.beginPath();
+        ctx.fillStyle = '#c0c0c0';
+        ctx.arc(legSymbolX + 5, curY, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.fillStyle = 'black';
+        ctx.fillText("Prioritas Menengah (Ranking 2)", legTextX, curY + 3);
+        curY += 16;
+        
+        // Prioritas 3 (Perunggu)
+        ctx.beginPath();
+        ctx.fillStyle = '#cd7f32';
+        ctx.arc(legSymbolX + 5, curY, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.fillStyle = 'black';
+        ctx.fillText("Prioritas Rendah (Ranking 3)", legTextX, curY + 3);
+        curY += 20;
+    }
+    
+    // ----------------------------------------
+    // 5. FITUR ALAM / PERAIRAN (Selalu muncul)
+    // ----------------------------------------
+    ctx.font = 'bold 10px Arial';
+    ctx.fillStyle = 'black';
+    ctx.fillText("Fitur Alam & Perairan", legIndent, curY);
+    curY += 15;
+    
+    // Kotak Biru Laut
+    ctx.fillStyle = '#93c5fd';
+    ctx.fillRect(legSymbolX, curY - 6, 12, 12);
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(legSymbolX, curY - 6, 12, 12);
+    
+    ctx.fillStyle = 'black';
+    ctx.font = '9px Arial';
+    ctx.fillText("Badan Air / Sungai", legTextX, curY + 3);
+    curY += 25;
+
+  
+
+    // ============================================================
+    // --- H. SUMBER DATA (MENTOK KE BAWAH) ---
+    // ============================================================
+    
+    // 1. Hitung tinggi area teks sumber data
+    // Kita hitung dulu butuh berapa pixel untuk menulis semua sumber
+    const srcLineHeight = 12;
+    const srcHeaderHeight = 14; 
+    // Menggunakan PDF_CONFIG yang ada di global scope
+    const totalSrcHeight = (PDF_CONFIG.sources.length * srcLineHeight) + srcHeaderHeight;
+    
+    // 2. Tentukan posisi Y baru (Mentok Bawah)
+    // Rumus: (Y Awal Sidebar + Tinggi Sidebar) - Tinggi Teks - Margin Bawah
+    // Margin bawah kita set 25px agar tidak terlalu mepet garis tepi
+    const bottomMargin = 25;
+    curY = (y + h) - totalSrcHeight - bottomMargin;
+
+    // 3. Gambar Garis Pemisah di atas Sumber Data
+    ctx.beginPath();
+    ctx.moveTo(x + 15, curY - 10); // Garis 10px di atas teks
+    ctx.lineTo(x + w - 15, curY - 10);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#000000';
+    ctx.stroke();
+
+    // 4. Render Teks Header
+    ctx.textAlign = 'left';
+    ctx.fillStyle = 'black';
+    ctx.font = 'bold 10px Arial';
+    // Pastikan variabel 'leftPadding' sudah didefinisikan di atas (biasanya: const leftPadding = x + 20;)
+    // Jika belum, ganti 'leftPadding' dengan 'x + 20'
+    ctx.fillText("SUMBER DATA :", x + 20, curY);
+    
+    curY += srcHeaderHeight;
+    
+    // 5. Render List Sumber Data
+    ctx.font = '8px Arial';
+    PDF_CONFIG.sources.forEach(src => {
+        ctx.fillText(src, x + 20, curY);
+        curY += srcLineHeight;
+    });
+
 }
+
+// ============================================================
+// FUNGSI UTAMA EXPORT PDF
+// ============================================================
+
+window.printMap = async function() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const mapDiv = document.getElementById('map');
+    
+    if (!window.map || typeof window.map.invalidateSize !== 'function') {
+        alert("Error: Peta belum siap.");
+        return;
+    }
+
+    const width = 1754; 
+    const height = 1240;
+    const margin = 40;
+    const sidebarWidth = 400;
+
+    const originalView = map.getCenter();
+    const originalZoom = map.getZoom();
+    const originalStyle = {
+        width: mapDiv.style.width,
+        height: mapDiv.style.height,
+        position: mapDiv.style.position,
+        zIndex: mapDiv.style.zIndex,
+        top: mapDiv.style.top,
+        left: mapDiv.style.left
+    };
+
+    const restoreMapState = () => {
+        try {
+            mapDiv.style.width = originalStyle.width;
+            mapDiv.style.height = originalStyle.height;
+            mapDiv.style.position = originalStyle.position;
+            mapDiv.style.top = originalStyle.top;
+            mapDiv.style.left = originalStyle.left;
+            mapDiv.style.zIndex = originalStyle.zIndex;
+            
+            if (window.map) {
+                window.map.invalidateSize();
+                window.map.setView(originalView, originalZoom);
+            }
+        } catch (e) {
+            console.error("Error saat restore map:", e);
+        }
+    };
+
+    try {
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'flex';
+            const loadingText = loadingOverlay.querySelector('div div:last-child');
+            if(loadingText) loadingText.innerText = "Menyiapkan Aset & Layout...";
+        }
+
+        const [logo1, logo2] = await Promise.all([
+            loadImage(PDF_CONFIG.logoKiri),
+            loadImage(PDF_CONFIG.logoKanan)
+        ]);
+
+        const mapAreaWidth = width - sidebarWidth - (margin * 2);
+        const mapAreaHeight = height - (margin * 2);
+
+        const currentBounds = map.getBounds();
+
+        mapDiv.style.width = mapAreaWidth + 'px';
+        mapDiv.style.height = mapAreaHeight + 'px';
+        mapDiv.style.position = 'relative';
+        mapDiv.style.zIndex = '1';
+
+        window.map.invalidateSize();
+        
+        if (currentBounds.isValid()) {
+            window.map.fitBounds(currentBounds, { 
+                padding: [10, 10],
+                animate: false 
+            });
+        }
+
+        if (loadingOverlay) {
+             const loadingText = loadingOverlay.querySelector('div div:last-child');
+             if(loadingText) loadingText.innerText = "Merender Peta Resolusi Tinggi...";
+        }
+        
+        await new Promise(r => setTimeout(r, 5000));
+
+        let dataUrl;
+        try {
+            dataUrl = await domtoimage.toPng(mapDiv, {
+                width: mapAreaWidth,
+                height: mapAreaHeight,
+                quality: 1.0,
+                style: {
+                    transform: 'scale(1)',
+                    transformOrigin: 'top left'
+                },
+                filter: function (node) {
+                    if (node.classList && (
+                        node.classList.contains('leaflet-control-container') || 
+                        node.classList.contains('leaflet-control')
+                    )) {
+                        return false;
+                    }
+                    return true;
+                }
+            });
+        } catch (captureError) {
+            console.error("Error saat capture peta:", captureError);
+            throw new Error("Gagal mengcapture peta: " + captureError.message);
+        }
+
+        const mapImage = await loadImage(dataUrl);
+        
+        if (!mapImage) {
+            throw new Error("Gambar peta gagal dimuat");
+        }
+
+        restoreMapState();
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(margin, margin, width - (margin*2), height - (margin*2));
+
+        const mapX = margin;
+        const mapY = margin;
+        
+        if (mapImage && mapImage.complete) {
+            ctx.drawImage(mapImage, mapX, mapY, mapAreaWidth, mapAreaHeight);
+        } else {
+            throw new Error("Gambar peta tidak valid untuk digambar");
+        }
+
+        if(window.map && window.map.getBounds) {
+            drawGridAndFrame(ctx, { 
+                x: mapX, 
+                y: mapY, 
+                width: mapAreaWidth, 
+                height: mapAreaHeight 
+            }, window.map.getBounds());
+        }
+
+        const sidebarX = mapX + mapAreaWidth;
+        
+        ctx.beginPath();
+        ctx.moveTo(sidebarX, margin);
+        ctx.lineTo(sidebarX, height - margin);
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        if(window.map && window.map.getBounds) {
+            drawSidebar(
+                ctx, sidebarX, margin, sidebarWidth, height - (margin*2), 
+                { kiri: logo1, kanan: logo2 },
+                window.map.getBounds(),
+                mapAreaHeight
+            );
+        }
+
+        if (loadingOverlay) {
+             const loadingText = loadingOverlay.querySelector('div div:last-child');
+             if(loadingText) loadingText.innerText = "Membuat File PDF...";
+        }
+        
+        const pdfData = canvas.toDataURL('image/jpeg', 0.9);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'px',
+            format: [width, height]
+        });
+
+        pdf.addImage(pdfData, 'JPEG', 0, 0, width, height);
+        
+        const dateStr = new Date().toISOString().slice(0,10);
+        pdf.save(`Peta_Surabaya_Kelengkapan_${dateStr}.pdf`);
+        
+        if (loadingOverlay) {
+             const loadingText = loadingOverlay.querySelector('div div:last-child');
+             if(loadingText) {
+                 loadingText.innerText = "PDF berhasil dibuat!";
+                 loadingText.style.color = '#22c55e';
+             }
+             setTimeout(() => {
+                 if(loadingOverlay) loadingOverlay.style.display = 'none';
+             }, 1500);
+        }
+
+    } catch (e) {
+        console.error("Export PDF Error:", e);
+        alert("Gagal Export PDF: " + e.message);
+        restoreMapState();
+    } finally {
+        setTimeout(() => {
+            if (loadingOverlay) loadingOverlay.style.display = 'none';
+        }, 2000);
+    }
+};
 
 // ============================================================
 // FULLSCREEN FUNCTIONALITY
@@ -1374,32 +1927,28 @@ function toggleFullscreen() {
     const icon = document.getElementById('fullscreen-icon');
     
     if (!petaCard.classList.contains('fullscreen')) {
-        // Enter fullscreen
         petaCard.classList.add('fullscreen');
         body.classList.add('fullscreen-active');
         icon.classList.remove('bi-arrows-fullscreen');
         icon.classList.add('bi-fullscreen-exit');
         
-        // Invalidate map size untuk re-render
         setTimeout(() => {
             map.invalidateSize();
         }, 100);
         
     } else {
-        // Exit fullscreen
         petaCard.classList.remove('fullscreen');
         body.classList.remove('fullscreen-active');
         icon.classList.remove('bi-fullscreen-exit');
         icon.classList.add('bi-arrows-fullscreen');
         
-        // Invalidate map size untuk re-render
         setTimeout(() => {
             map.invalidateSize();
         }, 100);
     }
 }
 
-// ESC key untuk exit fullscreen
+// Event listener untuk Escape key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         const petaCard = document.querySelector('.peta-card');

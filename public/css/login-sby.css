@@ -24,14 +24,12 @@ body{
 
 .card{
   width: min(520px, 92vw);
-  background: rgba(255,255,255,.42);      /* putih tapi transparan */
-  border: 1px solid rgba(255,255,255,.35);/* garis tipis biar “kaca” */
+  background: rgba(255,255,255,.42);
+  border: 1px solid rgba(255,255,255,.35);
   border-radius: 12px;
   padding: 28px 34px 32px;
-
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-
   box-shadow: 0 20px 50px rgba(0,0,0,.25);
 }
 
@@ -76,7 +74,7 @@ body{
   border-radius: 10px;
   font-weight: 800;
   font-size: 13px;
-  margin-bottom: 2px; /* posisi pas di atas username */
+  margin-bottom: 2px;
 }
 
 .input{
@@ -107,7 +105,6 @@ body{
 }
 .btn:hover{ filter: brightness(.95); }
 
-/* Animasi masuk pertama kali */
 .login-anim{
   opacity: 0;
   transform: translateY(18px) scale(.98);
@@ -121,7 +118,6 @@ body{
   }
 }
 
-/* Tombol muncul sedikit belakangan */
 .login-anim-btn{
   opacity: 0;
   transform: translateY(10px);
@@ -136,7 +132,6 @@ body{
   }
 }
 
-/* Aksesibilitas: matikan animasi kalau user minta reduced motion */
 @media (prefers-reduced-motion: reduce){
   .login-anim,
   .login-anim-btn{
@@ -144,4 +139,83 @@ body{
     opacity: 1;
     transform: none;
   }
+}
+
+/* === CAPTCHA === */
+.captcha-container{
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+.captcha-label{
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.captcha-wrapper{
+  width: 100%;
+  max-width: 240px;
+  margin: 0 auto 8px;
+}
+
+.captcha-image{
+  width: 100%;
+  height: 80px;
+  display: block;
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: 8px 8px 0 0;
+  background: #fff;
+}
+
+.captcha-input{
+  width: 100%;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  border: 1px solid rgba(0,0,0,.15);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  background: rgba(255,255,255,.95);
+  outline: none;
+}
+
+.captcha-input:focus{
+  border-color: rgba(74,126,242,.75);
+  border-top-color: rgba(0,0,0,.15);
+  box-shadow: 0 0 0 4px rgba(74,126,242,.15);
+}
+
+.captcha-refresh{
+  display: block;
+  margin: 0 auto;
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  background: rgba(255,255,255,.7);
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: .3px;
+  transition: all .2s;
+}
+
+.captcha-refresh:hover{
+  background: rgba(255,255,255,.95);
+  color: var(--primary);
+  border-color: rgba(74,126,242,.5);
+}
+
+.captcha-error{
+  color: #b91c1c;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 6px;
+  text-align: center;
 }

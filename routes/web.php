@@ -7,12 +7,22 @@ use App\Http\Controllers\UjiUdaraController;
 use App\Http\Controllers\RthController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Helpers\CaptchaHelper;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
 */
+
+
+// Route untuk generate gambar CAPTCHA (sebelum route auth)
+Route::get('/captcha-image', function () {
+    return response(CaptchaHelper::createImage())
+        ->header('Content-Type', 'image/png')
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        ->header('Pragma', 'no-cache');
+})->name('captcha.image');
 
 // 1. ROUTE HALAMAN DEPAN (Redirect Logic)
 Route::get('/', function () {

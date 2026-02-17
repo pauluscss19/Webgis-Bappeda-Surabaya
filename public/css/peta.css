@@ -633,7 +633,7 @@ body{
 /* === TOMBOL FULLSCREEN === */
 #fullscreen-btn {
     position: absolute;
-    top: 85px;
+    top: 130px;
     right: 0px;
     z-index: 2001;
     color: white;
@@ -718,3 +718,4 @@ body.fullscreen-active .peta-content {
         padding: 10px 12px;
     }
 }
+

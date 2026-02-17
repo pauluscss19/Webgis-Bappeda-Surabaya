@@ -32,7 +32,7 @@
         @if ($errors->any())
             <div class="form-alert" style="color: red; font-size: 0.9em; margin-bottom: 10px; text-align: center;">
                 {{-- Menampilkan error pertama yang ditemukan --}}
-                {{ $errors->first('email') ?: $errors->first('password') }}
+                {{ $errors->first('email') ?: $errors->first('password') ?: $errors->first('captcha') }}
             </div>
         @endif
 
@@ -53,11 +53,53 @@
             <label for="remember_me" style="color: #666;">Ingat Saya</label>
         </div>
 
+        {{-- === CAPTCHA (BAGIAN BARU) === --}}
+        <div class="captcha-container">
+          <label class="captcha-label">Verifikasi Keamanan</label>
+          <div class="captcha-wrapper">
+            <img 
+              id="captcha-img" 
+              src="{{ route('captcha.image') }}?{{ time() }}" 
+              alt="CAPTCHA" 
+              class="captcha-image"
+            >
+            <input 
+              type="text" 
+              id="captcha" 
+              name="captcha" 
+              class="captcha-input" 
+              placeholder="Ketik kode"
+              maxlength="6"
+              required
+              autocomplete="off"
+            >
+          </div>
+          <button 
+            type="button" 
+            class="captcha-refresh" 
+            onclick="refreshCaptcha()"
+          >
+            ↻ Refresh Kode
+          </button>
+          @error('captcha')
+            <div class="captcha-error">{{ $message }}</div>
+          @enderror
+        </div>
+
         <button class="btn login-anim-btn" type="submit">LOGIN</button>
       </form>
 
     </section>
   </main>
+
+  <script>
+    function refreshCaptcha() {
+      const img = document.getElementById('captcha-img');
+      img.src = '{{ route("captcha.image") }}?' + Date.now();
+      document.getElementById('captcha').value = '';
+      document.getElementById('captcha').focus();
+    }
+  </script>
 
 </body>
 </html>
