@@ -349,26 +349,35 @@
   <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.41.0/dist/apexcharts.min.js"></script>
 
   <script>
-    // --- CHART IHBI ---
-    var optionsPie = { series: @json($chartPieIHBI['series']), chart: { type: 'donut', height: 300, fontFamily: 'Inter, sans-serif' }, labels: @json($chartPieIHBI['labels']), colors: ['#10b981', '#f59e0b', '#3b82f6'], plotOptions: { pie: { donut: { size: '60%' } } }, dataLabels: { enabled: false }, legend: { position: 'bottom' }, tooltip: { y: { formatter: function(val) { return val + " Ha" } } } };
-    new ApexCharts(document.querySelector("#chartPieIHBI"), optionsPie).render();
+    (function() {
+      var hasData = function(arr) { return arr && arr.length && arr.some(function(x) { return (x || 0) > 0; }); };
+      var el = function(id) { return document.querySelector(id); };
 
-    // --- CHART TAMAN ---
-    var optionsBar = { series: [{ name: 'Luas Taman (m²)', data: @json($chartBarTaman['data']) }], chart: { type: 'bar', height: 350, toolbar: {show: false}, fontFamily: 'Inter, sans-serif' }, colors: ['#059669'], xaxis: { categories: @json($chartBarTaman['labels']) }, plotOptions: { bar: { borderRadius: 4, columnWidth: '50%' } }, dataLabels: { enabled: false }, tooltip: { y: { formatter: function(val) { return val.toLocaleString() + " m²" } } } };
-    new ApexCharts(document.querySelector("#chartBarTaman"), optionsBar).render();
-
-    // --- CHART UJI UDARA (AMBIEN) ---
-    var optionsAmbien = {
-        series: @json($chartAmbien['series']),
-        chart: { type: 'donut', height: 350, fontFamily: 'system-ui' },
-        labels: @json($chartAmbien['labels']),
-        colors: ['#0ea5e9', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444', '#64748b', '#ec4899'],
-        plotOptions: { pie: { donut: { size: '65%' } } },
-        dataLabels: { enabled: false },
-        legend: { position: 'bottom' },
-        tooltip: { y: { formatter: function(val) { return val + " Titik"; } } }
-    };
-    new ApexCharts(document.querySelector("#chartAmbien"), optionsAmbien).render();
+      if (el("#chartPieIHBI")) {
+        var seriesIHBI = @json($chartPieIHBI['series'] ?? [0,0,0]);
+        if (hasData(seriesIHBI)) {
+          new ApexCharts(el("#chartPieIHBI"), { series: seriesIHBI, chart: { type: 'donut', height: 300, fontFamily: 'Inter, sans-serif' }, labels: @json($chartPieIHBI['labels'] ?? []), colors: ['#10b981', '#f59e0b', '#3b82f6'], plotOptions: { pie: { donut: { size: '60%' } } }, dataLabels: { enabled: false }, legend: { position: 'bottom' }, tooltip: { y: { formatter: function(val) { return val + " Ha"; } } } }).render();
+        } else {
+          el("#chartPieIHBI").innerHTML = '<div class="text-center text-muted py-5">Belum ada data IHBI.<br><small>Jalankan seeder: LuasanRthSeeder</small></div>';
+        }
+      }
+      if (el("#chartBarTaman")) {
+        var dataTaman = @json($chartBarTaman['data'] ?? []);
+        if (dataTaman.length && dataTaman.some(function(x) { return (x || 0) > 0; })) {
+          new ApexCharts(el("#chartBarTaman"), { series: [{ name: 'Luas Taman (m²)', data: dataTaman }], chart: { type: 'bar', height: 350, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' }, colors: ['#059669'], xaxis: { categories: @json($chartBarTaman['labels'] ?? []) }, plotOptions: { bar: { borderRadius: 4, columnWidth: '50%' } }, dataLabels: { enabled: false }, tooltip: { y: { formatter: function(val) { return (val || 0).toLocaleString() + " m²"; } } } }).render();
+        } else {
+          el("#chartBarTaman").innerHTML = '<div class="text-center text-muted py-5">Belum ada data taman.<br><small>Jalankan seeder: CompleteDataSeeder atau RekapitulasiRthTaman</small></div>';
+        }
+      }
+      if (el("#chartAmbien")) {
+        var seriesAmbien = @json($chartAmbien['series'] ?? [0]);
+        if (seriesAmbien.length && seriesAmbien.some(function(x) { return (x || 0) > 0; })) {
+          new ApexCharts(el("#chartAmbien"), { series: seriesAmbien, chart: { type: 'donut', height: 350, fontFamily: 'system-ui' }, labels: @json($chartAmbien['labels'] ?? []), colors: ['#0ea5e9', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444', '#64748b', '#ec4899'], plotOptions: { pie: { donut: { size: '65%' } } }, dataLabels: { enabled: false }, legend: { position: 'bottom' }, tooltip: { y: { formatter: function(val) { return val + " Titik"; } } } }).render();
+        } else {
+          el("#chartAmbien").innerHTML = '<div class="text-center text-muted py-5">Belum ada data uji udara ambien.</div>';
+        }
+      }
+    })();
   </script>
 
 </body>

@@ -63,7 +63,7 @@ class CompleteDataSeeder extends Seeder
             ['nama_lokasi' => 'Krematorium Keputih', 'tahun_operasional' => 'Juni 2019', 'kelurahan' => 'Keputih', 'kecamatan' => 'Sukolilo', 'luas' => 19806.01, 'luas_fasum' => 4685.69, 'luas_lahan_efektif' => 15120, 'kapasitas_makam' => 'Kremasi', 'jumlah_data_kematian' => 2802, 'sisa_petak' => null, 'keterangan' => 'Pelayanan Kremasi', 'jumlah_pegawai' => 7],
         ]);
 
-        // ==========================================
+        // ================================ ==========
         // 4. DATA BBM KENDARAAN (Sarpras)
         // ==========================================
         DB::table('kebutuhan_bbm_kendaraan_operasionals')->truncate();

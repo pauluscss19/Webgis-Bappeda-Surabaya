@@ -2,27 +2,28 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // PANGGIL FILE SEEDER KITA DI SINI
         $this->call([
+            // --- Data untuk Dashboard Statistik Lingkungan (Fasilitas & Aset) ---
+            FasilitasPeralatanSeeder::class,
+            ArmadaKendaraanSeeder::class,
+
             SarprasSeeder::class,
-            komposSeeder::class,
-            krematoriumSeeder::class,
-            luasanRthSeeder::class,
-            ujiairSeeder::class,
-            ujiudaraSeeder::class,
             bbm::class,
-            completedataSeeder::class,
+
+            KomposSeeder::class,
+            KrematoriumSeeder::class,
+            LuasanRthSeeder::class,
+            UjiAirSeeder::class,
+            UjiUdaraSeeder::class,
+
+            // Data RTH/Makam/BBM lengkap (uncomment jika tabel terkait sudah ada):
+            // CompleteDataSeeder::class, 
         ]);
     }
 }

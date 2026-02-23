@@ -42,42 +42,46 @@ class DataStatistikController extends Controller
         $listData = null; // Default null untuk pagination
 
         // --- A. DATA SARPRAS (FASILITAS) ---
-        // Menggunakan tabel 'kebutuhan_bbm_peralatan_operasionals' sebagai data fasilitas
-        $fasilitas = DB::table('kebutuhan_bbm_peralatan_operasionals')->get();
+        // Menggunakan tabel 'kebutuhan_bbm_peralatan_operasionals' (seed: FasilitasPeralatanSeeder)
+        $fasilitas = DB::table('kebutuhan_bbm_peralatan_operasionals')->orderBy('jumlah_total', 'desc')->get();
         
         $chartSarpras = [
             'label' => $fasilitas->pluck('tipe_peralatan')->toArray(),
-            'value' => $fasilitas->pluck('jumlah_total')->toArray()
+            'value' => $fasilitas->pluck('jumlah_total')->map(fn ($v) => (int) $v)->values()->toArray()
         ];
+        if (empty($chartSarpras['label'])) {
+            $chartSarpras = ['label' => [], 'value' => []];
+        }
 
-        // Summary Scorecard
         $summary = [
-            'fasilitas' => $fasilitas->sum('jumlah_total'),
-            'bank_sampah' => 0 // Dummy karena belum ada tabel bank sampah
+            'fasilitas' => (int) $fasilitas->sum('jumlah_total'),
+            'bank_sampah' => 0
         ];
 
-        // Pagination List Data (Khusus Tab Sarpras)
+        $listData = null;
         if ($tab == 'sarpras') {
             $listData = DB::table('kebutuhan_bbm_peralatan_operasionals')
                 ->select(
-                    'tipe_peralatan as nama_fasilitas', 
+                    'tipe_peralatan as nama_fasilitas',
                     'jenis_bbm as jenis_fasilitas',
-                    DB::raw("CONCAT(jumlah_beroperasi, ' Unit Beroperasi') as alamat"), // Manipulasi agar sesuai kolom view
+                    DB::raw("CONCAT(jumlah_beroperasi, ' Unit Beroperasi') as alamat"),
                     DB::raw("'Surabaya' as kecamatan"),
                     DB::raw("'-' as kelurahan")
                 )
+                ->orderBy('jumlah_beroperasi', 'desc')
                 ->paginate(10)
                 ->appends(['tab' => 'sarpras']);
         }
 
         // --- B. DATA ARMADA ---
-        // Menggunakan tabel 'kebutuhan_bbm_kendaraan_operasionals'
         $armada = DB::table('kebutuhan_bbm_kendaraan_operasionals')->get();
-        
         $chartArmada = [
             'label' => $armada->pluck('tipe_kendaraan')->toArray(),
-            'value' => $armada->pluck('jumlah_total')->toArray()
+            'value' => $armada->pluck('jumlah_total')->map(fn ($v) => (int) $v)->toArray()
         ];
+        if (empty($chartArmada['label'])) {
+            $chartArmada = ['label' => [], 'value' => []];
+        }
 
         // --- C. DATA BBM (Simulasi Bulanan dari Data Tahunan) ---
         // View mengharapkan data bulanan & biaya. Kita hitung rata-rata dari data tahunan DB.
@@ -93,32 +97,22 @@ class DataStatistikController extends Controller
         $hargaPertamax = 12950;
         $hargaDexlite = 14550;
 
+        $pertamaxData = array_map(fn () => round($monthlyPertamax * (rand(90, 110) / 100), 2), range(1, 6));
+        $dexliteData = array_map(fn () => round($monthlyDexlite * (rand(90, 110) / 100), 2), range(1, 6));
         $chartBBM = [
             'label' => $months,
             'series' => [
-                [
-                    'name' => 'Pertamax',
-                    // Buat variasi sedikit biar grafiknya tidak datar lurus
-                    'data' => array_map(fn() => $monthlyPertamax * (rand(90, 110)/100), range(1,6))
-                ],
-                [
-                    'name' => 'Dexlite',
-                    'data' => array_map(fn() => $monthlyDexlite * (rand(90, 110)/100), range(1,6))
-                ]
+                ['name' => 'Pertamax', 'data' => $pertamaxData],
+                ['name' => 'Dexlite', 'data' => $dexliteData]
             ],
-            // Struktur 'costs' wajib ada sesuai view
             'costs' => []
         ];
-
-        // Generate data costs looping dari data series di atas
-        for($i=0; $i<6; $i++){
+        for ($i = 0; $i < 6; $i++) {
             $literP = $chartBBM['series'][0]['data'][$i];
             $literD = $chartBBM['series'][1]['data'][$i];
-            $biaya = ($literP * $hargaPertamax) + ($literD * $hargaDexlite);
-            
             $chartBBM['costs'][] = [
                 'total_liter' => $literP + $literD,
-                'total_biaya' => $biaya
+                'total_biaya' => ($literP * $hargaPertamax) + ($literD * $hargaDexlite)
             ];
         }
 

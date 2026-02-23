@@ -1,113 +1,130 @@
-:root{
-  --bg: #f6f7fb;
-  --card: #ffffff;
-  --text: #0f172a;
-  --muted: rgba(15,23,42,.65);
+:root {
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: rgba(15, 23, 42, 0.65);
 
-  --blue: #1f6feb;          /* biru banner */
-  --blue-dark: #0b4aa7;
+    --blue: #1f6feb; /* biru banner */
+    --blue-dark: #0b4aa7;
 
-  --shadow: 0 18px 50px rgba(2, 6, 23, .10);
-  --radius: 14px;
+    --shadow: 0 18px 50px rgba(2, 6, 23, 0.1);
+    --radius: 14px;
 }
 
-*{ box-sizing: border-box; }
-body{
-  margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  color: var(--text);
-  background: var(--bg);
+* {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    font-family:
+        system-ui,
+        -apple-system,
+        Segoe UI,
+        Roboto,
+        Arial,
+        sans-serif;
+    color: var(--text);
+    background: var(--bg);
 }
 
 /* supaya konten tidak ketutup header fixed/sticky kamu */
-.peta-page{
-  padding-top: 110px; /* sesuaikan tinggi navbar kamu */
+.peta-page {
+    padding-top: 110px; /* sesuaikan tinggi navbar kamu */
 }
 
 /* Banner biru seperti contoh */
-.peta-banner{
-  padding: 18px 18px 0;
+.peta-banner {
+    padding: 18px 18px 0;
 }
-.peta-banner__inner{
-  max-width: 1100px;
-  margin: 0 auto;
-  background: linear-gradient(90deg, var(--blue), var(--blue-dark));
-  color: #fff;
-  border-radius: var(--radius);
-  padding: 18px 22px;
-  box-shadow: var(--shadow);
+.peta-banner__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: linear-gradient(90deg, var(--blue), var(--blue-dark));
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    box-shadow: var(--shadow);
 
-  display: flex;
-  align-items: center;
-  gap: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
-.peta-banner__icon{
-  width: 54px;
-  height: 54px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  font-size: 30px;
+.peta-banner__icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 30px;
 }
-.peta-banner__title{
-  margin: 0;
-  font-size: 34px;
-  font-weight: 900;
-  line-height: 1.05;
+.peta-banner__title {
+    margin: 0;
+    font-size: 34px;
+    font-weight: 900;
+    line-height: 1.05;
 }
-.peta-banner__subtitle{
-  margin: 6px 0 0;
-  opacity: .92;
+.peta-banner__subtitle {
+    margin: 6px 0 0;
+    opacity: 0.92;
 }
 
 /* Card map */
-.peta-content{
-  padding: 26px 18px 70px;
+.peta-content {
+    padding: 26px 18px 70px;
 }
-.peta-card{
-  max-width: 1100px;
-  margin: 0 auto;
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  border: 1px solid rgba(15,23,42,.08);
+.peta-card {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    border: 1px solid rgba(15, 23, 42, 0.08);
 }
-.peta-card__header{
-  padding: 14px 18px;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-  border-bottom: 1px solid rgba(15,23,42,.08);
+.peta-card__header {
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
-.peta-card__label{
-  font-weight: 900;
+.peta-card__label {
+    font-weight: 900;
 }
-.peta-card__hint{
-  color: var(--muted);
-  font-size: 13px;
+.peta-card__hint {
+    color: var(--muted);
+    font-size: 13px;
 }
 
-.peta-map{
-  height: calc(100vh - 180px); /* 180 = banner+padding, sesuaikan */
+.peta-map {
+    height: calc(100vh - 180px); /* 180 = banner+padding, sesuaikan */
 }
-.peta-banner__icon a{ display: grid; place-items: center; }
+.peta-banner__icon a {
+    display: grid;
+    place-items: center;
+}
 
-.peta-banner__icon img{
-  width: 60px;
-  height: 60px;
-  object-fit: contain;
-  display: block;
+.peta-banner__icon img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    display: block;
 }
 
 /* Mobile */
-@media (max-width: 700px){
-  .peta-banner__title{ font-size: 24px; }
-  .peta-map{ height: 420px; }
-  .peta-card__header{ flex-direction: column; align-items: flex-start; }
+@media (max-width: 700px) {
+    .peta-banner__title {
+        font-size: 24px;
+    }
+    .peta-map {
+        height: 420px;
+    }
+    .peta-card__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
-
 
 /* === PETA CUSTOM STYLES - Lanjutan dari peta.css === */
 
@@ -123,24 +140,24 @@ body{
 }
 
 #map {
-    height: 600px; 
-    width: 100%; 
+    height: 600px;
+    width: 100%;
     z-index: 1;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* --- SIDEBAR FILTER (FLOATING) --- */
 #filter-sidebar {
     position: absolute;
-    top: 10px; 
-    left: 10px; 
+    top: 10px;
+    left: 10px;
     bottom: 10px;
     width: 340px;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(5px);
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     z-index: 2000;
     display: flex;
     flex-direction: column;
@@ -155,8 +172,8 @@ body{
 .sidebar-header {
     padding: 15px 20px;
     border-bottom: 1px solid #eee;
-    display: flex; 
-    justify-content: space-between; 
+    display: flex;
+    justify-content: space-between;
     align-items: center;
     background: #f8fafc;
     border-radius: 12px 12px 0 0;
@@ -168,13 +185,13 @@ body{
     padding: 15px;
 }
 
-.sidebar-content::-webkit-scrollbar { 
-    width: 6px; 
+.sidebar-content::-webkit-scrollbar {
+    width: 6px;
 }
 
-.sidebar-content::-webkit-scrollbar-thumb { 
-    background: #cbd5e1; 
-    border-radius: 3px; 
+.sidebar-content::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
 }
 
 .sidebar-footer {
@@ -187,174 +204,193 @@ body{
 /* --- TOMBOL TOGGLE --- */
 #toggle-btn {
     position: absolute;
-    top: 20px; 
+    top: 20px;
     left: 20px;
     z-index: 2001;
-    background: #3b82f6; 
+    background: #3b82f6;
     color: white;
-    border: none; 
+    border: none;
     padding: 10px 14px;
-    border-radius: 8px; 
+    border-radius: 8px;
     cursor: pointer;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     transition: all 0.3s;
     display: none;
 }
 
-#toggle-btn:hover { 
-    background: #2563eb; 
-    transform: scale(1.05); 
+#toggle-btn:hover {
+    background: #2563eb;
+    transform: scale(1.05);
 }
 
 .close-btn {
-    background: none; 
-    border: none; 
-    font-size: 20px; 
-    color: #64748b; 
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #64748b;
     cursor: pointer;
 }
 
-.close-btn:hover { 
-    color: #ef4444; 
+.close-btn:hover {
+    color: #ef4444;
 }
 
 /* --- STYLE ITEM LAYER --- */
 .layer-item {
-    display: flex; 
-    align-items: center; 
+    display: flex;
+    align-items: center;
     cursor: pointer;
-    padding: 10px; 
+    padding: 10px;
     margin-bottom: 8px;
-    border-radius: 8px; 
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
-    background: #fff; 
+    background: #fff;
     transition: all 0.2s;
 }
 
-.layer-item:hover { 
-    border-color: #3b82f6; 
-    background: #eff6ff; 
+.layer-item:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
 }
 
 .layer-color {
-    width: 16px; 
-    height: 16px; 
-    border-radius: 4px; 
-    display: inline-block; 
-    margin-right: 10px; 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-right: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* --- SECTION ANALISIS --- */
 .analysis-box {
-    background: #f0f9ff; 
+    background: #f0f9ff;
     border: 1px solid #bae6fd;
-    padding: 15px; 
-    border-radius: 10px; 
+    padding: 15px;
+    border-radius: 10px;
     margin-bottom: 20px;
 }
 
-.analysis-title { 
-    font-size: 14px; 
-    font-weight: 700; 
-    color: #0369a1; 
-    margin-bottom: 10px; 
-    display: flex; 
-    align-items: center; 
-    gap: 8px; 
+.analysis-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0369a1;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.form-group { 
-    margin-bottom: 10px; 
+.form-group {
+    margin-bottom: 10px;
 }
 
-.form-group label { 
-    display: block; 
-    font-size: 12px; 
-    color: #64748b; 
-    margin-bottom: 6px; 
-    font-weight: 600; 
+.form-group label {
+    display: block;
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 6px;
+    font-weight: 600;
 }
 
 .checkbox-list {
-    background: white; 
-    border: 1px solid #cbd5e1; 
+    background: white;
+    border: 1px solid #cbd5e1;
     border-radius: 6px;
-    padding: 8px; 
-    max-height: 120px; 
+    padding: 8px;
+    max-height: 120px;
     overflow-y: auto;
 }
 
-.checkbox-list::-webkit-scrollbar { 
-    width: 5px; 
+.checkbox-list::-webkit-scrollbar {
+    width: 5px;
 }
 
-.checkbox-list::-webkit-scrollbar-thumb { 
-    background: #cbd5e1; 
-    border-radius: 3px; 
+.checkbox-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
 }
 
-.checkbox-item { 
-    display: flex; 
-    align-items: center; 
-    font-size: 12px; 
-    margin-bottom: 5px; 
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    margin-bottom: 5px;
 }
 
-.checkbox-item:last-child { 
-    margin-bottom: 0; 
+.checkbox-item:last-child {
+    margin-bottom: 0;
 }
 
-.checkbox-item input { 
-    margin-right: 8px; 
+.checkbox-item input {
+    margin-right: 8px;
 }
 
-.form-control { 
-    width: 100%; 
-    padding: 8px; 
-    border: 1px solid #cbd5e1; 
-    border-radius: 6px; 
-    font-size: 13px; 
+.form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
 }
 
 .btn-analysis {
-    width: 100%; 
-    padding: 8px; 
-    background: #0ea5e9; 
-    color: white; 
+    width: 100%;
+    padding: 8px;
+    background: #0ea5e9;
+    color: white;
     border: none;
-    border-radius: 6px; 
-    font-weight: 600; 
-    cursor: pointer; 
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
     transition: 0.2s;
     margin-top: 5px;
 }
 
-.btn-analysis:hover { 
-    background: #0284c7; 
+.btn-analysis:hover {
+    background: #0284c7;
 }
 
-/* --- LEGEND STATISTIK --- */
+/* Tips TPS & Area Pelayanan */
+.tps-area-tip {
+    margin-top: 12px;
+    padding: 10px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #166534;
+}
+.tps-area-tip strong { display: block; margin-bottom: 4px; }
+
+/* --- LEGEND STATISTIK (Pojok Kanan Bawah) --- */
 .info-legend {
-    padding: 10px 15px; 
-    font: 13px Arial; 
-    background: rgba(255,255,255,0.9);
-    box-shadow: 0 0 15px rgba(0,0,0,0.2); 
-    border-radius: 8px; 
-    min-width: 160px;
+    padding: 10px 15px;
+    font: 13px Arial;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    min-width: 180px;
+    border-left: 4px solid #3b82f6;
 }
 
-.info-legend h4 { 
-    margin: 0 0 8px; 
-    border-bottom: 1px solid #ccc; 
-    padding-bottom: 5px; 
-    font-size:14px; 
+.info-legend-bottomright {
+    right: 10px;
+    bottom: 30px;
 }
 
-.legend-item { 
-    display: flex; 
-    justify-content: space-between; 
-    margin-bottom: 4px; 
+.info-legend h4 {
+    margin: 0 0 8px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 5px;
+    font-size: 14px;
+    color: #1e293b;
+}
+
+.legend-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
 }
 
 /* --- STYLE UNTUK POPUP RANKING --- */
@@ -367,24 +403,24 @@ body{
     margin-bottom: 8px;
 }
 
-.rank-1 { 
-    background: #ffd700; 
-    color: #000; 
+.rank-1 {
+    background: #ffd700;
+    color: #000;
 }
 
-.rank-2 { 
-    background: #c0c0c0; 
-    color: #000; 
+.rank-2 {
+    background: #c0c0c0;
+    color: #000;
 }
 
-.rank-3 { 
-    background: #cd7f32; 
-    color: #fff; 
+.rank-3 {
+    background: #cd7f32;
+    color: #fff;
 }
 
-.rank-other { 
-    background: #3b82f6; 
-    color: #fff; 
+.rank-other {
+    background: #3b82f6;
+    color: #fff;
 }
 
 .score-bar {
@@ -433,7 +469,7 @@ body{
     font-weight: 700;
     font-size: 12px;
     color: #1e293b;
-    text-shadow: 
+    text-shadow:
         -1px -1px 0 #fff,
         1px -1px 0 #fff,
         -1px 1px 0 #fff,
@@ -510,6 +546,15 @@ body{
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
+.btn-print-excel {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.btn-print-excel:hover {
+    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
 .btn-print:active {
     transform: translateY(0);
 }
@@ -523,21 +568,20 @@ body{
     #map {
         height: 400px;
     }
-    
+
     #filter-sidebar {
         width: 300px;
     }
-    
+
     .print-buttons {
         flex-direction: column;
     }
-    
+
     .btn-print {
         width: 100%;
         min-width: auto;
     }
 }
-
 
 /* CSS Tambahan untuk Loading Overlay - Tambahkan ke peta.css jika diperlukan */
 
@@ -574,8 +618,12 @@ body{
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Heatmap Legend Styling */
@@ -619,7 +667,7 @@ body{
     font-weight: 600;
     font-size: 11px;
     color: #475569;
-    text-shadow: 
+    text-shadow:
         -1px -1px 0 #fff,
         1px -1px 0 #fff,
         -1px 1px 0 #fff,
@@ -718,4 +766,3 @@ body.fullscreen-active .peta-content {
         padding: 10px 12px;
     }
 }
-

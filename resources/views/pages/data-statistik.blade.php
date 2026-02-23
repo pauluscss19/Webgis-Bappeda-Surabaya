@@ -118,27 +118,30 @@
                     <div class="card-box">
                         <div class="card-header-custom">
                             <h5 class="card-title"><i class="bi bi-list-ul"></i> Ringkasan Aset</h5>
-                            <span class="badge badge-green">{{ $data['summary']['fasilitas'] + $data['summary']['bank_sampah'] }} Unit Total</span>
+                            <span class="badge badge-green">{{ ($data['summary']['fasilitas'] ?? 0) + ($data['summary']['bank_sampah'] ?? 0) }} Unit Total</span>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-custom">
-                                <thead><tr><th>Jenis Fasilitas</th><th class="text-end">Jumlah Unit</th><th class="text-end">Kontribusi</th></tr></thead>
+                                <thead><tr><th>JENIS FASILITAS</th><th class="text-end">JUMLAH UNIT</th><th class="text-end">KONTRIBUSI</th></tr></thead>
                                 <tbody>
-                                    @php $total = array_sum($data['chart_sarpras']['value']); @endphp
-                                    @foreach($data['chart_sarpras']['label'] as $index => $label)
+                                    @php $total = array_sum($data['chart_sarpras']['value'] ?? []); @endphp
+                                    @forelse($data['chart_sarpras']['label'] ?? [] as $index => $label)
                                     <tr class="table-row-hover">
                                         <td class="fw-bold text-dark">{{ $label }}</td>
-                                        <td class="text-end fw-bold">{{ number_format($data['chart_sarpras']['value'][$index], 0, ',', '.') }}</td>
+                                        <td class="text-end fw-bold">{{ number_format($data['chart_sarpras']['value'][$index] ?? 0, 0, ',', '.') }}</td>
                                         <td class="text-end">
+                                            @php $pct = $total > 0 ? round((($data['chart_sarpras']['value'][$index] ?? 0) / $total) * 100, 1) : 0; @endphp
                                             <div class="d-flex align-items-center justify-content-end gap-2">
-                                                <span class="small text-muted">{{ $total > 0 ? round(($data['chart_sarpras']['value'][$index] / $total) * 100, 1) : 0 }}%</span>
+                                                <span class="small text-muted">{{ $pct }}%</span>
                                                 <div class="progress progress-thin" style="width: 50px;">
-                                                    <div class="progress-bar bg-success" style="width: {{ $total > 0 ? ($data['chart_sarpras']['value'][$index] / $total) * 100 : 0 }}%"></div>
+                                                    <div class="progress-bar bg-success" style="width: {{ $pct }}%"></div>
                                                 </div>
                                             </div>
                                         </td>
                                     </tr>
-                                    @endforeach
+                                    @empty
+                                    <tr><td colspan="3" class="text-center text-muted py-4">Belum ada data. Jalankan: <code>php artisan db:seed --class=FasilitasPeralatanSeeder</code></td></tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -153,7 +156,7 @@
                         </div>
                         <div class="table-responsive">
                             <table class="table table-custom table-hover">
-                                <thead><tr><th>Jenis</th><th>Nama Fasilitas</th><th>Alamat</th><th>Kecamatan</th><th>Kelurahan</th></tr></thead>
+                                <thead><tr><th>JENIS</th><th>NAMA FASILITAS</th><th>ALAMAT</th><th>KECAMATAN</th><th>KELURAHAN</th></tr></thead>
                                 <tbody>
                                     @foreach($listData as $item)
                                     <tr>
@@ -310,13 +313,22 @@
         const commonOpts = { chart: { fontFamily: 'Segoe UI', toolbar: { show: false } }, tooltip: { theme: 'light' } };
 
         @if($tab == 'sarpras')
+            @if(!empty($data['chart_sarpras']['value']))
             new ApexCharts(document.querySelector("#chartSarprasDonut"), { ...commonOpts, series: @json($data['chart_sarpras']['value']), labels: @json($data['chart_sarpras']['label']), chart: { type: 'donut', height: 350 }, colors: ['#059669', '#10b981', '#34d399', '#6ee7b7'], plotOptions: { pie: { donut: { size: '65%' } } }, legend: { position: 'bottom' } }).render();
+            @else
+            document.querySelector("#chartSarprasDonut").innerHTML = '<div class="text-center text-muted py-5">Belum ada data fasilitas.<br><small>Jalankan: php artisan db:seed --class=FasilitasPeralatanSeeder</small></div>';
+            @endif
         @elseif($tab == 'armada_logistik')
+            @if(!empty($data['chart_armada']['value']))
             new ApexCharts(document.querySelector("#chartArmada"), { ...commonOpts, series: @json($data['chart_armada']['value']), labels: @json($data['chart_armada']['label']), chart: { type: 'pie', height: 300 }, legend: { position: 'bottom' } }).render();
-            
+            @else
+            document.querySelector("#chartArmada").innerHTML = '<div class="text-center text-muted py-5">Belum ada data armada.<br><small>Jalankan: php artisan db:seed --class=ArmadaKendaraanSeeder</small></div>';
+            @endif
+            @php $hasBbmData = !empty($data['chart_bbm']['series']); if ($hasBbmData && isset($data['chart_bbm']['series'][0]['data'])) { $hasBbmData = collect($data['chart_bbm']['series'][0]['data'])->sum() > 0 || (isset($data['chart_bbm']['series'][1]['data']) && collect($data['chart_bbm']['series'][1]['data'])->sum() > 0); } @endphp
+            @if($hasBbmData)
             new ApexCharts(document.querySelector("#chartBBM"), {
                 ...commonOpts,
-                series: @json($data['chart_bbm']['series']), 
+                series: @json($data['chart_bbm']['series']),
                 chart: { type: 'bar', height: 380, stacked: true, toolbar: { show: false } },
                 xaxis: { categories: @json($data['chart_bbm']['label']) },
                 colors: ['#dc2626', '#16a34a', '#2563eb'],
@@ -337,6 +349,9 @@
                 tooltip: { y: { formatter: function (val) { return val.toLocaleString('id-ID') + " Liter"; } } },
                 legend: { position: 'top' }
             }).render();
+            @else
+            document.querySelector("#chartBBM").innerHTML = '<div class="text-center text-muted py-5">Data konsumsi BBM akan muncul setelah data Armada & Fasilitas diisi.</div>';
+            @endif
 
         @elseif($tab == 'tpa')
             new ApexCharts(document.querySelector("#chartTrendTPA"), { ...commonOpts, series: [{ name: 'Volume (Ton)', data: @json($data['trend_tpa']['value']) }], chart: { type: 'area', height: 400 }, xaxis: { categories: @json($data['trend_tpa']['label']) }, colors: ['#059669'], stroke: { curve: 'straight', width: 3 }, dataLabels: { enabled: true } }).render();

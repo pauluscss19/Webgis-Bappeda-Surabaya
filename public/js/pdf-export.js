@@ -31,9 +31,17 @@ const PDF_CONFIG = {
     'KEPADATAN_PENDUDUK': { label: 'Kepadatan Penduduk', color: '#ef4444', type: 'polygon', isBoundary: false },
     'KECAMATAN': { label: 'Batas Kecamatan', color: '#6366f1', type: 'line', isBoundary: true },
     'KELURAHAN': { label: 'Batas Kelurahan', color: '#eab308', type: 'line', isBoundary: true },
-    'BATAS_RW': { label: 'Batas RW', color: '#14b8a6', type: 'line', isBoundary: true }
+    'BATAS_RW': { label: 'Batas RW', color: '#14b8a6', type: 'line', isBoundary: true },
+    'AREA_RAYON': { label: 'Area Rayon', color: '#0d9488', type: 'polygon', isBoundary: false },
+    'POMPA_AIR_7_RAYON': { label: 'Area Pompa Air 7 Rayon', color: '#0891b2', type: 'polygon', isBoundary: false },
+    'JARINGAN_PIPA_SALURAN': { label: 'Jaringan Pipa & Saluran Air', color: '#0284c7', type: 'line', isBoundary: false },
+    'TITIK_POMPA_AIR': { label: 'Titik Lokasi Pompa Air', color: '#0369a1', type: 'circle', isBoundary: false },
+    'SALURAN_AIR': { label: 'Saluran Air', color: '#0e7490', type: 'circle', isBoundary: false }
   }
 };
+
+// Zoom level untuk skala peta ~1:50.000 (optimal export)
+const PDF_ZOOM_SCALE_150000 = 13;
 
 const HD_SCALE = 2.5;
 
@@ -341,35 +349,45 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   ctx.fill();
   curY += 45 * scale;
   
-  // C. SKALA PETA
+  // C. SKALA PETA (tetap 1:50.000 + scale bar seperti referensi: 0, 1.25, 2.5, 5 Km)
   ctx.textAlign = 'center';
-  ctx.font = `bold ${10 * scale}px Arial`;
+  ctx.font = `bold ${11 * scale}px Arial`;
   ctx.fillStyle = '#000000';
   ctx.fillText("SKALA : 1 : 50.000", centerX, curY);
-  curY += 10 * scale;
+  curY += 14 * scale;
   
-  const barWidth = 100 * scale;
-  const latDiff = Math.abs(bounds.getNorth() - bounds.getSouth());
-  const kmTotal = latDiff * 111.32;
-  const kmPerPx = kmTotal / pixelHeight;
-  const scaleVal = (barWidth / scale * kmPerPx).toFixed(1);
-  const barX = centerX - (barWidth / 2);
+  const scaleBarTotalKm = 5;
+  const scaleBarSegments = 4;
+  const scaleBarWidth = 200 * scale;
+  const segmentWidth = scaleBarWidth / scaleBarSegments;
+  const barHeight = 6 * scale;
+  const barX = centerX - (scaleBarWidth / 2);
+  const barY = curY;
   
-  ctx.fillStyle = 'black';
-  ctx.fillRect(barX, curY, barWidth / 2, 6 * scale);
-  ctx.strokeStyle = 'black';
+  ctx.strokeStyle = '#000000';
   ctx.lineWidth = 1 * scale;
-  ctx.strokeRect(barX, curY, barWidth, 6 * scale);
+  for (let i = 0; i < scaleBarSegments; i++) {
+    const segX = barX + i * segmentWidth;
+    if (i === 0 || i === 2) ctx.fillStyle = '#000000';
+    else ctx.fillStyle = '#ffffff';
+    ctx.fillRect(segX, barY, segmentWidth, barHeight);
+    ctx.strokeRect(segX, barY, segmentWidth, barHeight);
+  }
+  ctx.strokeRect(barX, barY, scaleBarWidth, barHeight);
   
   ctx.font = `${9 * scale}px Arial`;
-  ctx.fillStyle = 'black';
-  ctx.textAlign = 'left';
-  ctx.fillText("0", barX, curY + 18 * scale);
+  ctx.fillStyle = '#000000';
+  const labels = ['0', '1.25', '2.5', '5 Km'];
+  const labelPositions = [0, 0.25, 0.5, 1];
+  labels.forEach(function (label, i) {
+    const lx = barX + labelPositions[i] * scaleBarWidth;
+    if (i === 0) ctx.textAlign = 'left';
+    else if (i === labels.length - 1) ctx.textAlign = 'right';
+    else ctx.textAlign = 'center';
+    ctx.fillText(label, lx, barY + barHeight + 14 * scale);
+  });
   ctx.textAlign = 'center';
-  ctx.fillText(`${(scaleVal/2).toFixed(1)}`, barX + barWidth/2, curY + 18 * scale);
-  ctx.textAlign = 'right';
-  ctx.fillText(scaleVal + " Km", barX + barWidth, curY + 18 * scale);
-  curY += 30 * scale;
+  curY += 36 * scale;
   
   ctx.beginPath();
   ctx.moveTo(x + 15 * scale, curY);
@@ -737,12 +755,9 @@ window.printMap = async function() {
     mapDiv.style.zIndex = '1';
     window.map.invalidateSize();
     
-    if (currentBounds.isValid()) {
-      window.map.fitBounds(currentBounds, {
-        padding: [10, 10],
-        animate: false
-      });
-    }
+    // Skala 1:50.000 - set view ke zoom tetap (zoom 13 ≈ 1:50.000)
+    const center = window.map.getCenter();
+    window.map.setView(center, PDF_ZOOM_SCALE_150000, { animate: false });
     
     if (loadingOverlay) {
       const loadingText = loadingOverlay.querySelector('div div:last-child');

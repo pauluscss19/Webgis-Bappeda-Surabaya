@@ -81,6 +81,10 @@
         color: #334155;
     }
 
+    .layer-group-pompa-saluran .layer-group-header {
+        background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+    }
+
     /* ============================================================
        CSS UNTUK LABEL NAMA RW
        ============================================================ */
@@ -229,29 +233,14 @@
                             <span style="font-size:14px;">CCTV Eksisting</span>
                         </label>
                         <label class="layer-item">
-                            <input type="checkbox" class="layer-toggle me-2" data-layer="TITIK_SAMPAH">
-                            <span class="layer-color" style="background: #facc15;"></span>
-                            <span style="font-size:14px;">Titik Sampah</span>
-                        </label>
-                        <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="CCTV_RENCANA">
                             <span class="layer-color" style="background: #f97316;"></span>
                             <span style="font-size:14px;">CCTV Rencana</span>
                         </label>
                         <label class="layer-item">
-                            <input type="checkbox" class="layer-toggle me-2" data-layer="TITIK_SAMPAH_RENCANA">
-                            <span class="layer-color" style="background: #22c55e;"></span>
-                            <span style="font-size:14px;">Sampah Rencana</span>
-                        </label>
-                        <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="DAMKAR">
                             <span class="layer-color" style="background: #FF0000;"></span>
                             <span style="font-size:14px;">Pos Damkar</span>
-                        </label>
-                        <label class="layer-item">
-                            <input type="checkbox" class="layer-toggle me-2" data-layer="MAKAM">
-                            <span class="layer-color" style="background: #3b82f6;"></span>
-                            <span style="font-size:14px;">Makam</span>
                         </label>
                     </div>
                 </div>
@@ -308,6 +297,21 @@
                             <span class="layer-color" style="background: #ec4899;"></span>
                             <span style="font-size:14px;">Titik Rute Sampah</span>
                         </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="TITIK_SAMPAH">
+                            <span class="layer-color" style="background: #facc15;"></span>
+                            <span style="font-size:14px;">Titik Sampah</span>
+                        </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="TITIK_SAMPAH_RENCANA">
+                            <span class="layer-color" style="background: #22c55e;"></span>
+                            <span style="font-size:14px;">Sampah Rencana</span>
+                        </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="MAKAM">
+                            <span class="layer-color" style="background: #3b82f6;"></span>
+                            <span style="font-size:14px;">Makam</span>
+                        </label>
                     </div>
                 </div>
 
@@ -342,6 +346,41 @@
                             <input type="checkbox" class="layer-toggle me-2" data-layer="KEPADATAN_PENDUDUK">
                             <span class="layer-color" style="background: transparent; border: 2px solid #8b5cf6;"></span>
                             <span style="font-size:14px;">Kepadatan Penduduk</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- GROUP: POMPA & SALURAN AIR -->
+                <div class="layer-group layer-group-pompa-saluran">
+                    <div class="layer-group-header" onclick="toggleLayerGroup(this)">
+                        <span><i class="bi bi-droplet-fill"></i> Pompa & Saluran Air</span>
+                        <i class="bi bi-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="layer-group-content">
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="AREA_RAYON">
+                            <span class="layer-color" style="background: #0d9488;"></span>
+                            <span style="font-size:14px;">Area Rayon</span>
+                        </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="POMPA_AIR_7_RAYON">
+                            <span class="layer-color" style="background: #0891b2;"></span>
+                            <span style="font-size:14px;">Area Pompa Air 7 Rayon</span>
+                        </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="JARINGAN_PIPA_SALURAN">
+                            <span class="layer-color" style="background: #0284c7; width: 20px; height: 3px;"></span>
+                            <span style="font-size:14px;">Jaringan Pipa & Saluran Air</span>
+                        </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="TITIK_POMPA_AIR">
+                            <span class="layer-color" style="background: #0369a1;"></span>
+                            <span style="font-size:14px;">Titik Lokasi Pompa Air</span>
+                        </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="SALURAN_AIR">
+                            <span class="layer-color" style="background: #0e7490;"></span>
+                            <span style="font-size:14px;">Saluran Air</span>
                         </label>
                     </div>
                 </div>
@@ -436,20 +475,24 @@
             </div>
         </div>
 
-        <!-- SECTION PRINT PDF -->
+        <!-- SECTION PRINT PDF & EXPORT EXCEL -->
         <div class="print-section">
             <div class="print-title">
                 <i class="bi bi-printer-fill"></i>
-                Export Peta PDF
+                Export Peta & Data
             </div>
             <div class="print-buttons">
                 <button class="btn-print" onclick="printMap()">
                     <i class="bi bi-file-earmark-pdf-fill"></i>
-                    Export PDF Landscape
+                    Export PDF (Skala 1:50.000)
+                </button>
+                <button class="btn-print btn-print-excel" onclick="exportMapDataToExcel()">
+                    <i class="bi bi-file-earmark-excel-fill"></i>
+                    Export Data ke Excel
                 </button>
             </div>
             <div style="margin-top: 10px; font-size: 11px; color: #64748b; line-height: 1.4;">
-                <i class="bi bi-info-circle"></i> PDF akan di-export dalam format A4 Landscape dengan gambar peta penuh 1 halaman.
+                <i class="bi bi-info-circle"></i> PDF: A4 Landscape, skala 1:50.000. Excel: data layer yang aktif (nama, koordinat, atribut).
             </div>
         </div>
 
@@ -464,6 +507,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://unpkg.com/leaflet-simple-map-screenshoter"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
   <!-- Load external JS files in correct order -->
   <script>
@@ -507,7 +551,10 @@
   <!-- 7. PDF Export - fungsi export PDF -->
   <script src="{{ asset('js/pdf-export.js') }}"></script>
 
-  <!-- 8. Main - inisialisasi aplikasi (harus terakhir) -->
+  <!-- 8. Excel Export - fungsi export data layer ke Excel -->
+  <script src="{{ asset('js/excel-export.js') }}"></script>
+
+  <!-- 9. Main - inisialisasi aplikasi (harus terakhir) -->
   <script src="{{ asset('js/main.js') }}"></script>
 
 </body>

@@ -58,10 +58,15 @@ L.control.layers({
     "Humanitarian": streetLayer
 }, null, { position: 'topright' }).addTo(map);
 
-// --- LEGEND STATISTIK ---
-const infoLegend = L.control({ position: 'bottomleft' });
+// --- LEGEND STATISTIK (Pojok Kanan Bawah; diklik = refresh jumlah) ---
+const infoLegend = L.control({ position: 'bottomright' });
 infoLegend.onAdd = function (map) {
-    this._div = L.DomUtil.create('div', 'info-legend');
+    this._div = L.DomUtil.create('div', 'info-legend info-legend-bottomright');
+    this._div.title = 'Klik untuk melihat jumlah titik per layer';
+    this._div.style.cursor = 'pointer';
+    this._div.addEventListener('click', function () {
+        if (typeof infoLegend !== 'undefined' && infoLegend.update) infoLegend.update();
+    });
     this.update();
     return this._div;
 };
@@ -88,12 +93,13 @@ infoLegend.update = function () {
         }
     });
 
-    if (mapLayers['ANALYSIS_RESULT']) {
+    if (mapLayers['ANALYSIS_RESULT'] && map.hasLayer(mapLayers['ANALYSIS_RESULT'])) {
         html += `<div style="margin-top:5px; border-top:1px solid #eee; padding-top:5px;"><strong>Hasil Analisis:</strong></div>`;
         html += `<div class="legend-item"><div style="display:flex;align-items:center;"><span style="display:inline-block; width:12px; height:12px; background:#ef4444; border:2px solid white; border-radius:50%; margin-right:5px; box-shadow:0 0 4px black;"></span>Rekomendasi</div></div>`;
     }
 
-    if (!hasActiveLayer && !mapLayers['ANALYSIS_RESULT']) html += '<div style="color:#777; font-size:11px;">Tidak ada layer aktif</div>';
+    if (!hasActiveLayer && !(mapLayers['ANALYSIS_RESULT'] && map.hasLayer(mapLayers['ANALYSIS_RESULT']))) html += '<div style="color:#777; font-size:11px;">Tidak ada layer aktif</div>';
+    html += '<div style="margin-top:6px; font-size:10px; color:#64748b;">Klik untuk refresh</div>';
     this._div.innerHTML = html;
 };
 infoLegend.addTo(map);

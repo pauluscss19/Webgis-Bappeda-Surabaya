@@ -2,31 +2,59 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Collection;
 
 class RthController extends Controller
 {
+    private function table(string $name): Collection
+    {
+        if (! Schema::hasTable($name)) {
+            return collect([]);
+        }
+        try {
+            return DB::table($name)->get();
+        } catch (\Throwable $e) {
+            return collect([]);
+        }
+    }
+
+    private function tableOrderBy(string $name, string $column, string $dir = 'asc'): Collection
+    {
+        if (! Schema::hasTable($name)) {
+            return collect([]);
+        }
+        try {
+            return DB::table($name)->orderBy($column, $dir)->get();
+        } catch (\Throwable $e) {
+            return collect([]);
+        }
+    }
+
     public function index()
     {
-        // =================================================================
-        // BAGIAN 1: DATA IHBI (TIPOLOGI)
-        // =================================================================
-        $rthA = DB::table('luasan_rth_dprkpps')->where('tipologi', 'A')->orderBy('luas', 'desc')->get();
-        $rthB = DB::table('luasan_rth_dprkpps')->where('tipologi', 'B')->get();
-        $rthC = DB::table('luasan_rth_dprkpps')->where('tipologi', 'C')->get();
-        $persentase = DB::table('persentase_tipologis')->pluck('persentase', 'tipologi');
-        $ringkasan = DB::table('ringkasan_rth_kotas')->get();
+        $persentase = collect(['A' => 0, 'B' => 0, 'C' => 0]);
+        if (Schema::hasTable('persentase_tipologis')) {
+            try {
+                $persentase = DB::table('persentase_tipologis')->pluck('persentase', 'tipologi');
+            } catch (\Throwable $e) {
+                // keep default
+            }
+        }
+
+        $luasanRth = $this->table('luasan_rth_dprkpps');
+        $rthA = $luasanRth->where('tipologi', 'A')->sortByDesc('luas')->values();
+        $rthB = $luasanRth->where('tipologi', 'B')->values();
+        $rthC = $luasanRth->where('tipologi', 'C')->values();
+        $ringkasan = $this->table('ringkasan_rth_kotas');
 
         $chartPieIHBI = [
             'series' => [$rthA->sum('luas'), $rthB->sum('luas'), $rthC->sum('luas')],
             'labels' => ['Tipologi A (Publik)', 'Tipologi B (Privat)', 'Tipologi C (Badan Air)']
         ];
 
-        // =================================================================
-        // BAGIAN 2: DATA TAMAN
-        // =================================================================
-        $dataTaman = DB::table('rekapitulasi_rth_tamans')->orderBy('wilayah', 'asc')->get();
+        $dataTaman = $this->tableOrderBy('rekapitulasi_rth_tamans', 'wilayah', 'asc');
         $totalTaman = [
             'luas_total' => $dataTaman->sum('luas_per_wilayah'),
             'jml_pasif' => $dataTaman->sum('jumlah_taman_pasif_jalur_hijau'),
@@ -41,31 +69,24 @@ class RthController extends Controller
             'data' => $dataTaman->pluck('luas_per_wilayah')->toArray()
         ];
 
-        // =================================================================
-        // BAGIAN 3: DATA MAKAM
-        // =================================================================
-        $dataMakamLuas = DB::table('rekapitulasi_rth_makams')->get();
+        $dataMakamLuas = $this->table('rekapitulasi_rth_makams');
         $totalLuasMakam = $dataMakamLuas->sum('luas');
-        $dataKapasitas = DB::table('kapasitas_makams')->get();
+        $dataKapasitas = $this->table('kapasitas_makams');
         $totalSisaPetak = $dataKapasitas->sum('sisa_petak');
         $totalMakamTerisi = $dataKapasitas->sum('jumlah_data_kematian');
 
-        // =================================================================
-        // BAGIAN 4: DATA KREMATORIUM
-        // =================================================================
-        $krematoriumKompor = DB::table('kompor_krematoriums')->get();
-        $krematoriumPegawai = DB::table('pegawai_krematoriums')->get();
-        $krematoriumJabatan = DB::table('catatan_jabatan_krematoriums')->get();
+        $krematoriumKompor = $this->table('kompor_krematoriums');
+        $krematoriumPegawai = $this->table('pegawai_krematoriums');
+        $krematoriumJabatan = $this->table('catatan_jabatan_krematoriums');
         $totalPegawaiKrematorium = $krematoriumPegawai->count();
         $komporRusak = $krematoriumKompor->where('kondisi', 'Rusak')->sum('jumlah');
         $komporBaik = $krematoriumKompor->where('kondisi', 'Bisa Digunakan')->sum('jumlah');
 
-        // =================================================================
-        // BAGIAN 5: DATA SARPRAS (BBM) & CSR
-        // =================================================================
-        $bbmKendaraan = DB::table('kebutuhan_bbm_kendaraan_operasionals')->get();
-        $bbmPeralatan = DB::table('kebutuhan_bbm_peralatan_operasionals')->get();
-        $dataCSR = DB::table('rth_skema_csrs')->orderBy('tahun', 'desc')->orderBy('bulan', 'desc')->get();
+        $bbmKendaraan = $this->table('kebutuhan_bbm_kendaraan_operasionals');
+        $bbmPeralatan = $this->table('kebutuhan_bbm_peralatan_operasionals');
+        $dataCSR = Schema::hasTable('rth_skema_csrs')
+            ? DB::table('rth_skema_csrs')->orderBy('tahun', 'desc')->orderBy('bulan', 'desc')->get()
+            : collect([]);
 
         $totalBBM = [
             'kendaraan_pertamax' => $bbmKendaraan->sum('kebutuhan_1_tahun_pertamax'),
@@ -75,48 +96,35 @@ class RthController extends Controller
             'unit_peralatan' => $bbmPeralatan->sum('jumlah_total'),
         ];
 
-        // =================================================================
-        // BAGIAN 6: UJI KUALITAS AIR
-        // =================================================================
-        $badanAir = DB::table('uji_air_badan_air')->orderBy('id', 'asc')->get();
-        $pelabuhan = DB::table('uji_air_laut_pelabuhan')->orderBy('id', 'asc')->get();
-        $wisata = DB::table('uji_air_laut_wisata_bahari')->orderBy('id', 'asc')->get();
-        $biota = DB::table('uji_air_laut_biota_laut')->orderBy('id', 'asc')->get();
+        $badanAir = $this->tableOrderBy('uji_air_badan_air', 'id', 'asc');
+        $pelabuhan = $this->tableOrderBy('uji_air_laut_pelabuhan', 'id', 'asc');
+        $wisata = $this->tableOrderBy('uji_air_laut_wisata_bahari', 'id', 'asc');
+        $biota = $this->tableOrderBy('uji_air_laut_biota_laut', 'id', 'asc');
 
-        // =================================================================
-        // BAGIAN 7: UJI KUALITAS UDARA
-        // =================================================================
-        $ambien = DB::table('uji_udara_ambien_particulate_counters')->get();
-        $passive = DB::table('uji_udara_passive_samplers')->get();
-        $sumur = DB::table('sumur_pantaus')->get();
-        $spkua = DB::table('spkuas')->get();
-
-        // Data Scorecard Udara
+        $ambien = $this->table('uji_udara_ambien_particulate_counters');
+        $passive = $this->table('uji_udara_passive_samplers');
+        $sumur = $this->table('sumur_pantaus');
+        $spkua = $this->table('spkuas');
         $totalAmbien = $ambien->count();
         $totalPassive = $passive->count();
         $totalAlat = $sumur->count() + $spkua->count();
 
-        // Data Grafik Udara (Pie Chart berdasarkan Kawasan)
-        $chartDataAmbien = $ambien->groupBy('peruntukan_kawasan')->map(fn($item) => $item->count());
+        $chartDataAmbien = $ambien->groupBy('peruntukan_kawasan')->map(fn ($item) => $item->count());
         $chartAmbien = [
             'labels' => $chartDataAmbien->keys()->toArray(),
             'series' => $chartDataAmbien->values()->toArray()
         ];
+        if (empty($chartAmbien['labels'])) {
+            $chartAmbien = ['labels' => ['Belum ada data'], 'series' => [0]];
+        }
 
         return view('pages.rth-surabaya', compact(
-            // IHBI
             'rthA', 'rthB', 'rthC', 'persentase', 'ringkasan', 'chartPieIHBI',
-            // Taman
             'dataTaman', 'totalTaman', 'chartBarTaman',
-            // Makam
             'dataMakamLuas', 'totalLuasMakam', 'dataKapasitas', 'totalSisaPetak', 'totalMakamTerisi',
-            // Krematorium
             'krematoriumKompor', 'krematoriumPegawai', 'krematoriumJabatan', 'totalPegawaiKrematorium', 'komporRusak', 'komporBaik',
-            // Sarpras & CSR
             'bbmKendaraan', 'bbmPeralatan', 'dataCSR', 'totalBBM',
-            // Uji Air
             'badanAir', 'pelabuhan', 'wisata', 'biota',
-            // Uji Udara
             'ambien', 'passive', 'sumur', 'spkua', 'totalAmbien', 'totalPassive', 'totalAlat', 'chartAmbien'
         ));
     }

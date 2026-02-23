@@ -154,6 +154,46 @@ const layerConfig = {
         nameField: 'DESA', 
         group: 'demografi' 
     },
+
+    // POMPA & SALURAN AIR
+    'AREA_RAYON': { 
+        file: 'Area_Rayon.json', 
+        color: '#0d9488',
+        label: 'Area Rayon', 
+        isPolygon: true,
+        nameField: 'Name',
+        group: 'pompa_saluran' 
+    },
+    'POMPA_AIR_7_RAYON': { 
+        file: 'Layer area Pompa Air 7 Rayon.json', 
+        color: '#0891b2',
+        label: 'Area Pompa Air 7 Rayon', 
+        isPolygon: true,
+        nameField: 'Name',
+        group: 'pompa_saluran' 
+    },
+    'JARINGAN_PIPA_SALURAN': { 
+        file: 'Layer garis jaringan pipa & saluran air.json', 
+        color: '#0284c7',
+        label: 'Jaringan Pipa & Saluran Air', 
+        isLine: true,
+        nameField: 'Name',
+        group: 'pompa_saluran' 
+    },
+    'TITIK_POMPA_AIR': { 
+        file: 'Layer titik lokasi pompa air.json', 
+        color: '#0369a1',
+        label: 'Titik Lokasi Pompa Air', 
+        nameField: 'Name',
+        group: 'pompa_saluran' 
+    },
+    'SALURAN_AIR': { 
+        file: 'Saluran_Air.json', 
+        color: '#0e7490',
+        label: 'Saluran Air', 
+        nameField: 'Name',
+        group: 'pompa_saluran' 
+    },
     
     // BATAS WILAYAH
     'KECAMATAN': { 

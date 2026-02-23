@@ -165,7 +165,8 @@ function convertGeometryCollectionToFeatureCollection(data, layerKey) {
  */
 async function loadLayer(layerKey) {
     const config = layerConfig[layerKey];
-    const filePath = window.ASSET_BASE_URL + config.file;
+    const base = (window.ASSET_BASE_URL || '').replace(/\/$/, '');
+    const filePath = base + '/' + encodeURIComponent(config.file);
 
     try {
         console.log(`📥 Loading ${layerKey}...`);
