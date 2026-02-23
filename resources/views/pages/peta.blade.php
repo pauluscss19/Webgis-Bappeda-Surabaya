@@ -119,6 +119,93 @@
     .leaflet-zoom-animated .rw-label {
         transition: all 0.2s ease;
     }
+
+    /* ============================================================
+       FILTER WILAYAH - di dalam sidebar
+       ============================================================ */
+    .fw-section {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1.5px solid #7dd3fc;
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+    .fw-section-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: #0369a1;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .fw-row { margin-bottom: 8px; }
+    .fw-row label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #0c4a6e;
+        display: block;
+        margin-bottom: 4px;
+    }
+    .fw-select {
+        width: 100%;
+        padding: 7px 9px;
+        border: 1.5px solid #7dd3fc;
+        border-radius: 7px;
+        font-size: 12.5px;
+        color: #1e293b;
+        background: white;
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.2s;
+        font-family: inherit;
+    }
+    .fw-select:focus { border-color: #0284c7; }
+    .fw-btn-row { display: flex; gap: 6px; margin-top: 10px; }
+    .fw-btn-apply {
+        flex: 1;
+        padding: 8px;
+        background: linear-gradient(135deg, #0284c7, #0369a1);
+        color: white;
+        border: none;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-family: inherit;
+        transition: filter 0.2s;
+    }
+    .fw-btn-apply:hover { filter: brightness(1.1); }
+    .fw-btn-reset {
+        padding: 8px 12px;
+        background: white;
+        color: #64748b;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+    .fw-btn-reset:hover { background: #f1f5f9; color: #334155; }
+    #fw-active-badge {
+        display: none;
+        margin-top: 8px;
+        padding: 5px 10px;
+        background: #0284c7;
+        color: white;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -387,6 +474,34 @@
 
                 <hr style="border-top:1px dashed #cbd5e1; margin: 15px 0;">
 
+                <!-- FILTER WILAYAH -->
+                <div class="fw-section">
+                    <div class="fw-section-title">
+                        <i class="bi bi-funnel-fill"></i> Filter Wilayah
+                    </div>
+                    <div class="fw-row">
+                        <label><i class="bi bi-map"></i> Kecamatan</label>
+                        <select id="fw-kecamatan" class="fw-select">
+                            <option value="">— Semua Kecamatan —</option>
+                        </select>
+                    </div>
+                    <div class="fw-row">
+                        <label><i class="bi bi-geo-alt"></i> Kelurahan</label>
+                        <select id="fw-kelurahan" class="fw-select">
+                            <option value="">— Semua Kelurahan —</option>
+                        </select>
+                    </div>
+                    <div class="fw-btn-row">
+                        <button class="fw-btn-apply" onclick="FilterWilayah.applyFromUI()">
+                            <i class="bi bi-check2-circle"></i> Terapkan Filter
+                        </button>
+                        <button class="fw-btn-reset" onclick="FilterWilayah.clearFilter()" title="Reset filter">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div id="fw-active-badge"></div>
+                </div>
+
                 <!-- GROUP 6: BATAS WILAYAH -->
                 <div class="layer-group layer-group-batas">
                     <div class="layer-group-header" onclick="toggleLayerGroup(this)">
@@ -484,11 +599,11 @@
             <div class="print-buttons">
                 <button class="btn-print" onclick="printMap()">
                     <i class="bi bi-file-earmark-pdf-fill"></i>
-                    Export PDF (Skala 1:50.000)
+                    Export PDF
                 </button>
                 <button class="btn-print btn-print-excel" onclick="exportMapDataToExcel()">
                     <i class="bi bi-file-earmark-excel-fill"></i>
-                    Export Data ke Excel
+                    Export Excel
                 </button>
             </div>
             <div style="margin-top: 10px; font-size: 11px; color: #64748b; line-height: 1.4;">
@@ -554,8 +669,12 @@
   <!-- 8. Excel Export - fungsi export data layer ke Excel -->
   <script src="{{ asset('js/excel-export.js') }}"></script>
 
+  <script src="{{ asset('js/filter-wilayah.js') }}"></script>
+
   <!-- 9. Main - inisialisasi aplikasi (harus terakhir) -->
   <script src="{{ asset('js/main.js') }}"></script>
+
+
 
 </body>
 </html>

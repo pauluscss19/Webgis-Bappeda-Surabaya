@@ -41,9 +41,9 @@ const PDF_CONFIG = {
 };
 
 // Zoom level untuk skala peta ~1:50.000 (optimal export)
-const PDF_ZOOM_SCALE_150000 = 13;
+const PDF_ZOOM_SCALE_150000 = 12.8;
 
-const HD_SCALE = 2.5;
+const HD_SCALE = 4;
 
 function loadImage(src) {
   return new Promise((resolve) => {
@@ -552,9 +552,26 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
           ctx.stroke();
         }
         
+        // Hitung jumlah marker dari geoJsonStore (sumber paling akurat)
+        let markerCount = 0;
+        const storeData = window.geoJsonStore && window.geoJsonStore[layerKey];
+
+        if (window.FilterWilayah &&
+            typeof window.FilterWilayah.isFilterActive === 'function' &&
+            window.FilterWilayah.isFilterActive() &&
+            typeof window.FilterWilayah.getInsideCount === 'function') {
+          // Filter aktif: ambil jumlah marker di dalam wilayah
+          const insideCount = window.FilterWilayah.getInsideCount();
+          markerCount = insideCount[layerKey] !== undefined ? insideCount[layerKey] : 0;
+        } else if (storeData && storeData.features) {
+          // Tidak ada filter: total fitur di GeoJSON store
+          markerCount = storeData.features.length;
+        }
+
         ctx.fillStyle = 'black';
         ctx.font = `${9 * scale}px Arial`;
-        ctx.fillText(config.label, legTextX, curY + 3 * scale);
+        const labelText = config.label + '  (' + markerCount + ')';
+        ctx.fillText(labelText, legTextX, curY + 3 * scale);
         curY += 16 * scale;
       }
     });
@@ -755,9 +772,9 @@ window.printMap = async function() {
     mapDiv.style.zIndex = '1';
     window.map.invalidateSize();
     
-    // Skala 1:50.000 - set view ke zoom tetap (zoom 13 ≈ 1:50.000)
-    const center = window.map.getCenter();
-    window.map.setView(center, PDF_ZOOM_SCALE_150000, { animate: false });
+    // Skala 1:50.000 - set view ke zoom tetap (zoom 13 ≈ 1:50.000) dengan center tetap Surabaya
+    const SURABAYA_CENTER = [-7.2575, 112.7200];
+    window.map.setView(SURABAYA_CENTER, PDF_ZOOM_SCALE_150000, { animate: false });
     
     if (loadingOverlay) {
       const loadingText = loadingOverlay.querySelector('div div:last-child');
@@ -767,18 +784,41 @@ window.printMap = async function() {
       }
     }
     
-    await new Promise(r => setTimeout(r, 5000));
+    // Tunggu lebih lama agar semua tile peta selesai dimuat sempurna
+    await new Promise(r => setTimeout(r, 8000));
     
     let dataUrl;
     try {
+      // Capture pertama untuk "pemanasan" agar tile ter-render di cache browser
+      await domtoimage.toPng(mapDiv, {
+        width: mapAreaWidth / HD_SCALE,
+        height: mapAreaHeight / HD_SCALE,
+        quality: 1.0,
+        pixelRatio: HD_SCALE,
+        filter: function (node) {
+          if (node.classList && (
+            node.classList.contains('leaflet-control-container') ||
+            node.classList.contains('leaflet-control')
+          )) {
+            return false;
+          }
+          return true;
+        }
+      });
+
+      // Tunggu sebentar lalu capture final dengan kualitas penuh
+      await new Promise(r => setTimeout(r, 2000));
+
       dataUrl = await domtoimage.toPng(mapDiv, {
         width: mapAreaWidth / HD_SCALE,
         height: mapAreaHeight / HD_SCALE,
         quality: 1.0,
         pixelRatio: HD_SCALE,
+        cacheBust: true,
         style: {
           transform: 'scale(1)',
-          transformOrigin: 'top left'
+          transformOrigin: 'top left',
+          imageRendering: 'pixelated'
         },
         filter: function (node) {
           if (node.classList && (
