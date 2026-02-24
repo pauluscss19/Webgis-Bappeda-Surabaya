@@ -190,14 +190,10 @@ function toggleLabel(layerKey, isChecked) {
  * FUNGSI RESET PETA - FIXED (Menghapus Semua Layer & Legenda)
  */
 async function resetMap() {
-    const loadingOverlay = document.getElementById('loading-overlay');
+    const resetOverlay = document.getElementById('reset-overlay');
     
     try {
-        if(loadingOverlay) {
-            loadingOverlay.style.display = 'flex';
-            const loadingText = loadingOverlay.querySelector('div div:last-child');
-            if (loadingText) loadingText.innerText = "Mereset Peta...";
-        }
+        if (resetOverlay) resetOverlay.style.display = 'flex';
 
         console.log("🔄 === MEMULAI RESET PETA ===");
 
@@ -289,12 +285,10 @@ async function resetMap() {
         console.log("   - Legenda: Bersih");
         
     } catch (error) {
-        console.error("❌ Error saat reset peta:", error);
+        console.error("Error saat reset peta:", error);
         alert("Terjadi kesalahan saat reset peta. Silakan refresh halaman.");
     } finally {
-        if(loadingOverlay) {
-            loadingOverlay.style.display = 'none';
-        }
+        if (resetOverlay) resetOverlay.style.display = 'none';
     }
 }
 

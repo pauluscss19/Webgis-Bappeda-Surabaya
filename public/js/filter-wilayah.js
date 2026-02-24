@@ -24,19 +24,86 @@ window.FilterWilayah = (function () {
 
     function _getKecList() {
         if (!geoJsonStore['KECAMATAN']) return [];
+        const seen = new Set();
         return geoJsonStore['KECAMATAN'].features
             .map(f => f.properties.Name || f.properties.KECAMATAN || f.properties.name || '')
-            .filter(Boolean)
+            .filter(name => {
+                if (!name) return false;
+                const key = name.trim().toLowerCase();
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            })
             .sort((a, b) => a.localeCompare(b, 'id'));
+    }
+
+    // Cache spatial join kelurahan → kecamatan (dibangun sekali, lazy)
+    let _kelKecCache = null;
+
+    function _buildKelKecCache() {
+        if (_kelKecCache) return;
+        _kelKecCache = {};
+        if (!geoJsonStore['KELURAHAN'] || !geoJsonStore['KECAMATAN']) return;
+
+        geoJsonStore['KELURAHAN'].features.forEach(function(f) {
+            const kelName = f.properties.K || f.properties.KELURAHAN || f.properties.name || '';
+            if (!kelName) return;
+
+            // Prioritas 1: properti KECAMATAN langsung di data kelurahan
+            const propKec = f.properties.KECAMATAN || f.properties.kecamatan ||
+                            f.properties.Kecamatan  || f.properties.KEC || '';
+            if (propKec) {
+                _kelKecCache[kelName.trim().toLowerCase()] = propKec.trim().toLowerCase();
+                return;
+            }
+
+            // Prioritas 2: spatial join — cek centroid kelurahan masuk kecamatan mana
+            try {
+                const centroid = turf.centroid(f);
+                for (const kf of geoJsonStore['KECAMATAN'].features) {
+                    let kpoly;
+                    if (kf.geometry.type === 'Polygon')
+                        kpoly = turf.polygon(kf.geometry.coordinates);
+                    else if (kf.geometry.type === 'MultiPolygon')
+                        kpoly = turf.multiPolygon(kf.geometry.coordinates);
+                    else continue;
+                    if (turf.booleanPointInPolygon(centroid, kpoly)) {
+                        const kecName = kf.properties.Name || kf.properties.KECAMATAN || kf.properties.name || '';
+                        if (kecName) _kelKecCache[kelName.trim().toLowerCase()] = kecName.trim().toLowerCase();
+                        break;
+                    }
+                }
+            } catch(e) { /* skip */ }
+        });
     }
 
     function _getKelList(kecName) {
         if (!geoJsonStore['KELURAHAN']) return [];
+        if (!kecName) {
+            // Tidak ada filter kecamatan — tampilkan semua
+            return geoJsonStore['KELURAHAN'].features
+                .map(f => f.properties.K || f.properties.KELURAHAN || f.properties.name || '')
+                .filter(Boolean)
+                .sort((a, b) => a.localeCompare(b, 'id'));
+        }
+
+        // Ada filter kecamatan — pastikan cache sudah dibangun
+        _buildKelKecCache();
+        const kecLower = kecName.trim().toLowerCase();
+
         return geoJsonStore['KELURAHAN'].features
             .filter(f => {
-                if (!kecName) return true;
-                const kec = f.properties.KECAMATAN || f.properties.kecamatan || '';
-                return !kec || kec.toLowerCase() === kecName.toLowerCase();
+                const kelName = f.properties.K || f.properties.KELURAHAN || f.properties.name || '';
+                if (!kelName) return false;
+
+                // Cek dari properti langsung dulu
+                const propKec = f.properties.KECAMATAN || f.properties.kecamatan ||
+                                f.properties.Kecamatan  || f.properties.KEC || '';
+                if (propKec) return propKec.trim().toLowerCase() === kecLower;
+
+                // Cek dari cache spatial join
+                const cached = _kelKecCache[kelName.trim().toLowerCase()];
+                return cached === kecLower;
             })
             .map(f => f.properties.K || f.properties.KELURAHAN || f.properties.name || '')
             .filter(Boolean)
@@ -307,7 +374,8 @@ window.FilterWilayah = (function () {
     // ── Core: Reset ───────────────────────────────────────────
 
     function _clear() {
-        _isActive = false;
+        _isActive    = false;
+        _kelKecCache = null;  // reset cache agar fresh
 
         // Kembalikan semua marker ke style asli
         Object.keys(mapLayers).forEach(function(layerKey) {

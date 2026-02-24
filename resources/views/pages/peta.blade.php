@@ -120,92 +120,6 @@
         transition: all 0.2s ease;
     }
 
-    /* ============================================================
-       FILTER WILAYAH - di dalam sidebar
-       ============================================================ */
-    .fw-section {
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-        border: 1.5px solid #7dd3fc;
-        border-radius: 10px;
-        padding: 12px;
-        margin-bottom: 12px;
-    }
-    .fw-section-title {
-        font-size: 12px;
-        font-weight: 700;
-        color: #0369a1;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    .fw-row { margin-bottom: 8px; }
-    .fw-row label {
-        font-size: 11px;
-        font-weight: 600;
-        color: #0c4a6e;
-        display: block;
-        margin-bottom: 4px;
-    }
-    .fw-select {
-        width: 100%;
-        padding: 7px 9px;
-        border: 1.5px solid #7dd3fc;
-        border-radius: 7px;
-        font-size: 12.5px;
-        color: #1e293b;
-        background: white;
-        cursor: pointer;
-        outline: none;
-        transition: border-color 0.2s;
-        font-family: inherit;
-    }
-    .fw-select:focus { border-color: #0284c7; }
-    .fw-btn-row { display: flex; gap: 6px; margin-top: 10px; }
-    .fw-btn-apply {
-        flex: 1;
-        padding: 8px;
-        background: linear-gradient(135deg, #0284c7, #0369a1);
-        color: white;
-        border: none;
-        border-radius: 7px;
-        font-size: 12px;
-        font-weight: 700;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-        font-family: inherit;
-        transition: filter 0.2s;
-    }
-    .fw-btn-apply:hover { filter: brightness(1.1); }
-    .fw-btn-reset {
-        padding: 8px 12px;
-        background: white;
-        color: #64748b;
-        border: 1.5px solid #cbd5e1;
-        border-radius: 7px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: inherit;
-        transition: all 0.2s;
-    }
-    .fw-btn-reset:hover { background: #f1f5f9; color: #334155; }
-    #fw-active-badge {
-        display: none;
-        margin-top: 8px;
-        padding: 5px 10px;
-        background: #0284c7;
-        color: white;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 600;
-        text-align: center;
-    }
   </style>
 </head>
 <body>
@@ -272,7 +186,7 @@
                                 <input type="checkbox" class="analysis-source" value="TPS"> TPS
                             </label>
                             <label class="checkbox-item">
-                                <input type="checkbox" class="analysis-source" value="RUKOM"> Ruang Komunal
+                                <input type="checkbox" class="analysis-source" value="RUKOM"> Rumah Kompos
                             </label>
                             <label class="checkbox-item">
                                 <input type="checkbox" class="analysis-source" value="DEKORASI_KOTA"> Dekorasi Kota
@@ -288,13 +202,76 @@
                         <input type="number" id="cluster-count" class="form-control" value="3" min="1" max="10">
                     </div>
 
-                    <button class="btn-analysis" onclick="runClustering()">
-                        <i class="bi bi-magic me-1"></i> Hitung Rekomendasi
-                    </button>
+                    <!-- Tombol Hitung Rekomendasi + Help -->
+                   <div class="btn-help-wrap">
+                        <button class="btn-analysis" onclick="runClustering()">
+                            Hitung Rekomendasi
+                        </button>
+                        <button class="help-btn help-btn-rec" onclick="showHelp('rec')" title="Info Analisis Rekomendasi">?</button>
+                    </div>
 
-                    <button class="btn-analysis" onclick="runHeatmapAnalysis()" style="margin-top: 8px; background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);">
-                        <i class="bi bi-map-fill me-1"></i> Analisis Heatmap
-                    </button>
+                    <div class="btn-help-wrap" style="margin-top: 15px;">
+                        <button class="btn-analysis" onclick="runHeatmapAnalysis()" style="background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);">
+                            Analisis Heatmap
+                        </button>
+                        <button class="help-btn help-btn-heat" onclick="showHelp('heat')" title="Info Analisis Heatmap">?</button>
+                    </div>
+
+                    <div class="help-popup-overlay" id="help-popup-rec" onclick="closeHelpIfOutside(event,'rec')">
+                        <div class="help-popup">
+                            <div class="help-popup-header">
+                                <div>
+                                    <div class="help-popup-title">Rekomendasi Lokasi</div>
+                                    <div class="help-popup-subtitle">Metode K-Means Clustering</div>
+                                </div>
+                                <button class="help-popup-close" onclick="closeHelp('rec')">&times;</button>
+                            </div>
+                            <div class="help-popup-body">
+                                <div class="help-section">
+                                    <div class="help-section-title help-section-title-rec">Definisi</div>
+                                    <p>Mencari titik lokasi baru yang paling strategis berdasarkan sebaran data yang dipilih.</p>
+                                </div>
+                                <div class="help-section">
+                                    <div class="help-section-title help-section-title-rec">Cara Kerja</div>
+                                    <p>Sistem mengelompokkan data yang berdekatan, lalu menentukan lokasi terbaik berdasarkan jumlah titik terbanyak dan jarak terdekat.</p>
+                                </div>
+                                <div class="help-section">
+                                    <div class="help-section-title help-section-title-rec">Kegunaan</div>
+                                    <div class="help-example help-example-rec">
+                                        Membantu penentuan lokasi optimal untuk membangun fasilitas baru (seperti TPS atau CCTV) di area yang padat namun belum terjangkau.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help-popup-overlay" id="help-popup-heat" onclick="closeHelpIfOutside(event,'heat')">
+                        <div class="help-popup">
+                            <div class="help-popup-header">
+                                <div>
+                                    <div class="help-popup-title">Heatmap Kelurahan</div>
+                                    <div class="help-popup-subtitle">Pemetaan Kepadatan Data</div>
+                                </div>
+                                <button class="help-popup-close" onclick="closeHelp('heat')">&times;</button>
+                            </div>
+                            <div class="help-popup-body">
+                                <div class="help-section">
+                                    <div class="help-section-title help-section-title-heat">Definisi</div>
+                                    <p>Menampilkan visualisasi tingkat kepadatan data di setiap wilayah kelurahan.</p>
+                                </div>
+                                <div class="help-section">
+                                    <div class="help-section-title help-section-title-heat">Cara Kerja</div>
+                                    <p>Area kelurahan akan diwarnai berdasarkan jumlah data. Warna gelap berarti padat (banyak data), sedangkan warna terang berarti sepi (sedikit data).</p>
+                                </div>
+                                <div class="help-section">
+                                    <div class="help-section-title help-section-title-heat">Kegunaan</div>
+                                    <div class="help-example help-example-heat">
+                                        Memantau pemerataan fasilitas dan mengidentifikasi kelurahan mana saja yang masih kekurangan infrastruktur.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div id="analysis-result" style="font-size: 11px; color: #0c4a6e; margin-top: 8px; display: none;">
                     </div>
@@ -399,6 +376,11 @@
                             <span class="layer-color" style="background: #3b82f6;"></span>
                             <span style="font-size:14px;">Makam</span>
                         </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="RUKOM">
+                            <span class="layer-color" style="background: #06b6d4;"></span>
+                            <span style="font-size:14px;">Rumah Kompos</span>
+                        </label>
                     </div>
                 </div>
 
@@ -409,11 +391,6 @@
                         <i class="bi bi-chevron-down toggle-icon"></i>
                     </div>
                     <div class="layer-group-content">
-                        <label class="layer-item">
-                            <input type="checkbox" class="layer-toggle me-2" data-layer="RUKOM">
-                            <span class="layer-color" style="background: #06b6d4;"></span>
-                            <span style="font-size:14px;">Ruang Komunal </span>
-                        </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="DEKORASI_KOTA">
                             <span class="layer-color" style="background: #f97316;"></span>
@@ -474,34 +451,6 @@
 
                 <hr style="border-top:1px dashed #cbd5e1; margin: 15px 0;">
 
-                <!-- FILTER WILAYAH -->
-                <div class="fw-section">
-                    <div class="fw-section-title">
-                        <i class="bi bi-funnel-fill"></i> Filter Wilayah
-                    </div>
-                    <div class="fw-row">
-                        <label><i class="bi bi-map"></i> Kecamatan</label>
-                        <select id="fw-kecamatan" class="fw-select">
-                            <option value="">— Semua Kecamatan —</option>
-                        </select>
-                    </div>
-                    <div class="fw-row">
-                        <label><i class="bi bi-geo-alt"></i> Kelurahan</label>
-                        <select id="fw-kelurahan" class="fw-select">
-                            <option value="">— Semua Kelurahan —</option>
-                        </select>
-                    </div>
-                    <div class="fw-btn-row">
-                        <button class="fw-btn-apply" onclick="FilterWilayah.applyFromUI()">
-                            <i class="bi bi-check2-circle"></i> Terapkan Filter
-                        </button>
-                        <button class="fw-btn-reset" onclick="FilterWilayah.clearFilter()" title="Reset filter">
-                            <i class="bi bi-x-lg"></i>
-                        </button>
-                    </div>
-                    <div id="fw-active-badge"></div>
-                </div>
-
                 <!-- GROUP 6: BATAS WILAYAH -->
                 <div class="layer-group layer-group-batas">
                     <div class="layer-group-header" onclick="toggleLayerGroup(this)">
@@ -546,6 +495,33 @@
                         </label>
                     </div>
                 </div>
+                <!-- FILTER WILAYAH -->
+                <div class="fw-section">
+                    <div class="fw-section-title">
+                        <i class="bi bi-funnel-fill"></i> Filter Wilayah
+                    </div>
+                    <div class="fw-row">
+                        <label><i class="bi bi-map"></i> Kecamatan</label>
+                        <select id="fw-kecamatan" class="fw-select">
+                            <option value="">— Semua Kecamatan —</option>
+                        </select>
+                    </div>
+                    <div class="fw-row">
+                        <label><i class="bi bi-geo-alt"></i> Kelurahan</label>
+                        <select id="fw-kelurahan" class="fw-select">
+                            <option value="">— Semua Kelurahan —</option>
+                        </select>
+                    </div>
+                    <div class="fw-btn-row">
+                        <button class="fw-btn-apply" onclick="FilterWilayah.applyFromUI()">
+                            <i class="bi bi-check2-circle"></i> Terapkan Filter
+                        </button>
+                        <button class="fw-btn-reset" onclick="FilterWilayah.clearFilter()" title="Reset filter">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div id="fw-active-badge"></div>
+                </div>
 
             </div>
 
@@ -558,20 +534,50 @@
             </div>
         </div>
 
-        <!-- Loading Overlay -->
-        <div id="loading-overlay" style="display:none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.95); z-index: 3000; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-            <div style="text-align: center;">
-                <div style="width: 50px; height: 50px; border: 5px solid #e2e8f0; border-top: 5px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
-                <div style="font-weight: 600; color: #334155; font-size: 15px;">Sedang memuat data peta...</div>
+        <!-- Overlay: Memuat Peta (saat refresh) -->
+        <div id="loading-overlay" style="display:flex; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(248,250,252,0.97); z-index:3000; align-items:center; justify-content:center; border-radius:8px;">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+                <div style="position:relative; width:40px; height:40px;">
+                    <div style="position:absolute; inset:0; border-radius:50%; border:3px solid #e2e8f0;"></div>
+                    <div style="position:absolute; inset:0; border-radius:50%; border:3px solid transparent; border-top-color:#1e3a8a; animation:_spin 0.9s linear infinite;"></div>
+                </div>
+                <span style="font-size:13px; font-weight:600; color:#475569; letter-spacing:0.01em;">Memuat peta...</span>
             </div>
         </div>
 
-        <style>
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-        </style>
+        <!-- Overlay: Export PDF -->
+        <div id="pdf-overlay" style="display:none; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(15,23,42,0.82); z-index:3001; align-items:center; justify-content:center; border-radius:8px; backdrop-filter:blur(3px);">
+            <div style="text-align:center; padding:32px 40px; background:#fff; border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,0.25); width:280px;">
+                <div style="position:relative; width:40px; height:40px; margin:0 auto 18px;">
+                    <div style="position:absolute; inset:0; border-radius:50%; border:3px solid #e2e8f0;"></div>
+                    <div style="position:absolute; inset:0; border-radius:50%; border:3px solid transparent; border-top-color:#1e3a8a; animation:_spin 0.9s linear infinite;"></div>
+                </div>
+                <div style="width:100%; height:2px; background:#f1f5f9; border-radius:4px; overflow:hidden; margin-bottom:14px;">
+                    <div id="pdf-progress-bar" style="height:100%; width:5%; background:#1e3a8a; border-radius:4px; transition:width 0.6s ease;"></div>
+                </div>
+                <div style="display:flex; justify-content:center; gap:5px; margin-bottom:12px;">
+                    <div id="pdf-step-1" style="width:5px; height:5px; border-radius:50%; background:#1e3a8a; transition:all 0.3s;"></div>
+                    <div id="pdf-step-2" style="width:5px; height:5px; border-radius:50%; background:#e2e8f0; transition:all 0.3s;"></div>
+                    <div id="pdf-step-3" style="width:5px; height:5px; border-radius:50%; background:#e2e8f0; transition:all 0.3s;"></div>
+                    <div id="pdf-step-4" style="width:5px; height:5px; border-radius:50%; background:#e2e8f0; transition:all 0.3s;"></div>
+                </div>
+                <div id="pdf-loading-text" style="font-size:12px; font-weight:600; color:#334155; transition:opacity 0.2s;">Menyiapkan...</div>
+                <div id="pdf-loading-sub" style="font-size:10px; color:#94a3b8; margin-top:3px;"></div>
+            </div>
+        </div>
+
+        <!-- Overlay: Reset Peta -->
+        <div id="reset-overlay" style="display:none; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(15,23,42,0.6); z-index:3000; align-items:center; justify-content:center; border-radius:8px; backdrop-filter:blur(2px);">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:12px; padding:24px 32px; background:#fff; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.15);">
+                <div style="position:relative; width:32px; height:32px;">
+                    <div style="position:absolute; inset:0; border-radius:50%; border:2px solid #e2e8f0;"></div>
+                    <div style="position:absolute; inset:0; border-radius:50%; border:2px solid transparent; border-top-color:#475569; animation:_spin 0.9s linear infinite;"></div>
+                </div>
+                <span style="font-size:12px; font-weight:600; color:#475569;">Mereset peta...</span>
+            </div>
+        </div>
+
+        <style>@keyframes _spin { to { transform:rotate(360deg); } }</style>
 
         <div id="map"></div>
 
@@ -611,6 +617,8 @@
             </div>
         </div>
 
+        
+
       </div>
     </section>
   </main>
@@ -633,8 +641,6 @@
     function toggleLayerGroup(header) {
         const content = header.nextElementSibling;
         const isActive = content.classList.contains('active');
-
-        // Toggle active state
         if (isActive) {
             header.classList.remove('active');
             content.classList.remove('active');
@@ -643,6 +649,29 @@
             content.classList.add('active');
         }
     }
+
+    // ── Help Popup ────────────────────────────────────────────
+    function showHelp(type) {
+        document.getElementById('help-popup-' + type).classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeHelp(type) {
+        document.getElementById('help-popup-' + type).classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    function closeHelpIfOutside(event, type) {
+        // Tutup hanya jika klik langsung di overlay (bukan di dalam popup)
+        if (event.target === event.currentTarget) closeHelp(type);
+    }
+    // Tutup dengan tombol Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            ['rec', 'heat'].forEach(function(t) {
+                const el = document.getElementById('help-popup-' + t);
+                if (el && el.classList.contains('active')) closeHelp(t);
+            });
+        }
+    });
   </script>
 
   <!-- 1. Config - harus dimuat pertama karena berisi konfigurasi global -->

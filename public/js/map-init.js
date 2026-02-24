@@ -9,9 +9,9 @@ window.map = L.map('map', {
     maxZoom: 18,
     layers: [defaultLayer], 
     zoomControl: false,
-    wheelPxPerZoomLevel: 120,      // Zoom lebih santai
-    zoomSnap: 0.25,                 // Zoom bertahap lebih halus
-    zoomDelta: 0.5,                 // Delta zoom lebih kecil
+    wheelPxPerZoomLevel: 120,
+    zoomSnap: 0.25,
+    zoomDelta: 0.5,
     worldCopyJump: true
 });
 
@@ -22,13 +22,12 @@ const fullscreenControl = L.control({ position: 'topright' });
 fullscreenControl.onAdd = function(map) {
     const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
     div.innerHTML = '<button id="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen" style="background: white; color: #334155; border: none; border-radius: 4px; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"><i class="bi bi-arrows-fullscreen" id="fullscreen-icon"></i></button>';
-
     L.DomEvent.disableClickPropagation(div);
     return div;
 };
 fullscreenControl.addTo(map);
 
-// Export PDF Button (hanya muncul saat fullscreen, di bawah button fullscreen)
+// Export PDF Button (hanya muncul saat fullscreen)
 const exportPdfControl = L.control({ position: 'topright' });
 exportPdfControl.onAdd = function(map) {
     const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
@@ -43,7 +42,6 @@ exportPdfControl.onAdd = function(map) {
             <i class="bi bi-file-earmark-pdf-fill"></i>
         </button>
     `;
-
     L.DomEvent.disableClickPropagation(div);
     return div;
 };
@@ -58,7 +56,23 @@ L.control.layers({
     "Humanitarian": streetLayer
 }, null, { position: 'topright' }).addTo(map);
 
-// --- LEGEND STATISTIK (Pojok Kanan Bawah; diklik = refresh jumlah) ---
+// ============================================================
+// FIX #2 & #3: LEGEND STATISTIK - Konsisten & Hitungan Benar
+// ============================================================
+
+// Helper: ambil jumlah data dari geoJsonStore (akurat) atau fallback ke layer
+function _getLegendCount(key) {
+    // Prioritaskan geoJsonStore karena menyimpan semua fitur
+    if (geoJsonStore[key] && geoJsonStore[key].features) {
+        return geoJsonStore[key].features.length;
+    }
+    // Fallback ke jumlah sub-layer di Leaflet layer
+    if (mapLayers[key] && typeof mapLayers[key].getLayers === 'function') {
+        return mapLayers[key].getLayers().length;
+    }
+    return 0;
+}
+
 const infoLegend = L.control({ position: 'bottomright' });
 infoLegend.onAdd = function (map) {
     this._div = L.DomUtil.create('div', 'info-legend info-legend-bottomright');
@@ -70,36 +84,82 @@ infoLegend.onAdd = function (map) {
     this.update();
     return this._div;
 };
+
 infoLegend.update = function () {
     let html = '<h4>Statistik Data</h4>';
     let hasActiveLayer = false;
+
     Object.keys(layerConfig).forEach(key => {
         const config = layerConfig[key];
         const layer = mapLayers[key];
 
+        // Skip batas wilayah di legenda utama
         if (config.isBoundary) return;
 
         if (layer && map.hasLayer(layer)) {
             hasActiveLayer = true;
-            const count = layer.getLayers().length;
+
+            // FIX #2: Gunakan helper yang baca dari geoJsonStore
+            const count = _getLegendCount(key);
+
+            // FIX #3: Format konsisten — simbol warna + nama + jumlah sejajar kanan
             html += `
                 <div class="legend-item">
-                    <div style="display:flex; align-items:center;">
-                        <span class="layer-color" style="background:${config.color}; width:10px; height:10px; margin-right:5px;"></span>
-                        ${config.label}
+                    <div style="display:flex; align-items:center; flex:1; min-width:0;">
+                        <span class="layer-color" style="
+                            background:${config.color}; 
+                            width:10px; height:10px; 
+                            border-radius:50%; 
+                            flex-shrink:0;
+                            margin-right:6px;
+                            display:inline-block;
+                        "></span>
+                        <span style="
+                            overflow:hidden; 
+                            text-overflow:ellipsis; 
+                            white-space:nowrap; 
+                            font-size:11px;
+                        ">${config.label}</span>
                     </div>
-                    <span><b>${count}</b></span>
+                    <span style="
+                        font-weight:700; 
+                        color:#1e293b; 
+                        font-size:11px; 
+                        margin-left:8px; 
+                        flex-shrink:0;
+                    ">${count}</span>
                 </div>`;
         }
     });
 
+    // Tampilkan hasil analisis jika ada
     if (mapLayers['ANALYSIS_RESULT'] && map.hasLayer(mapLayers['ANALYSIS_RESULT'])) {
-        html += `<div style="margin-top:5px; border-top:1px solid #eee; padding-top:5px;"><strong>Hasil Analisis:</strong></div>`;
-        html += `<div class="legend-item"><div style="display:flex;align-items:center;"><span style="display:inline-block; width:12px; height:12px; background:#ef4444; border:2px solid white; border-radius:50%; margin-right:5px; box-shadow:0 0 4px black;"></span>Rekomendasi</div></div>`;
+        hasActiveLayer = true;
+        html += `<div style="margin-top:6px; padding-top:6px; border-top:1px solid #e2e8f0;">`;
+        html += `
+            <div class="legend-item">
+                <div style="display:flex; align-items:center; flex:1; min-width:0;">
+                    <span style="
+                        display:inline-block; 
+                        width:10px; height:10px; 
+                        background:#ef4444; 
+                        border:2px solid white; 
+                        border-radius:50%; 
+                        flex-shrink:0;
+                        margin-right:6px;
+                        box-shadow:0 0 3px rgba(0,0,0,0.3);
+                    "></span>
+                    <span style="font-size:11px;">Rekomendasi</span>
+                </div>
+            </div>`;
+        html += `</div>`;
     }
 
-    if (!hasActiveLayer && !(mapLayers['ANALYSIS_RESULT'] && map.hasLayer(mapLayers['ANALYSIS_RESULT']))) html += '<div style="color:#777; font-size:11px;">Tidak ada layer aktif</div>';
-    html += '<div style="margin-top:6px; font-size:10px; color:#64748b;">Klik untuk refresh</div>';
+    if (!hasActiveLayer) {
+        html += '<div style="color:#94a3b8; font-size:11px; padding:4px 0;">Tidak ada layer aktif</div>';
+    }
+
+    html += '<div style="margin-top:6px; font-size:10px; color:#94a3b8; text-align:right;">Klik untuk refresh</div>';
     this._div.innerHTML = html;
 };
 infoLegend.addTo(map);
@@ -136,7 +196,6 @@ window.toggleFullscreen = function() {
     }
 };
 
-// Export Map to PDF Function - PANGGIL window.printMap() dari pdf-export.js
 window.exportMapToPdf = function() {
     if (typeof window.printMap === 'function') {
         window.printMap();
@@ -157,39 +216,20 @@ function handleFullscreenChange() {
                            document.msFullscreenElement);
 
     if (isFullscreen) {
-        // Fullscreen ON
         if (exportControl) exportControl.style.display = 'block';
         if (printSection) printSection.style.display = 'none';
         if (icon) icon.className = 'bi bi-fullscreen-exit';
-
-        // Set map height ke 100vh untuk fullscreen
-        if (mapElement) {
-            mapElement.style.height = '100vh';
-        }
-
-        // Resize map setelah delay untuk animasi fullscreen selesai
+        if (mapElement) mapElement.style.height = '100vh';
         setTimeout(function() {
-            if (window.map) {
-                window.map.invalidateSize();
-            }
+            if (window.map) window.map.invalidateSize();
         }, 100);
-
     } else {
-        // Fullscreen OFF
         if (exportControl) exportControl.style.display = 'none';
         if (printSection) printSection.style.display = 'block';
         if (icon) icon.className = 'bi bi-arrows-fullscreen';
-
-        // Kembalikan map height ke default
-        if (mapElement) {
-            mapElement.style.height = '';
-        }
-
-        // Resize map kembali
+        if (mapElement) mapElement.style.height = '';
         setTimeout(function() {
-            if (window.map) {
-                window.map.invalidateSize();
-            }
+            if (window.map) window.map.invalidateSize();
         }, 100);
     }
 }

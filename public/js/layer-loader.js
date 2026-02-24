@@ -197,13 +197,16 @@ async function loadLayer(layerKey) {
 
         const layer = L.geoJSON(data, {
             pointToLayer: (feature, latlng) => {
+                // Buat circleMarker dengan style lengkap dan explicit
+                // agar _saveOrigStyle di filter-wilayah bisa simpan semua property dengan benar
                 return L.circleMarker(latlng, {
-                    radius: 6, 
-                    fillColor: config.color, 
-                    fillOpacity: 1.0, 
-                    stroke: true,
-                    color: '#ffffff',
-                    weight: 1
+                    radius:      6,
+                    fillColor:   config.color,
+                    fillOpacity: 1,
+                    color:       '#ffffff',
+                    weight:      1.5,
+                    opacity:     1,
+                    stroke:      true
                 });
             },
             style: (feature) => {

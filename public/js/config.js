@@ -127,15 +127,16 @@ const layerConfig = {
         nameField: 'Name', 
         group: 'persampahan' 
     },
-    
-    // FASILITAS UMUM
     'RUKOM': { 
         file: 'Rukom_27.json', 
         color: '#0ea5e9',
-        label: 'Ruang Komunal', 
+        label: 'Rumah Kompos', 
         nameField: 'Name', 
         group: 'fasilitas' 
     },
+    
+    // FASILITAS UMUM
+    
     'DEKORASI_KOTA': { 
         file: 'DekorasiKota.json', 
         color: '#fb923c',

@@ -26,7 +26,7 @@ const PDF_CONFIG = {
     'TPS': { label: 'TPS', color: '#f59e0b', type: 'circle', isBoundary: false },
     'RUTE_SAMPAH': { label: 'Rute Pengangkutan Sampah', color: '#a855f7', type: 'line', isBoundary: false },
     'POINT_RUTE_SAMPAH': { label: 'Titik Rute Sampah', color: '#f43f5e', type: 'circle', isBoundary: false },
-    'RUKOM': { label: 'Ruang Komunal', color: '#0ea5e9', type: 'circle', isBoundary: false },
+    'RUKOM': { label: 'Rumah Kompos', color: '#0ea5e9', type: 'circle', isBoundary: false },
     'DEKORASI_KOTA': { label: 'Dekorasi Kota', color: '#fb923c', type: 'circle', isBoundary: false },
     'KEPADATAN_PENDUDUK': { label: 'Kepadatan Penduduk', color: '#ef4444', type: 'polygon', isBoundary: false },
     'KECAMATAN': { label: 'Batas Kecamatan', color: '#6366f1', type: 'line', isBoundary: true },
@@ -40,10 +40,40 @@ const PDF_CONFIG = {
   }
 };
 
-// Zoom level untuk skala peta ~1:50.000 (optimal export)
 const PDF_ZOOM_SCALE_150000 = 12.8;
-
 const HD_SCALE = 4;
+
+// ============================================================
+// FIX #2: Helper hitungan marker yang konsisten
+// Prioritas: FilterWilayah (jika aktif) → geoJsonStore → layer.getLayers()
+// ============================================================
+function _getPdfMarkerCount(layerKey) {
+    // Jika filter wilayah aktif, gunakan jumlah inside
+    if (window.FilterWilayah &&
+        typeof window.FilterWilayah.isFilterActive === 'function' &&
+        window.FilterWilayah.isFilterActive() &&
+        typeof window.FilterWilayah.getInsideCount === 'function') {
+        const insideCount = window.FilterWilayah.getInsideCount();
+        if (insideCount[layerKey] !== undefined) {
+            return insideCount[layerKey];
+        }
+    }
+
+    // Normal mode: gunakan geoJsonStore (paling akurat)
+    if (typeof geoJsonStore !== 'undefined' &&
+        geoJsonStore[layerKey] &&
+        geoJsonStore[layerKey].features) {
+        return geoJsonStore[layerKey].features.length;
+    }
+
+    // Fallback: Leaflet layer getLayers
+    if (window.mapLayers && window.mapLayers[layerKey] &&
+        typeof window.mapLayers[layerKey].getLayers === 'function') {
+        return window.mapLayers[layerKey].getLayers().length;
+    }
+
+    return 0;
+}
 
 function loadImage(src) {
   return new Promise((resolve) => {
@@ -58,8 +88,6 @@ function loadImage(src) {
   });
 }
 
-// Fungsi baru untuk capture diagram lokasi dari Leaflet
-// Fungsi perbaikan untuk capture diagram lokasi dari Leaflet
 async function captureLocationDiagram(targetBounds) {
   const tempDiv = document.createElement('div');
   tempDiv.style.width = '340px';
@@ -88,39 +116,24 @@ async function captureLocationDiagram(targetBounds) {
       maxZoom: 20
     });
     overviewLayer.addTo(overviewMap);
-    
-    // Set view ke Jawa Timur
     overviewMap.setView([-7.5, 112.7], 8);
     
-    // Tunggu tiles selesai load dengan event listener
     await new Promise((resolve) => {
       let tilesLoading = 0;
       let tilesLoaded = 0;
-      
-      overviewLayer.on('tileloadstart', () => {
-        tilesLoading++;
-      });
-      
+      overviewLayer.on('tileloadstart', () => { tilesLoading++; });
       overviewLayer.on('tileload', () => {
         tilesLoaded++;
-        if (tilesLoaded >= tilesLoading && tilesLoading > 0) {
-          setTimeout(resolve, 500);
-        }
+        if (tilesLoaded >= tilesLoading && tilesLoading > 0) setTimeout(resolve, 500);
       });
-      
       overviewLayer.on('tileerror', () => {
         tilesLoaded++;
-        if (tilesLoaded >= tilesLoading && tilesLoading > 0) {
-          setTimeout(resolve, 500);
-        }
+        if (tilesLoaded >= tilesLoading && tilesLoading > 0) setTimeout(resolve, 500);
       });
-      
-      // Fallback timeout
       setTimeout(resolve, 5000);
     });
     
-    // Tambahkan marker highlight untuk Surabaya
-    const surabayaMarker = L.circleMarker([-7.2575, 112.7400], {
+    L.circleMarker([-7.2575, 112.7400], {
       radius: 10,
       fillColor: '#ef4444',
       color: '#000',
@@ -129,65 +142,34 @@ async function captureLocationDiagram(targetBounds) {
       fillOpacity: 0.9
     }).addTo(overviewMap);
     
-    // Tambahkan tooltip permanent
-    surabayaMarker.bindTooltip('LOKASI DIPETAKAN', {
-      permanent: true,
-      direction: 'top',
-      className: 'diagram-label',
-      offset: [0, -10]
-    }).openTooltip();
-    
-    // Tunggu sebentar untuk render
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Capture dengan html2canvas sebagai alternatif yang lebih reliable
     if (typeof html2canvas !== 'undefined') {
       const canvas = await html2canvas(tempDiv, {
-        width: 340,
-        height: 240,
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff'
+        width: 340, height: 240, scale: 2,
+        useCORS: true, allowTaint: true, backgroundColor: '#ffffff'
       });
-      
       const dataUrl = canvas.toDataURL('image/png');
       const img = await loadImage(dataUrl);
-      
       overviewMap.remove();
       document.body.removeChild(tempDiv);
-      
       return img;
     } else {
-      // Fallback ke domtoimage
       const dataUrl = await domtoimage.toPng(tempDiv, {
-        width: 340,
-        height: 240,
-        quality: 1.0,
-        cacheBust: true,
-        style: {
-          transform: 'scale(1)',
-          transformOrigin: 'top left'
-        }
+        width: 340, height: 240, quality: 1.0, cacheBust: true,
+        style: { transform: 'scale(1)', transformOrigin: 'top left' }
       });
-      
       const img = await loadImage(dataUrl);
-      
       overviewMap.remove();
       document.body.removeChild(tempDiv);
-      
       return img;
     }
-    
   } catch (error) {
     console.error("Error capturing diagram:", error);
-    if (document.body.contains(tempDiv)) {
-      document.body.removeChild(tempDiv);
-    }
+    if (document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
     return null;
   }
 }
-
 
 function drawGridAndFrame(ctx, rect, bounds, scale = 1) {
   const latInterval = 0.025;
@@ -237,61 +219,47 @@ function drawGridAndFrame(ctx, rect, bounds, scale = 1) {
   ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
 }
 
-/**
- * FUNGSI BARU: Draw legend khusus untuk Kepadatan Penduduk
- */
 function drawPopulationDensityLegend(ctx, x, y, width, scale = 1, legIndent = null) {
-    // Gunakan legIndent jika disediakan, jika tidak gunakan default
     const indent = legIndent || (x + 30 * scale);
     const symbolStartX = x + 35 * scale;
     const textStartX = x + 55 * scale;
     let curY = y;
 
-    // Header section (sejajar dengan "Lokasi & Fasilitas")
     ctx.font = `bold ${10 * scale}px Arial`;
     ctx.fillStyle = '#000000';
     ctx.textAlign = 'left';
     ctx.fillText("Kepadatan Penduduk", indent, curY);
     curY += 15 * scale;
 
-    // Definisi kategori dan warna (disesuaikan dengan config.js)
     const densityLevels = [
-        { label: 'Sangat Padat', range: '> 20.000', color: '#7f1d1d', textColor: '#ffffff' },
-        { label: 'Sangat Padat', range: '15.001 - 20.000', color: '#991b1b', textColor: '#ffffff' },
-        { label: 'Padat Sekali', range: '10.001 - 15.000', color: '#b91c1c', textColor: '#ffffff' },
-        { label: 'Padat', range: '7.501 - 10.000', color: '#dc2626', textColor: '#ffffff' },
-        { label: 'Padat', range: '5.001 - 7.500', color: '#ef4444', textColor: '#ffffff' },
-        { label: 'Sedang', range: '3.001 - 5.000', color: '#f87171', textColor: '#000000' },
-        { label: 'Sedang', range: '2.001 - 3.000', color: '#fca5a5', textColor: '#000000' },
-        { label: 'Jarang', range: '1.001 - 2.000', color: '#fecaca', textColor: '#000000' },
-        { label: 'Jarang', range: '501 - 1.000', color: '#fee2e2', textColor: '#000000' },
-        { label: 'Sangat Jarang', range: '< 500', color: '#fef2f2', textColor: '#000000' }
+        { label: 'Sangat Padat', range: '> 20.000', color: '#7f1d1d' },
+        { label: 'Sangat Padat', range: '15.001 - 20.000', color: '#991b1b' },
+        { label: 'Padat Sekali', range: '10.001 - 15.000', color: '#b91c1c' },
+        { label: 'Padat', range: '7.501 - 10.000', color: '#dc2626' },
+        { label: 'Padat', range: '5.001 - 7.500', color: '#ef4444' },
+        { label: 'Sedang', range: '3.001 - 5.000', color: '#f87171' },
+        { label: 'Sedang', range: '2.001 - 3.000', color: '#fca5a5' },
+        { label: 'Jarang', range: '1.001 - 2.000', color: '#fecaca' },
+        { label: 'Jarang', range: '501 - 1.000', color: '#fee2e2' },
+        { label: 'Sangat Jarang', range: '< 500', color: '#fef2f2' }
     ];
 
-    // Gambar color boxes dengan label (sejajar dengan legend lainnya)
     const boxHeight = 10 * scale;
     const boxWidth = 12 * scale;
 
-    densityLevels.forEach((level, index) => {
-        // Box warna (posisi sejajar dengan simbol legend lainnya)
+    densityLevels.forEach((level) => {
         ctx.fillStyle = level.color;
         ctx.fillRect(symbolStartX, curY - 6 * scale, boxWidth, boxHeight);
-
-        // Border
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 0.5 * scale;
         ctx.strokeRect(symbolStartX, curY - 6 * scale, boxWidth, boxHeight);
-
-        // Text label (sejajar dengan text legend lainnya)
         ctx.fillStyle = '#000000';
         ctx.font = `${9 * scale}px Arial`;
         ctx.textAlign = 'left';
-        ctx.fillText(level.label + ' (' + level.range + ' jiwa/km)', textStartX, curY + 3 * scale);
-
+        ctx.fillText(level.label + ' (' + level.range + ' jiwa/km²)', textStartX, curY + 3 * scale);
         curY += 16 * scale;
     });
 
-    // Footer note
     ctx.fillStyle = '#64748b';
     ctx.font = `italic ${7 * scale}px Arial`;
     ctx.textAlign = 'left';
@@ -300,6 +268,10 @@ function drawPopulationDensityLegend(ctx, x, y, width, scale = 1, legIndent = nu
     return curY + 5 * scale;
 }
 
+// ============================================================
+// FIX #3: drawSidebar - Legenda konsisten dengan simbol bulat
+// untuk titik dan garis untuk rute/batas
+// ============================================================
 function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, scale = 1) {
   const centerX = x + (w / 2);
   let curY = y + 20 * scale;
@@ -349,7 +321,7 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   ctx.fill();
   curY += 45 * scale;
   
-  // C. SKALA PETA (tetap 1:50.000 + scale bar seperti referensi: 0, 1.25, 2.5, 5 Km)
+  // C. SKALA PETA
   ctx.textAlign = 'center';
   ctx.font = `bold ${11 * scale}px Arial`;
   ctx.fillStyle = '#000000';
@@ -422,7 +394,7 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   ctx.stroke();
   curY += 20 * scale;
   
-  // E. DIAGRAM LOKASI (DARI LEAFLET CAPTURE)
+  // E. DIAGRAM LOKASI
   ctx.textAlign = 'center';
   ctx.font = `bold ${10 * scale}px Arial`;
   ctx.fillText("DIAGRAM LOKASI", centerX, curY);
@@ -433,18 +405,14 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   const diagramW = 170 * scale;
   const diagramH = 120 * scale;
   
-  // Gambar hasil capture dari Leaflet
   if (diagramImage && diagramImage.complete) {
     ctx.save();
     ctx.drawImage(diagramImage, diagramX, diagramY, diagramW, diagramH);
     ctx.restore();
-    
-    // Border kotak
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 2 * scale;
     ctx.strokeRect(diagramX, diagramY, diagramW, diagramH);
   } else {
-    // Fallback jika capture gagal
     ctx.fillStyle = '#dbeafe';
     ctx.fillRect(diagramX, diagramY, diagramW, diagramH);
     ctx.strokeStyle = '#000000';
@@ -458,11 +426,15 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   curY = diagramY + diagramH + 20 * scale;
   
   // G. KETERANGAN/LEGENDA
-  const legLeft = x + 20 * scale;
+  const legLeft   = x + 20 * scale;
   const legIndent = x + 30 * scale;
-  const legSymbolX = x + 35 * scale;
-  const legTextX = x + 55 * scale;
-  
+  // FIX #3: posisi simbol dan teks konsisten untuk semua item
+  const LEG_SYMBOL_CX = x + 42 * scale;   // center-x simbol (bulat/garis)
+  const LEG_SYMBOL_W  = 14 * scale;        // lebar area simbol garis
+  const LEG_TEXT_X    = x + 55 * scale;    // awal teks label (sama untuk semua)
+  const LEG_ROW_H     = 16 * scale;        // tinggi tiap baris legenda
+  const LEG_SYMBOL_R  = 5 * scale;         // radius simbol bulat
+
   ctx.textAlign = 'left';
   ctx.fillStyle = 'black';
   ctx.font = `bold ${11 * scale}px Arial`;
@@ -471,7 +443,6 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   
   const activeCheckboxes = document.querySelectorAll('.layer-toggle:checked');
   
-  // Cek apakah layer KEPADATAN_PENDUDUK aktif
   let hasKepadatanPenduduk = false;
   activeCheckboxes.forEach(checkbox => {
     if (checkbox.getAttribute('data-layer') === 'KEPADATAN_PENDUDUK') {
@@ -480,52 +451,44 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   });
   
   if (activeCheckboxes.length > 0) {
+    // Sub-header: Administrasi & Batas Wilayah
     ctx.font = `bold ${10 * scale}px Arial`;
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = '#334155';
     ctx.fillText("Administrasi & Batas Wilayah", legIndent, curY);
     curY += 15 * scale;
-    
-    ctx.beginPath();
-    ctx.strokeStyle = '#6366f1';
-    ctx.lineWidth = 2 * scale;
-    ctx.setLineDash([4 * scale, 2 * scale]);
-    ctx.moveTo(legSymbolX - 2 * scale, curY);
-    ctx.lineTo(legSymbolX + 12 * scale, curY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillText("Batas Kecamatan", legTextX, curY + 3 * scale);
-    curY += 16 * scale;
-    
-    ctx.beginPath();
-    ctx.strokeStyle = '#f59e0b';
-    ctx.lineWidth = 1.5 * scale;
-    ctx.setLineDash([2 * scale, 2 * scale]);
-    ctx.moveTo(legSymbolX - 2 * scale, curY);
-    ctx.lineTo(legSymbolX + 12 * scale, curY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillText("Batas Kelurahan", legTextX, curY + 3 * scale);
-    curY += 20 * scale;
 
-     ctx.beginPath();
-    ctx.strokeStyle = '#14b8a6';
-    ctx.lineWidth = 2 * scale;
-    ctx.setLineDash([4 * scale, 2 * scale]);
-    ctx.moveTo(legSymbolX - 2 * scale, curY);
-    ctx.lineTo(legSymbolX + 12 * scale, curY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillText("Batas RW", legTextX, curY + 3 * scale);
-    curY += 16 * scale;
+    // FIX #3: Garis batas semua pakai pola garis putus-putus dengan posisi KONSISTEN
+    const boundaryItems = [
+      { color: '#6366f1', label: 'Batas Kecamatan', dash: [4, 2] },
+      { color: '#f59e0b', label: 'Batas Kelurahan',  dash: [2, 2] },
+      { color: '#14b8a6', label: 'Batas RW',          dash: [4, 2] }
+    ];
+    boundaryItems.forEach(item => {
+      ctx.beginPath();
+      ctx.strokeStyle = item.color;
+      ctx.lineWidth = 2 * scale;
+      ctx.setLineDash(item.dash.map(v => v * scale));
+      ctx.moveTo(LEG_SYMBOL_CX - LEG_SYMBOL_W / 2, curY);
+      ctx.lineTo(LEG_SYMBOL_CX + LEG_SYMBOL_W / 2, curY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'black';
+      ctx.font = `${9 * scale}px Arial`;
+      ctx.fillText(item.label, LEG_TEXT_X, curY + 3 * scale);
+      curY += LEG_ROW_H;
+    });
+
+    curY += 4 * scale;
     
-    // Jika ada layer KEPADATAN_PENDUDUK, gambar legend khusus di sini
+    // Kepadatan Penduduk (jika aktif)
     if (hasKepadatanPenduduk) {
       curY = drawPopulationDensityLegend(ctx, x, curY, w, scale, legIndent);
       curY += 20 * scale;
     }
     
+    // Sub-header: Lokasi & Fasilitas
     ctx.font = `bold ${10 * scale}px Arial`;
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = '#334155';
     ctx.fillText("Lokasi & Fasilitas", legIndent, curY);
     curY += 15 * scale;
     
@@ -533,136 +496,142 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
       const layerKey = checkbox.getAttribute('data-layer');
       const config = PDF_CONFIG.layerConfig[layerKey];
       
-      // Skip KEPADATAN_PENDUDUK karena sudah digambar dengan legend khusus
       if (config && !config.isBoundary && layerKey !== 'KEPADATAN_PENDUDUK') {
+
+        // FIX #2: Gunakan helper yang baca dari geoJsonStore
+        const markerCount = _getPdfMarkerCount(layerKey);
+
         if (config.type === 'line') {
+          // Simbol garis (rute)
           ctx.beginPath();
           ctx.strokeStyle = config.color;
-          ctx.lineWidth = 2 * scale;
-          ctx.moveTo(legSymbolX - 2 * scale, curY);
-          ctx.lineTo(legSymbolX + 12 * scale, curY);
+          ctx.lineWidth = 2.5 * scale;
+          ctx.setLineDash([]);
+          ctx.moveTo(LEG_SYMBOL_CX - LEG_SYMBOL_W / 2, curY);
+          ctx.lineTo(LEG_SYMBOL_CX + LEG_SYMBOL_W / 2, curY);
           ctx.stroke();
+        } else if (config.type === 'polygon') {
+          // Simbol kotak untuk polygon/area
+          const boxSz = 10 * scale;
+          ctx.fillStyle = config.color + '88'; // semi-transparan
+          ctx.fillRect(LEG_SYMBOL_CX - boxSz / 2, curY - boxSz / 2, boxSz, boxSz);
+          ctx.strokeStyle = config.color;
+          ctx.lineWidth = 1.5 * scale;
+          ctx.setLineDash([]);
+          ctx.strokeRect(LEG_SYMBOL_CX - boxSz / 2, curY - boxSz / 2, boxSz, boxSz);
         } else {
+          // FIX #3: Simbol bulat — posisi center konsisten di LEG_SYMBOL_CX
           ctx.beginPath();
           ctx.fillStyle = config.color;
-          ctx.arc(legSymbolX + 5 * scale, curY, 5 * scale, 0, 2 * Math.PI);
+          ctx.arc(LEG_SYMBOL_CX, curY, LEG_SYMBOL_R, 0, 2 * Math.PI);
           ctx.fill();
-          ctx.strokeStyle = '#000';
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1 * scale;
+          ctx.stroke();
+          // Ring luar tipis agar terlihat di background putih
+          ctx.beginPath();
+          ctx.strokeStyle = config.color + 'aa';
           ctx.lineWidth = 0.5 * scale;
+          ctx.arc(LEG_SYMBOL_CX, curY, LEG_SYMBOL_R + 1.5 * scale, 0, 2 * Math.PI);
           ctx.stroke();
         }
         
-        // Hitung jumlah marker dari geoJsonStore (sumber paling akurat)
-        let markerCount = 0;
-        const storeData = window.geoJsonStore && window.geoJsonStore[layerKey];
-
-        if (window.FilterWilayah &&
-            typeof window.FilterWilayah.isFilterActive === 'function' &&
-            window.FilterWilayah.isFilterActive() &&
-            typeof window.FilterWilayah.getInsideCount === 'function') {
-          // Filter aktif: ambil jumlah marker di dalam wilayah
-          const insideCount = window.FilterWilayah.getInsideCount();
-          markerCount = insideCount[layerKey] !== undefined ? insideCount[layerKey] : 0;
-        } else if (storeData && storeData.features) {
-          // Tidak ada filter: total fitur di GeoJSON store
-          markerCount = storeData.features.length;
-        }
-
+        // FIX #3: Teks label + jumlah, semua mulai di LEG_TEXT_X yang sama
         ctx.fillStyle = 'black';
         ctx.font = `${9 * scale}px Arial`;
-        const labelText = config.label + '  (' + markerCount + ')';
-        ctx.fillText(labelText, legTextX, curY + 3 * scale);
-        curY += 16 * scale;
+        ctx.textAlign = 'left';
+
+        // Tulis label
+        ctx.fillText(config.label, LEG_TEXT_X, curY + 3 * scale);
+
+        // FIX #2: Tulis jumlah dengan warna dan posisi konsisten
+        const countStr = '(' + markerCount + ')';
+        const labelWidth = ctx.measureText(config.label).width;
+        ctx.fillStyle = '#0369a1';
+        ctx.font = `bold ${9 * scale}px Arial`;
+        ctx.fillText(countStr, LEG_TEXT_X + labelWidth + 4 * scale, curY + 3 * scale);
+        ctx.font = `${9 * scale}px Arial`;
+
+        curY += LEG_ROW_H;
       }
     });
     
     curY += 8 * scale;
   }
   
+  // Heatmap layer
   if (mapLayers['HEATMAP_LAYER'] && map.hasLayer(mapLayers['HEATMAP_LAYER'])) {
     ctx.font = `bold ${10 * scale}px Arial`;
-    ctx.fillStyle = 'black';
-    ctx.fillText("Analisis Kepadatan", legIndent, curY);
+    ctx.fillStyle = '#334155';
+    ctx.fillText("Analisis Heatmap", legIndent, curY);
     curY += 15 * scale;
     
-    ctx.fillStyle = '#b91c1c';
-    ctx.fillRect(legSymbolX, curY - 6 * scale, 12 * scale, 12 * scale);
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 0.5 * scale;
-    ctx.strokeRect(legSymbolX, curY - 6 * scale, 12 * scale, 12 * scale);
-    ctx.fillStyle = 'black';
-    ctx.font = `${9 * scale}px Arial`;
-    ctx.fillText("Tingkat Kepadatan Tinggi", legTextX, curY + 3 * scale);
-    curY += 16 * scale;
-    
-    ctx.fillStyle = '#f472b6';
-    ctx.fillRect(legSymbolX, curY - 6 * scale, 12 * scale, 12 * scale);
-    ctx.strokeRect(legSymbolX, curY - 6 * scale, 12 * scale, 12 * scale);
-    ctx.fillStyle = 'black';
-    ctx.fillText("Tingkat Kepadatan Sedang", legTextX, curY + 3 * scale);
-    curY += 16 * scale;
-    
-    ctx.fillStyle = '#ffe4e6';
-    ctx.fillRect(legSymbolX, curY - 6 * scale, 12 * scale, 12 * scale);
-    ctx.strokeRect(legSymbolX, curY - 6 * scale, 12 * scale, 12 * scale);
-    ctx.fillStyle = 'black';
-    ctx.fillText("Tingkat Kepadatan Rendah", legTextX, curY + 3 * scale);
-    curY += 20 * scale;
+    const heatItems = [
+      { color: '#7f1d1d', label: 'Jumlah Tempat Banyak' },
+      { color: '#f87171', label: 'Jumlah Tempat Sedang' },
+      { color: '#fee2e2', label: 'Jumlah Tempat Sedikit' }
+    ];
+    heatItems.forEach(item => {
+      const boxSz = 10 * scale;
+      ctx.fillStyle = item.color;
+      ctx.fillRect(LEG_SYMBOL_CX - boxSz / 2, curY - boxSz / 2, boxSz, boxSz);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 0.5 * scale;
+      ctx.strokeRect(LEG_SYMBOL_CX - boxSz / 2, curY - boxSz / 2, boxSz, boxSz);
+      ctx.fillStyle = 'black';
+      ctx.font = `${9 * scale}px Arial`;
+      ctx.fillText(item.label, LEG_TEXT_X, curY + 3 * scale);
+      curY += LEG_ROW_H;
+    });
+    curY += 8 * scale;
   }
   
+  // Analisis clustering
   if (mapLayers['ANALYSIS_RESULT'] && map.hasLayer(mapLayers['ANALYSIS_RESULT'])) {
     ctx.font = `bold ${10 * scale}px Arial`;
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = '#334155';
     ctx.fillText("Hasil Analisis Prioritas", legIndent, curY);
     curY += 15 * scale;
     
-    ctx.beginPath();
-    ctx.fillStyle = '#ffd700';
-    ctx.arc(legSymbolX + 5 * scale, curY, 6 * scale, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1 * scale;
-    ctx.stroke();
-    ctx.fillStyle = 'black';
-    ctx.font = `${9 * scale}px Arial`;
-    ctx.fillText("Prioritas Utama (Ranking 1)", legTextX, curY + 3 * scale);
-    curY += 16 * scale;
-    
-    ctx.beginPath();
-    ctx.fillStyle = '#c0c0c0';
-    ctx.arc(legSymbolX + 5 * scale, curY, 5 * scale, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = 'black';
-    ctx.fillText("Prioritas Menengah (Ranking 2)", legTextX, curY + 3 * scale);
-    curY += 16 * scale;
-    
-    ctx.beginPath();
-    ctx.fillStyle = '#cd7f32';
-    ctx.arc(legSymbolX + 5 * scale, curY, 5 * scale, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = 'black';
-    ctx.fillText("Prioritas Rendah (Ranking 3)", legTextX, curY + 3 * scale);
-    curY += 20 * scale;
+    const analysisItems = [
+      { color: '#ffd700', label: 'Prioritas Utama (Ranking 1)', r: 6 },
+      { color: '#c0c0c0', label: 'Prioritas Menengah (Ranking 2)', r: 5 },
+      { color: '#cd7f32', label: 'Prioritas Rendah (Ranking 3)', r: 5 }
+    ];
+    analysisItems.forEach(item => {
+      ctx.beginPath();
+      ctx.fillStyle = item.color;
+      ctx.arc(LEG_SYMBOL_CX, curY, item.r * scale, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1 * scale;
+      ctx.stroke();
+      ctx.fillStyle = 'black';
+      ctx.font = `${9 * scale}px Arial`;
+      ctx.fillText(item.label, LEG_TEXT_X, curY + 3 * scale);
+      curY += LEG_ROW_H;
+    });
+    curY += 8 * scale;
   }
   
+  // Fitur alam
   ctx.font = `bold ${10 * scale}px Arial`;
-  ctx.fillStyle = 'black';
+  ctx.fillStyle = '#334155';
   ctx.fillText("Fitur Alam & Perairan", legIndent, curY);
   curY += 15 * scale;
   
+  const boxSz = 10 * scale;
   ctx.fillStyle = '#93c5fd';
-  ctx.fillRect(legSymbolX, curY - 6 * scale, 12 * scale, 12 * scale);
+  ctx.fillRect(LEG_SYMBOL_CX - boxSz / 2, curY - boxSz / 2, boxSz, boxSz);
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 0.5 * scale;
-  ctx.strokeRect(legSymbolX, curY - 6 * scale, 12 * scale, 12 * scale);
+  ctx.strokeRect(LEG_SYMBOL_CX - boxSz / 2, curY - boxSz / 2, boxSz, boxSz);
   ctx.fillStyle = 'black';
   ctx.font = `${9 * scale}px Arial`;
-  ctx.fillText("Badan Air / Sungai", legTextX, curY + 3 * scale);
+  ctx.fillText("Badan Air / Sungai", LEG_TEXT_X, curY + 3 * scale);
   curY += 25 * scale;
   
-  // H. SUMBER DATA (MENTOK KE BAWAH)
+  // H. SUMBER DATA
   const srcLineHeight = 12 * scale;
   const srcHeaderHeight = 14 * scale;
   const totalSrcHeight = (PDF_CONFIG.sources.length * srcLineHeight) + srcHeaderHeight;
@@ -690,8 +659,24 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
 }
 
 window.printMap = async function() {
-  const loadingOverlay = document.getElementById('loading-overlay');
+  const loadingOverlay = document.getElementById('pdf-overlay');
   const mapDiv = document.getElementById('map');
+
+  function updateProgress(percent, mainText, subText, stepIndex) {
+    const bar = document.getElementById('pdf-progress-bar');
+    const txt = document.getElementById('pdf-loading-text');
+    const sub = document.getElementById('pdf-loading-sub');
+    if (bar) bar.style.width = percent + '%';
+    if (txt) { txt.style.opacity = '0'; setTimeout(() => { txt.innerText = mainText; txt.style.opacity = '1'; }, 150); }
+    if (sub && subText !== undefined) sub.innerText = subText;
+    for (let i = 1; i <= 4; i++) {
+      const dot = document.getElementById('pdf-step-' + i);
+      if (!dot) continue;
+      if (i < stepIndex) { dot.style.background = '#1e3a8a'; dot.style.width = '5px'; dot.style.height = '5px'; }
+      else if (i === stepIndex) { dot.style.background = '#1e3a8a'; dot.style.width = '7px'; dot.style.height = '7px'; }
+      else { dot.style.background = '#e2e8f0'; dot.style.width = '5px'; dot.style.height = '5px'; }
+    }
+  }
   
   if (!window.map || typeof window.map.invalidateSize !== 'function') {
     alert("Error: Peta belum siap.");
@@ -739,11 +724,7 @@ window.printMap = async function() {
   try {
     if (loadingOverlay) {
       loadingOverlay.style.display = 'flex';
-      const loadingText = loadingOverlay.querySelector('div div:last-child');
-      if(loadingText) {
-        loadingText.innerText = "Mempersiapkan aset dokumen...";
-        loadingText.style.color = '#1e293b';
-      }
+      updateProgress(10, "Mempersiapkan aset dokumen...", "Memuat logo dan konfigurasi", 1);
     }
     
     const [logo1, logo2] = await Promise.all([
@@ -751,13 +732,8 @@ window.printMap = async function() {
       loadImage(PDF_CONFIG.logoKanan)
     ]);
     
-    // Capture diagram lokasi dari Leaflet
     if (loadingOverlay) {
-      const loadingText = loadingOverlay.querySelector('div div:last-child');
-      if(loadingText) {
-        loadingText.innerText = "Membuat diagram lokasi peta...";
-        loadingText.style.color = '#1e293b';
-      }
+      updateProgress(25, "Membuat diagram lokasi peta...", "Merender peta mini Jawa Timur", 2);
     }
     
     const currentBounds = map.getBounds();
@@ -772,24 +748,17 @@ window.printMap = async function() {
     mapDiv.style.zIndex = '1';
     window.map.invalidateSize();
     
-    // Skala 1:50.000 - set view ke zoom tetap (zoom 13 ≈ 1:50.000) dengan center tetap Surabaya
     const SURABAYA_CENTER = [-7.2575, 112.7200];
     window.map.setView(SURABAYA_CENTER, PDF_ZOOM_SCALE_150000, { animate: false });
     
     if (loadingOverlay) {
-      const loadingText = loadingOverlay.querySelector('div div:last-child');
-      if(loadingText) {
-        loadingText.innerText = "Merender peta dalam resolusi tinggi...";
-        loadingText.style.color = '#1e293b';
-      }
+      updateProgress(50, "Merender peta dalam resolusi tinggi...", "Memuat tile peta HD", 3);
     }
     
-    // Tunggu lebih lama agar semua tile peta selesai dimuat sempurna
     await new Promise(r => setTimeout(r, 8000));
     
     let dataUrl;
     try {
-      // Capture pertama untuk "pemanasan" agar tile ter-render di cache browser
       await domtoimage.toPng(mapDiv, {
         width: mapAreaWidth / HD_SCALE,
         height: mapAreaHeight / HD_SCALE,
@@ -799,14 +768,11 @@ window.printMap = async function() {
           if (node.classList && (
             node.classList.contains('leaflet-control-container') ||
             node.classList.contains('leaflet-control')
-          )) {
-            return false;
-          }
+          )) return false;
           return true;
         }
       });
 
-      // Tunggu sebentar lalu capture final dengan kualitas penuh
       await new Promise(r => setTimeout(r, 2000));
 
       dataUrl = await domtoimage.toPng(mapDiv, {
@@ -824,9 +790,7 @@ window.printMap = async function() {
           if (node.classList && (
             node.classList.contains('leaflet-control-container') ||
             node.classList.contains('leaflet-control')
-          )) {
-            return false;
-          }
+          )) return false;
           return true;
         }
       });
@@ -836,9 +800,7 @@ window.printMap = async function() {
     }
     
     const mapImage = await loadImage(dataUrl);
-    if (!mapImage) {
-      throw new Error("Gambar peta gagal dimuat");
-    }
+    if (!mapImage) throw new Error("Gambar peta gagal dimuat");
     
     restoreMapState();
     
@@ -868,10 +830,7 @@ window.printMap = async function() {
     
     if(window.map && window.map.getBounds) {
       drawGridAndFrame(ctx, {
-        x: mapX,
-        y: mapY,
-        width: mapAreaWidth,
-        height: mapAreaHeight
+        x: mapX, y: mapY, width: mapAreaWidth, height: mapAreaHeight
       }, window.map.getBounds(), HD_SCALE);
     }
     
@@ -894,11 +853,7 @@ window.printMap = async function() {
     }
     
     if (loadingOverlay) {
-      const loadingText = loadingOverlay.querySelector('div div:last-child');
-      if(loadingText) {
-        loadingText.innerText = "Menyusun dokumen PDF...";
-        loadingText.style.color = '#1e293b';
-      }
+      updateProgress(85, "Menyusun dokumen PDF...", "Menggabungkan elemen peta, legenda & sidebar", 4);
     }
     
     const pdfData = canvas.toDataURL('image/png', 1.0);
@@ -917,11 +872,7 @@ window.printMap = async function() {
     pdf.save(`Peta_Surabaya_HD_${dateStr}.pdf`);
     
     if (loadingOverlay) {
-      const loadingText = loadingOverlay.querySelector('div div:last-child');
-      if(loadingText) {
-        loadingText.innerText = "Dokumen PDF berhasil dibuat";
-        loadingText.style.color = '#059669';
-      }
+      updateProgress(100, "✓ Dokumen PDF berhasil dibuat!", "File sedang diunduh...", 5);
       setTimeout(() => {
         if(loadingOverlay) loadingOverlay.style.display = 'none';
       }, 1500);
