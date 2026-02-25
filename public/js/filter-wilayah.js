@@ -329,16 +329,37 @@ window.FilterWilayah = (function () {
                     isTarget = v.toLowerCase() === _activeKec.toLowerCase();
                 }
 
-                if (sub.setStyle) {
-                    sub.setStyle(isTarget ? {
-                        color: cfg.color, weight: 3, opacity: 1,
-                        fillColor: cfg.color, fillOpacity: 0.08, dashArray: ''
-                    } : {
-                        color: '#94a3b8', weight: 1, opacity: 0.25,
-                        fillColor: '#f1f5f9', fillOpacity: 0.02, dashArray: '4,4'
-                    });
+                if (_activeKel) {
+                    // Saat filter kelurahan: tampilkan HANYA kelurahan yang dicari, sisanya hide
+                    if (isTarget) {
+                        if (sub.setStyle) sub.setStyle({
+                            color: cfg.color, weight: 3, opacity: 1,
+                            fillColor: cfg.color, fillOpacity: 0.08, dashArray: ''
+                        });
+                        sub.bringToBack();
+                        const el = sub.getElement ? sub.getElement() : null;
+                        if (el) el.style.display = '';
+                    } else {
+                        // Sembunyikan kelurahan lain sepenuhnya
+                        if (sub.setStyle) sub.setStyle({
+                            opacity: 0, fillOpacity: 0, weight: 0
+                        });
+                        const el = sub.getElement ? sub.getElement() : null;
+                        if (el) el.style.display = 'none';
+                    }
+                } else {
+                    // Saat filter kecamatan: highlight target, dim sisanya
+                    if (sub.setStyle) {
+                        sub.setStyle(isTarget ? {
+                            color: cfg.color, weight: 3, opacity: 1,
+                            fillColor: cfg.color, fillOpacity: 0.08, dashArray: ''
+                        } : {
+                            color: '#94a3b8', weight: 1, opacity: 0.25,
+                            fillColor: '#f1f5f9', fillOpacity: 0.02, dashArray: '4,4'
+                        });
+                    }
+                    sub.bringToBack();
                 }
-                sub.bringToBack();
             });
             mapLayers[boundaryKey].bringToBack();
         }
@@ -401,6 +422,11 @@ window.FilterWilayah = (function () {
         ['KECAMATAN','KELURAHAN','BATAS_RW'].forEach(function(bKey) {
             if (!mapLayers[bKey] || !map.hasLayer(mapLayers[bKey])) return;
             const cfg = layerConfig[bKey];
+            // Kembalikan display semua sub-layer yang mungkin di-hide
+            mapLayers[bKey].eachLayer(function(sub) {
+                const el = sub.getElement ? sub.getElement() : null;
+                if (el) el.style.display = '';
+            });
             mapLayers[bKey].setStyle({
                 color: cfg.color, weight: 2, opacity: 0.8,
                 fillOpacity: 0.1, fillColor: cfg.color, dashArray: '5,5'

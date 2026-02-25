@@ -384,6 +384,11 @@ async function initMapData() {
 
         console.log('✅ All layers loaded');
 
+        // Refresh badge jumlah data di panel analisis
+        if (typeof refreshAnalysisSourceCounts === 'function') {
+            refreshAnalysisSourceCounts();
+        }
+
         const maskCheckbox = document.getElementById('surabaya-mask-toggle');
         if (maskCheckbox && maskCheckbox.checked) {
             toggleSurabayaMask(true);

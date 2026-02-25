@@ -3,6 +3,164 @@
 // ============================================================
 
 // ============================================================
+// POPULATE SUMBER DATA ANALISIS SECARA DINAMIS
+// Membaca layerConfig dan mengisi checkbox analisis otomatis
+// ============================================================
+
+/**
+ * Render ulang daftar checkbox sumber data analisis dari layerConfig.
+ * Layer yang masuk: point/circle (bukan isBoundary, bukan isPolygon-only, bukan isLine-only).
+ * Dipanggil saat panel analisis dibuka atau setelah data selesai dimuat.
+ */
+function populateAnalysisSources() {
+    const container = document.getElementById('analysis-sources-container');
+    if (!container) return;
+
+    // Layer yang dikecualikan dari analisis (non-point atau khusus)
+    const EXCLUDED_KEYS = [
+        'KEPADATAN_PENDUDUK', 'SURABAYA_MASK', 'HEATMAP_LAYER',
+        'ANALYSIS_RESULT', 'CLUSTER_BOUNDARIES',
+        'KECAMATAN', 'KELURAHAN', 'BATAS_RW',
+        'RUTE_SAMPAH',
+        'AREA_RAYON',
+        'POMPA_AIR_7_RAYON',
+        'JARINGAN_PIPA_SALURAN',
+        'MAKAM',
+        'SALURAN_AIR'
+    ];
+
+    // Override grup untuk layer yang berbeda dari config.js
+    const GROUP_OVERRIDE = {
+        'RUKOM': 'persampahan'
+    };
+
+    // Label grup untuk pengelompokan visual
+    const GROUP_LABELS = {
+        infrastruktur: 'Infrastruktur',
+        pendidikan:    'Pendidikan',
+        persampahan:   'Persampahan & Lingkungan',
+        fasilitas:     'Fasilitas Umum',
+        pompa_saluran: 'Pompa & Saluran Air'
+    };
+
+    const GROUP_ICONS = {
+        infrastruktur: 'bi-broadcast-pin',
+        pendidikan:    'bi-mortarboard-fill',
+        persampahan:   'bi-recycle',
+        fasilitas:     'bi-buildings-fill',
+        pompa_saluran: 'bi-droplet-fill'
+    };
+
+    // Kumpulkan layer per grup
+    const grouped = {};
+    Object.keys(layerConfig).forEach(function(key) {
+        const cfg = layerConfig[key];
+        if (EXCLUDED_KEYS.includes(key)) return;
+        if (cfg.isBoundary) return;
+        if (cfg.isLine && !cfg.isPolygon) return;
+        const grp = GROUP_OVERRIDE[key] || cfg.group || 'lainnya';
+        if (!grouped[grp]) grouped[grp] = [];
+        grouped[grp].push({ key: key, cfg: cfg });
+    });
+
+    container.innerHTML = '';
+
+    const groupOrder = ['infrastruktur', 'pendidikan', 'persampahan', 'fasilitas', 'pompa_saluran', 'lainnya'];
+
+    groupOrder.forEach(function(grp) {
+        if (!grouped[grp] || grouped[grp].length === 0) return;
+
+        // Header grup
+        const grpLabel = document.createElement('div');
+        grpLabel.style.cssText = [
+            'font-size:10px', 'font-weight:700', 'color:#64748b',
+            'text-transform:uppercase', 'letter-spacing:0.5px',
+            'margin:10px 0 4px 0', 'padding-bottom:4px',
+            'border-bottom:1px solid #e2e8f0', 'display:flex',
+            'align-items:center', 'gap:5px'
+        ].join(';');
+        const icon = GROUP_ICONS[grp] || 'bi-pin-map-fill';
+        const label = GROUP_LABELS[grp] || (grp.charAt(0).toUpperCase() + grp.slice(1));
+        grpLabel.innerHTML = '<i class="bi ' + icon + '" style="font-size:11px;"></i><span>' + label + '</span>';
+        container.appendChild(grpLabel);
+
+        // Checkbox tiap layer
+        grouped[grp].forEach(function(item) {
+            const key = item.key;
+            const cfg = item.cfg;
+            const count = (geoJsonStore[key] && geoJsonStore[key].features)
+                ? geoJsonStore[key].features.length : 0;
+
+            const wrapper = document.createElement('label');
+            wrapper.style.cssText = [
+                'display:flex', 'align-items:center', 'gap:7px',
+                'padding:4px 6px', 'border-radius:5px', 'cursor:pointer',
+                'font-size:12px', 'color:#334155', 'transition:background 0.15s',
+                'user-select:none'
+            ].join(';');
+            wrapper.addEventListener('mouseenter', function() {
+                wrapper.style.background = '#f1f5f9';
+            });
+            wrapper.addEventListener('mouseleave', function() {
+                wrapper.style.background = '';
+            });
+
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.className = 'analysis-source';
+            cb.value = key;
+            cb.disabled = (count === 0);
+            cb.title = count === 0 ? 'Data belum dimuat' : '';
+            cb.style.cssText = 'width:14px;height:14px;cursor:pointer;flex-shrink:0;';
+
+            const dot = document.createElement('span');
+            dot.style.cssText = [
+                'width:9px', 'height:9px', 'border-radius:50%',
+                'background:' + cfg.color, 'flex-shrink:0', 'display:inline-block'
+            ].join(';');
+
+            const text = document.createElement('span');
+            text.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+            text.textContent = cfg.label;
+
+            wrapper.appendChild(cb);
+            wrapper.appendChild(dot);
+            wrapper.appendChild(text);
+            container.appendChild(wrapper);
+        });
+    });
+}
+
+/**
+ * Pilih semua / hapus semua checkbox analisis yang aktif
+ */
+function toggleAllAnalysisSources(checked) {
+    document.querySelectorAll('.analysis-source:not(:disabled)').forEach(function(cb) {
+        cb.checked = checked;
+    });
+}
+
+/**
+ * Dipanggil setelah semua layer selesai dimuat — refresh badge count di analisis
+ */
+function refreshAnalysisSourceCounts() {
+    const container = document.getElementById('analysis-sources-container');
+    if (!container) return;
+    // Jika belum pernah di-render, render sekarang
+    if (container.children.length === 0) {
+        populateAnalysisSources();
+        return;
+    }
+    // Update badge count yang sudah ada
+    container.querySelectorAll('.analysis-source').forEach(function(cb) {
+        const key = cb.value;
+        const count = (geoJsonStore[key] && geoJsonStore[key].features)
+            ? geoJsonStore[key].features.length : 0;
+        cb.disabled = (count === 0);
+    });
+}
+
+// ============================================================
 // FITUR ANALISIS KLUSTERING
 // ============================================================
 function runClustering() {
@@ -118,16 +276,16 @@ function runClustering() {
                 
                 if (rank === 1) {
                     rankBadgeClass = 'rank-1';
-                    rankIcon = 'PRIORITAS 1';
-                    rankLabel = 'Ranking 1';
+                    rankIcon = 'Prioritas Utama';
+                    rankLabel = '(Ranking 1)';
                 } else if (rank === 2) {
                     rankBadgeClass = 'rank-2';
-                    rankIcon = 'PRIORITAS 2';
-                    rankLabel = 'Ranking 2';
+                    rankIcon = 'Prioritas Kedua';
+                    rankLabel = '(Ranking 2)';
                 } else if (rank === 3) {
                     rankBadgeClass = 'rank-3';
-                    rankIcon = 'PRIORITAS 3';
-                    rankLabel = 'Ranking 3';
+                    rankIcon = 'Prioritas Ketiga';
+                    rankLabel = '(Ranking 3)';
                 } else {
                     rankLabel = `Ranking ${rank}`;
                 }
@@ -434,12 +592,12 @@ function runHeatmapAnalysis() {
                                 </div>
                             </div>
 
-                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding:10px; border-radius:6px; font-size:11px; color:white; line-height:1.4; text-align: center; font-weight: 600;">
-                                ${count === maxCount ? 'PRIORITAS: Area dengan nilai tertinggi!' : 
-                                  count === minCount ? 'INFO: Area dengan nilai terendah' :
-                                  count > (maxCount * 0.7) ? 'TINGGI: Area dengan nilai tinggi' :
-                                  count > (maxCount * 0.4) ? 'SEDANG: Area dengan nilai sedang' :
-                                  'RENDAH: Area dengan nilai rendah'}
+                            <div style="background: linear-gradient(#3A9AFF); padding:10px; border-radius:6px; font-size:11px; color:white; line-height:1.4; text-align: center; font-weight: 600;">
+                                ${count === maxCount ? 'Objek Pada Area ini (Tinggi Sekali)' : 
+                                  count === minCount ? 'Objek Pada Area ini (Tidak Ada)' :
+                                  count > (maxCount * 0.7) ? 'Objek Pada Area ini (Tinggi)' :
+                                  count > (maxCount * 0.4) ? 'Objek Pada Area ini (Sedang)' :
+                                  'Objek Pada Area ini (Rendah)'}
                             </div>
                         </div>
                     `;
@@ -513,3 +671,27 @@ function runHeatmapAnalysis() {
         }
     }, 100);
 }
+// ============================================================
+// AUTO-INIT: Populate checkbox setelah DOM + data siap
+// ============================================================
+(function() {
+    function _tryInit() {
+        if (typeof layerConfig === 'undefined' || typeof geoJsonStore === 'undefined') {
+            setTimeout(_tryInit, 400);
+            return;
+        }
+        // Tunggu container tersedia
+        const container = document.getElementById('analysis-sources-container');
+        if (!container) {
+            setTimeout(_tryInit, 400);
+            return;
+        }
+        populateAnalysisSources();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() { setTimeout(_tryInit, 800); });
+    } else {
+        setTimeout(_tryInit, 800);
+    }
+})();

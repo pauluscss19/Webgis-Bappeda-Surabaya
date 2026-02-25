@@ -256,10 +256,10 @@ function drawPopulationDensityLegend(ctx, x, y, width, scale = 1, legIndent = nu
         ctx.lineWidth = 0.5 * scale;
         ctx.strokeRect(symbolStartX, curY - 6 * scale, boxWidth, boxHeight);
         ctx.fillStyle = '#000000';
-        ctx.font = `${9 * scale}px Arial`;
+        ctx.font = `${8.5 * scale}px Arial`;
         ctx.textAlign = 'left';
         ctx.fillText(level.label + ' (' + level.range + ' jiwa/km²)', textStartX, curY + 3 * scale);
-        curY += 16 * scale;
+        curY += 15 * scale;
     });
 
     ctx.fillStyle = '#64748b';
@@ -431,19 +431,21 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   const legIndent = x + 30 * scale;
   
   // Konfigurasi kolom
-  const COL_1_X = x + 20 * scale;    // Kolom kiri
-  const COL_2_X = x + w/2 + 10 * scale;  // Kolom kanan
-  const MAX_HEIGHT_PER_COL = 380 * scale; // Tinggi maksimal per kolom sebelum pindah ke kanan
+  const COL_1_X = x + 15 * scale;          // Kolom kiri (lebih ke pinggir)
+  const COL_2_X = x + w/2 + 5 * scale;    // Kolom kanan (mulai dari tengah+sedikit)
+  const MAX_HEIGHT_PER_COL = 370 * scale;  // Tinggi maksimal per kolom sebelum pindah ke kanan
   
-  const LEG_SYMBOL_W  = 14 * scale;        // lebar area simbol garis
-  const LEG_ROW_H     = 16 * scale;        // tinggi tiap baris legenda
+  const LEG_SYMBOL_W  = 16 * scale;        // lebar area simbol garis
+  const LEG_ROW_H     = 17 * scale;        // tinggi tiap baris legenda (sedikit lebih lebar)
   const LEG_SYMBOL_R  = 5 * scale;         // radius simbol bulat
 
   ctx.textAlign = 'left';
   ctx.fillStyle = 'black';
   ctx.font = `bold ${11 * scale}px Arial`;
   ctx.fillText("KETERANGAN :", legLeft, curY);
-  const keteranganStartY = curY + 20 * scale;
+  curY += 20 * scale;
+  
+  const keteranganStartY = curY;
   
   const activeCheckboxes = document.querySelectorAll('.layer-toggle:checked');
   
@@ -472,8 +474,8 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
     // Fungsi helper untuk mendapatkan posisi simbol dan teks berdasarkan kolom
     function getColumnPositions() {
       const legIndentCol = currentColX + 10 * scale;
-      const legSymbolCX = currentColX + 22 * scale;
-      const legTextX = currentColX + 35 * scale;
+      const legSymbolCX = currentColX + 20 * scale;
+      const legTextX = currentColX + 34 * scale;
       return { legIndentCol, legSymbolCX, legTextX };
     }
     
@@ -518,6 +520,7 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
     
     // Sub-header: Lokasi & Fasilitas
     checkColumnSwitch(200 * scale);
+    
     const pos2 = getColumnPositions();
     ctx.font = `bold ${10 * scale}px Arial`;
     ctx.fillStyle = '#334155';
@@ -583,90 +586,94 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
     
     currentY += 8 * scale;
     
+    // Heatmap layer (dalam multi-kolom)
+    if (mapLayers['HEATMAP_LAYER'] && map.hasLayer(mapLayers['HEATMAP_LAYER'])) {
+      checkColumnSwitch(80 * scale);
+      const posHm = getColumnPositions();
+      ctx.font = `bold ${10 * scale}px Arial`;
+      ctx.fillStyle = '#334155';
+      ctx.fillText("Analisis Heatmap", posHm.legIndentCol, currentY);
+      currentY += 15 * scale;
+      
+      const heatItems = [
+        { color: '#7f1d1d', label: 'Jumlah Tempat Banyak' },
+        { color: '#f87171', label: 'Jumlah Tempat Sedang' },
+        { color: '#fee2e2', label: 'Jumlah Tempat Sedikit' }
+      ];
+      heatItems.forEach(item => {
+        checkColumnSwitch(LEG_ROW_H);
+        const posH = getColumnPositions();
+        const boxSz = 10 * scale;
+        ctx.fillStyle = item.color;
+        ctx.fillRect(posH.legSymbolCX - boxSz / 2, currentY - boxSz / 2, boxSz, boxSz);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 0.5 * scale;
+        ctx.strokeRect(posH.legSymbolCX - boxSz / 2, currentY - boxSz / 2, boxSz, boxSz);
+        ctx.fillStyle = 'black';
+        ctx.font = `${9 * scale}px Arial`;
+        ctx.fillText(item.label, posH.legTextX, currentY + 3 * scale);
+        currentY += LEG_ROW_H;
+      });
+      currentY += 6 * scale;
+    }
+    
+    // Analisis clustering (dalam multi-kolom)
+    if (mapLayers['ANALYSIS_RESULT'] && map.hasLayer(mapLayers['ANALYSIS_RESULT'])) {
+      checkColumnSwitch(80 * scale);
+      const posAn = getColumnPositions();
+      ctx.font = `bold ${10 * scale}px Arial`;
+      ctx.fillStyle = '#334155';
+      ctx.fillText("Hasil Analisis Prioritas", posAn.legIndentCol, currentY);
+      currentY += 15 * scale;
+      
+      const analysisItems = [
+        { color: '#ffd700', label: 'Prioritas Utama (Ranking 1)', r: 6 },
+        { color: '#c0c0c0', label: 'Prioritas Menengah (Ranking 2)', r: 5 },
+        { color: '#cd7f32', label: 'Prioritas Rendah (Ranking 3)', r: 5 }
+      ];
+      analysisItems.forEach(item => {
+        checkColumnSwitch(LEG_ROW_H);
+        const posA = getColumnPositions();
+        ctx.beginPath();
+        ctx.fillStyle = item.color;
+        ctx.arc(posA.legSymbolCX, currentY, item.r * scale, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1 * scale;
+        ctx.stroke();
+        ctx.fillStyle = 'black';
+        ctx.font = `${9 * scale}px Arial`;
+        ctx.fillText(item.label, posA.legTextX, currentY + 3 * scale);
+        currentY += LEG_ROW_H;
+      });
+      currentY += 6 * scale;
+    }
+    
+    // Fitur Alam & Perairan (dalam multi-kolom)
+    checkColumnSwitch(50 * scale);
+    const posNat = getColumnPositions();
+    ctx.font = `bold ${10 * scale}px Arial`;
+    ctx.fillStyle = '#334155';
+    ctx.fillText("Fitur Alam & Perairan", posNat.legIndentCol, currentY);
+    currentY += 15 * scale;
+    {
+      const boxSz = 10 * scale;
+      ctx.fillStyle = '#93c5fd';
+      ctx.fillRect(posNat.legSymbolCX - boxSz / 2, currentY - boxSz / 2, boxSz, boxSz);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 0.5 * scale;
+      ctx.strokeRect(posNat.legSymbolCX - boxSz / 2, currentY - boxSz / 2, boxSz, boxSz);
+      ctx.fillStyle = 'black';
+      ctx.font = `${9 * scale}px Arial`;
+      ctx.fillText("Badan Air / Sungai", posNat.legTextX, currentY + 3 * scale);
+      currentY += LEG_ROW_H;
+    }
+    
     // Update curY untuk section berikutnya
     curY = Math.max(currentY, keteranganStartY + 50 * scale);
   }
   
-  // Heatmap layer
-  if (mapLayers['HEATMAP_LAYER'] && map.hasLayer(mapLayers['HEATMAP_LAYER'])) {
-    ctx.font = `bold ${10 * scale}px Arial`;
-    ctx.fillStyle = '#334155';
-    ctx.fillText("Analisis Heatmap", legIndent, curY);
-    curY += 15 * scale;
-    
-    const LEG_SYMBOL_CX = x + 42 * scale;
-    const LEG_TEXT_X = x + 55 * scale;
-    
-    const heatItems = [
-      { color: '#7f1d1d', label: 'Jumlah Tempat Banyak' },
-      { color: '#f87171', label: 'Jumlah Tempat Sedang' },
-      { color: '#fee2e2', label: 'Jumlah Tempat Sedikit' }
-    ];
-    heatItems.forEach(item => {
-      const boxSz = 10 * scale;
-      ctx.fillStyle = item.color;
-      ctx.fillRect(LEG_SYMBOL_CX - boxSz / 2, curY - boxSz / 2, boxSz, boxSz);
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 0.5 * scale;
-      ctx.strokeRect(LEG_SYMBOL_CX - boxSz / 2, curY - boxSz / 2, boxSz, boxSz);
-      ctx.fillStyle = 'black';
-      ctx.font = `${9 * scale}px Arial`;
-      ctx.fillText(item.label, LEG_TEXT_X, curY + 3 * scale);
-      curY += LEG_ROW_H;
-    });
-    curY += 8 * scale;
-  }
-  
-  // Analisis clustering
-  if (mapLayers['ANALYSIS_RESULT'] && map.hasLayer(mapLayers['ANALYSIS_RESULT'])) {
-    const LEG_SYMBOL_CX = x + 42 * scale;
-    const LEG_TEXT_X = x + 55 * scale;
-    
-    ctx.font = `bold ${10 * scale}px Arial`;
-    ctx.fillStyle = '#334155';
-    ctx.fillText("Hasil Analisis Prioritas", legIndent, curY);
-    curY += 15 * scale;
-    
-    const analysisItems = [
-      { color: '#ffd700', label: 'Prioritas Utama (Ranking 1)', r: 6 },
-      { color: '#c0c0c0', label: 'Prioritas Menengah (Ranking 2)', r: 5 },
-      { color: '#cd7f32', label: 'Prioritas Rendah (Ranking 3)', r: 5 }
-    ];
-    analysisItems.forEach(item => {
-      ctx.beginPath();
-      ctx.fillStyle = item.color;
-      ctx.arc(LEG_SYMBOL_CX, curY, item.r * scale, 0, 2 * Math.PI);
-      ctx.fill();
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 1 * scale;
-      ctx.stroke();
-      ctx.fillStyle = 'black';
-      ctx.font = `${9 * scale}px Arial`;
-      ctx.fillText(item.label, LEG_TEXT_X, curY + 3 * scale);
-      curY += LEG_ROW_H;
-    });
-    curY += 8 * scale;
-  }
-  
-  // Fitur alam
-  const LEG_SYMBOL_CX = x + 42 * scale;
-  const LEG_TEXT_X = x + 55 * scale;
-  
-  ctx.font = `bold ${10 * scale}px Arial`;
-  ctx.fillStyle = '#334155';
-  ctx.fillText("Fitur Alam & Perairan", legIndent, curY);
-  curY += 15 * scale;
-  
-  const boxSz = 10 * scale;
-  ctx.fillStyle = '#93c5fd';
-  ctx.fillRect(LEG_SYMBOL_CX - boxSz / 2, curY - boxSz / 2, boxSz, boxSz);
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 0.5 * scale;
-  ctx.strokeRect(LEG_SYMBOL_CX - boxSz / 2, curY - boxSz / 2, boxSz, boxSz);
-  ctx.fillStyle = 'black';
-  ctx.font = `${9 * scale}px Arial`;
-  ctx.fillText("Badan Air / Sungai", LEG_TEXT_X, curY + 3 * scale);
-  curY += 25 * scale;
+  // (Heatmap, Analisis, Fitur Alam sudah dimasukkan ke dalam blok multi-kolom di atas)
   
   // H. SUMBER DATA
   const srcLineHeight = 12 * scale;

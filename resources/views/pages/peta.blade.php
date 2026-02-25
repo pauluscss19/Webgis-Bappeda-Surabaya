@@ -159,41 +159,29 @@
                     <div class="analysis-title"><i class="bi bi-cpu-fill"></i> AI Analisis Lokasi</div>
 
                     <div class="form-group">
-                        <label>Pilih Sumber Data (Gabungan):</label>
-                        <div class="checkbox-list">
-                            <label class="checkbox-item">
-                                <input type="checkbox" class="analysis-source" value="CCTV_EKSISTING"> CCTV Eksisting
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" class="analysis-source" value="TITIK_SAMPAH"> Titik Sampah
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" class="analysis-source" value="DAMKAR"> Pos Damkar
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" class="analysis-source" value="PAUD"> PAUD/TK
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" class="analysis-source" value="SD_MI"> SD/MI
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" class="analysis-source" value="SMP_MTS"> SMP/MTS
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" class="analysis-source" value="TPS3R"> TPS3R
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" class="analysis-source" value="TPS"> TPS
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" class="analysis-source" value="RUKOM"> Rumah Kompos
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" class="analysis-source" value="DEKORASI_KOTA"> Dekorasi Kota
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" class="analysis-source" value="POINT_RUTE_SAMPAH"> Titik Rute Sampah
-                            </label>
+                        <label style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                            <span>Pilih Sumber Data (Gabungan):</span>
+                            <span style="display:flex; gap:4px;">
+                                <button onclick="toggleAllAnalysisSources(true)" type="button"
+                                    style="font-size:10px; padding:1px 7px; border-radius:4px;
+                                           border:1px solid #cbd5e1; background:#f8fafc;
+                                           color:#475569; cursor:pointer; line-height:1.6;">
+                                    Semua
+                                </button>
+                                <button onclick="toggleAllAnalysisSources(false)" type="button"
+                                    style="font-size:10px; padding:1px 7px; border-radius:4px;
+                                           border:1px solid #cbd5e1; background:#f8fafc;
+                                           color:#475569; cursor:pointer; line-height:1.6;">
+                                    Hapus
+                                </button>
+                            </span>
+                        </label>
+                        <!-- Diisi otomatis oleh populateAnalysisSources() di analysis.js -->
+                        <div id="analysis-sources-container" class="checkbox-list"
+                             style="max-height:200px; overflow-y:auto;">
+                            <span style="font-size:11px; color:#94a3b8; padding:6px 0; display:block; text-align:center;">
+                                Memuat sumber data...
+                            </span>
                         </div>
                     </div>
 

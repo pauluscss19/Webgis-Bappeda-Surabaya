@@ -227,6 +227,11 @@ async function resetMap() {
         // Uncheck analysis sources
         document.querySelectorAll('.analysis-source').forEach(cb => cb.checked = false);
         
+        // Refresh daftar sumber data analisis
+        if (typeof populateAnalysisSources === 'function') {
+            populateAnalysisSources();
+        }
+        
         // 4. MATIKAN SEMUA LAYER DAN UNCHECK CHECKBOX
         console.log("❌ Mematikan semua layer...");
         
