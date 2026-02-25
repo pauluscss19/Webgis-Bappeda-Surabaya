@@ -613,7 +613,8 @@
                 </button>
             </div>
             <div style="margin-top: 10px; font-size: 11px; color: #64748b; line-height: 1.4;">
-                <i class="bi bi-info-circle"></i> PDF: A4 Landscape, skala 1:50.000. Excel: data layer yang aktif (nama, koordinat, atribut).
+                <i class="bi bi-info-circle"></i> PDF: A4 Landscape, skala 1:50.000. <br>
+                <i class="bi bi-info-circle"></i> Excel: data layer yang aktif (nama, koordinat, atribut).
             </div>
         </div>
 

@@ -1,5 +1,5 @@
 // ============================================================
-// PDF-EXPORT.JS - Versi HD dengan Legend Kepadatan Penduduk
+// PDF-EXPORT.JS - Versi HD dengan Legend Kepadatan Penduduk + Multi-Column Legend
 // ============================================================
 
 const PDF_CONFIG = {
@@ -220,13 +220,15 @@ function drawGridAndFrame(ctx, rect, bounds, scale = 1) {
 }
 
 function drawPopulationDensityLegend(ctx, x, y, width, scale = 1, legIndent = null) {
-    const indent = legIndent || (x + 30 * scale);
-    const symbolStartX = x + 35 * scale;
-    const textStartX = x + 55 * scale;
+    // Indent untuk header
+    const indent = legIndent || (x + 10 * scale);
+    // Kotak simbol sejajar dengan indent (tidak menjorok ke kanan)
+    const symbolStartX = indent;
+    const textStartX = indent + 20 * scale;
     let curY = y;
 
     ctx.font = `bold ${10 * scale}px Arial`;
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = '#334155';
     ctx.textAlign = 'left';
     ctx.fillText("Kepadatan Penduduk", indent, curY);
     curY += 15 * scale;
@@ -269,8 +271,7 @@ function drawPopulationDensityLegend(ctx, x, y, width, scale = 1, legIndent = nu
 }
 
 // ============================================================
-// FIX #3: drawSidebar - Legenda konsisten dengan simbol bulat
-// untuk titik dan garis untuk rute/batas
+// FIX #4: drawSidebar - Legenda dengan Multi-Kolom
 // ============================================================
 function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, scale = 1) {
   const centerX = x + (w / 2);
@@ -425,13 +426,16 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   
   curY = diagramY + diagramH + 20 * scale;
   
-  // G. KETERANGAN/LEGENDA
+  // G. KETERANGAN/LEGENDA dengan MULTI-KOLOM
   const legLeft   = x + 20 * scale;
   const legIndent = x + 30 * scale;
-  // FIX #3: posisi simbol dan teks konsisten untuk semua item
-  const LEG_SYMBOL_CX = x + 42 * scale;   // center-x simbol (bulat/garis)
+  
+  // Konfigurasi kolom
+  const COL_1_X = x + 20 * scale;    // Kolom kiri
+  const COL_2_X = x + w/2 + 10 * scale;  // Kolom kanan
+  const MAX_HEIGHT_PER_COL = 380 * scale; // Tinggi maksimal per kolom sebelum pindah ke kanan
+  
   const LEG_SYMBOL_W  = 14 * scale;        // lebar area simbol garis
-  const LEG_TEXT_X    = x + 55 * scale;    // awal teks label (sama untuk semua)
   const LEG_ROW_H     = 16 * scale;        // tinggi tiap baris legenda
   const LEG_SYMBOL_R  = 5 * scale;         // radius simbol bulat
 
@@ -439,7 +443,7 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   ctx.fillStyle = 'black';
   ctx.font = `bold ${11 * scale}px Arial`;
   ctx.fillText("KETERANGAN :", legLeft, curY);
-  curY += 20 * scale;
+  const keteranganStartY = curY + 20 * scale;
   
   const activeCheckboxes = document.querySelectorAll('.layer-toggle:checked');
   
@@ -451,112 +455,136 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   });
   
   if (activeCheckboxes.length > 0) {
+    // Variabel untuk tracking kolom
+    let currentColX = COL_1_X;
+    let currentY = keteranganStartY;
+    let isSecondColumn = false;
+    
+    // Fungsi helper untuk cek apakah perlu pindah kolom
+    function checkColumnSwitch(requiredHeight) {
+      if (!isSecondColumn && (currentY - keteranganStartY + requiredHeight) > MAX_HEIGHT_PER_COL) {
+        currentColX = COL_2_X;
+        currentY = keteranganStartY;
+        isSecondColumn = true;
+      }
+    }
+    
+    // Fungsi helper untuk mendapatkan posisi simbol dan teks berdasarkan kolom
+    function getColumnPositions() {
+      const legIndentCol = currentColX + 10 * scale;
+      const legSymbolCX = currentColX + 22 * scale;
+      const legTextX = currentColX + 35 * scale;
+      return { legIndentCol, legSymbolCX, legTextX };
+    }
+    
     // Sub-header: Administrasi & Batas Wilayah
+    checkColumnSwitch(100 * scale);
+    const pos1 = getColumnPositions();
     ctx.font = `bold ${10 * scale}px Arial`;
     ctx.fillStyle = '#334155';
-    ctx.fillText("Administrasi & Batas Wilayah", legIndent, curY);
-    curY += 15 * scale;
+    ctx.fillText("Administrasi & Batas Wilayah", pos1.legIndentCol, currentY);
+    currentY += 15 * scale;
 
-    // FIX #3: Garis batas semua pakai pola garis putus-putus dengan posisi KONSISTEN
     const boundaryItems = [
       { color: '#6366f1', label: 'Batas Kecamatan', dash: [4, 2] },
       { color: '#f59e0b', label: 'Batas Kelurahan',  dash: [2, 2] },
       { color: '#14b8a6', label: 'Batas RW',          dash: [4, 2] }
     ];
     boundaryItems.forEach(item => {
+      const pos = getColumnPositions();
       ctx.beginPath();
       ctx.strokeStyle = item.color;
       ctx.lineWidth = 2 * scale;
       ctx.setLineDash(item.dash.map(v => v * scale));
-      ctx.moveTo(LEG_SYMBOL_CX - LEG_SYMBOL_W / 2, curY);
-      ctx.lineTo(LEG_SYMBOL_CX + LEG_SYMBOL_W / 2, curY);
+      ctx.moveTo(pos.legSymbolCX - LEG_SYMBOL_W / 2, currentY);
+      ctx.lineTo(pos.legSymbolCX + LEG_SYMBOL_W / 2, currentY);
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.fillStyle = 'black';
       ctx.font = `${9 * scale}px Arial`;
-      ctx.fillText(item.label, LEG_TEXT_X, curY + 3 * scale);
-      curY += LEG_ROW_H;
+      ctx.fillText(item.label, pos.legTextX, currentY + 3 * scale);
+      currentY += LEG_ROW_H;
     });
 
-    curY += 4 * scale;
+    currentY += 4 * scale;
     
     // Kepadatan Penduduk (jika aktif)
     if (hasKepadatanPenduduk) {
-      curY = drawPopulationDensityLegend(ctx, x, curY, w, scale, legIndent);
-      curY += 20 * scale;
+      checkColumnSwitch(180 * scale);
+      const pos = getColumnPositions();
+      currentY = drawPopulationDensityLegend(ctx, currentColX, currentY, w/2, scale, pos.legIndentCol);
+      currentY += 20 * scale;
     }
     
     // Sub-header: Lokasi & Fasilitas
+    checkColumnSwitch(200 * scale);
+    const pos2 = getColumnPositions();
     ctx.font = `bold ${10 * scale}px Arial`;
     ctx.fillStyle = '#334155';
-    ctx.fillText("Lokasi & Fasilitas", legIndent, curY);
-    curY += 15 * scale;
+    ctx.fillText("Lokasi & Fasilitas", pos2.legIndentCol, currentY);
+    currentY += 15 * scale;
     
     activeCheckboxes.forEach(checkbox => {
       const layerKey = checkbox.getAttribute('data-layer');
       const config = PDF_CONFIG.layerConfig[layerKey];
       
       if (config && !config.isBoundary && layerKey !== 'KEPADATAN_PENDUDUK') {
+        checkColumnSwitch(LEG_ROW_H + 2 * scale);
+        const pos = getColumnPositions();
 
-        // FIX #2: Gunakan helper yang baca dari geoJsonStore
         const markerCount = _getPdfMarkerCount(layerKey);
 
         if (config.type === 'line') {
-          // Simbol garis (rute)
           ctx.beginPath();
           ctx.strokeStyle = config.color;
           ctx.lineWidth = 2.5 * scale;
           ctx.setLineDash([]);
-          ctx.moveTo(LEG_SYMBOL_CX - LEG_SYMBOL_W / 2, curY);
-          ctx.lineTo(LEG_SYMBOL_CX + LEG_SYMBOL_W / 2, curY);
+          ctx.moveTo(pos.legSymbolCX - LEG_SYMBOL_W / 2, currentY);
+          ctx.lineTo(pos.legSymbolCX + LEG_SYMBOL_W / 2, currentY);
           ctx.stroke();
         } else if (config.type === 'polygon') {
-          // Simbol kotak untuk polygon/area
           const boxSz = 10 * scale;
-          ctx.fillStyle = config.color + '88'; // semi-transparan
-          ctx.fillRect(LEG_SYMBOL_CX - boxSz / 2, curY - boxSz / 2, boxSz, boxSz);
+          ctx.fillStyle = config.color + '88';
+          ctx.fillRect(pos.legSymbolCX - boxSz / 2, currentY - boxSz / 2, boxSz, boxSz);
           ctx.strokeStyle = config.color;
           ctx.lineWidth = 1.5 * scale;
           ctx.setLineDash([]);
-          ctx.strokeRect(LEG_SYMBOL_CX - boxSz / 2, curY - boxSz / 2, boxSz, boxSz);
+          ctx.strokeRect(pos.legSymbolCX - boxSz / 2, currentY - boxSz / 2, boxSz, boxSz);
         } else {
-          // FIX #3: Simbol bulat — posisi center konsisten di LEG_SYMBOL_CX
           ctx.beginPath();
           ctx.fillStyle = config.color;
-          ctx.arc(LEG_SYMBOL_CX, curY, LEG_SYMBOL_R, 0, 2 * Math.PI);
+          ctx.arc(pos.legSymbolCX, currentY, LEG_SYMBOL_R, 0, 2 * Math.PI);
           ctx.fill();
           ctx.strokeStyle = '#ffffff';
           ctx.lineWidth = 1 * scale;
           ctx.stroke();
-          // Ring luar tipis agar terlihat di background putih
           ctx.beginPath();
           ctx.strokeStyle = config.color + 'aa';
           ctx.lineWidth = 0.5 * scale;
-          ctx.arc(LEG_SYMBOL_CX, curY, LEG_SYMBOL_R + 1.5 * scale, 0, 2 * Math.PI);
+          ctx.arc(pos.legSymbolCX, currentY, LEG_SYMBOL_R + 1.5 * scale, 0, 2 * Math.PI);
           ctx.stroke();
         }
         
-        // FIX #3: Teks label + jumlah, semua mulai di LEG_TEXT_X yang sama
         ctx.fillStyle = 'black';
         ctx.font = `${9 * scale}px Arial`;
         ctx.textAlign = 'left';
+        ctx.fillText(config.label, pos.legTextX, currentY + 3 * scale);
 
-        // Tulis label
-        ctx.fillText(config.label, LEG_TEXT_X, curY + 3 * scale);
-
-        // FIX #2: Tulis jumlah dengan warna dan posisi konsisten
         const countStr = '(' + markerCount + ')';
         const labelWidth = ctx.measureText(config.label).width;
         ctx.fillStyle = '#0369a1';
         ctx.font = `bold ${9 * scale}px Arial`;
-        ctx.fillText(countStr, LEG_TEXT_X + labelWidth + 4 * scale, curY + 3 * scale);
+        ctx.fillText(countStr, pos.legTextX + labelWidth + 4 * scale, currentY + 3 * scale);
         ctx.font = `${9 * scale}px Arial`;
 
-        curY += LEG_ROW_H;
+        currentY += LEG_ROW_H;
       }
     });
     
-    curY += 8 * scale;
+    currentY += 8 * scale;
+    
+    // Update curY untuk section berikutnya
+    curY = Math.max(currentY, keteranganStartY + 50 * scale);
   }
   
   // Heatmap layer
@@ -565,6 +593,9 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
     ctx.fillStyle = '#334155';
     ctx.fillText("Analisis Heatmap", legIndent, curY);
     curY += 15 * scale;
+    
+    const LEG_SYMBOL_CX = x + 42 * scale;
+    const LEG_TEXT_X = x + 55 * scale;
     
     const heatItems = [
       { color: '#7f1d1d', label: 'Jumlah Tempat Banyak' },
@@ -588,6 +619,9 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   
   // Analisis clustering
   if (mapLayers['ANALYSIS_RESULT'] && map.hasLayer(mapLayers['ANALYSIS_RESULT'])) {
+    const LEG_SYMBOL_CX = x + 42 * scale;
+    const LEG_TEXT_X = x + 55 * scale;
+    
     ctx.font = `bold ${10 * scale}px Arial`;
     ctx.fillStyle = '#334155';
     ctx.fillText("Hasil Analisis Prioritas", legIndent, curY);
@@ -615,6 +649,9 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   }
   
   // Fitur alam
+  const LEG_SYMBOL_CX = x + 42 * scale;
+  const LEG_TEXT_X = x + 55 * scale;
+  
   ctx.font = `bold ${10 * scale}px Arial`;
   ctx.fillStyle = '#334155';
   ctx.fillText("Fitur Alam & Perairan", legIndent, curY);
@@ -881,7 +918,7 @@ window.printMap = async function() {
   } catch (e) {
     console.error("Export PDF Error:", e);
     alert("Gagal Export PDF: " + e.message);
-    restoreMapState();
+    restoreMapState();  
   } finally {
     setTimeout(() => {
       if (loadingOverlay) loadingOverlay.style.display = 'none';
