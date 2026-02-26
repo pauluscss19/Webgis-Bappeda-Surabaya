@@ -98,30 +98,58 @@ function toggleLayer(layerKey, isChecked) {
 
 /**
  * Helper: Fungsi Khusus untuk Menata Ulang Urutan Layer
+ * Urutan dari bawah ke atas:
+ *   1. SURABAYA_MASK         (paling bawah)
+ *   2. Polygon data          (kepadatan, area rayon, dll)
+ *   3. Heatmap               (di atas polygon data)
+ *   4. Batas wilayah         (di atas semua polygon, garis terlihat jelas)
+ *   5. Garis rute            (di atas batas)
+ *   6. Marker titik          (paling atas)
  */
 function reorderLayers() {
-    // 1. Masking Surabaya (PALING BAWAH)
+    // 1. SURABAYA_MASK — paling bawah
     if (mapLayers['SURABAYA_MASK'] && map.hasLayer(mapLayers['SURABAYA_MASK'])) {
         mapLayers['SURABAYA_MASK'].bringToBack();
     }
 
-    // 2. Batas Wilayah & Polygon Besar
-    const backgroundPriority = ['KECAMATAN', 'KELURAHAN', 'KEPADATAN_PENDUDUK', 'BATAS_RW'];
-    
-    backgroundPriority.forEach(key => {
+    // 2. Polygon data besar — di atas mask
+    const polygonLayers = ['KEPADATAN_PENDUDUK', 'POMPA_AIR_7_RAYON', 'AREA_RAYON', 'MAKAM', 'BADAN_AIR'];
+    polygonLayers.forEach(key => {
         if (mapLayers[key] && map.hasLayer(mapLayers[key])) {
-            mapLayers[key].bringToBack();
+            mapLayers[key].bringToFront();
         }
     });
 
-    // CRITICAL: Panggil Mask bringToBack LAGI
-    if (mapLayers['SURABAYA_MASK'] && map.hasLayer(mapLayers['SURABAYA_MASK'])) {
-        mapLayers['SURABAYA_MASK'].bringToBack();
+    // 3. Heatmap — di atas polygon data
+    if (mapLayers['HEATMAP_LAYER'] && map.hasLayer(mapLayers['HEATMAP_LAYER'])) {
+        mapLayers['HEATMAP_LAYER'].bringToFront();
     }
 
-    // 3. Layer Utama (Titik & Garis Rute) - SELALU PALING ATAS
-    const foregroundLayers = ['RUTE_SAMPAH', 'POINT_RUTE_SAMPAH', 'CCTV_EKSISTING', 'TITIK_SAMPAH', 'TPS', 'TPS3R'];
-    foregroundLayers.forEach(key => {
+    // 4. Batas wilayah — di atas semua polygon agar garisnya terlihat
+    const boundaryLayers = ['BATAS_KOTA', 'KECAMATAN', 'KELURAHAN', 'BATAS_RW'];
+    boundaryLayers.forEach(key => {
+        if (mapLayers[key] && map.hasLayer(mapLayers[key])) {
+            mapLayers[key].bringToFront();
+        }
+    });
+
+    // 5. Garis rute — di atas batas wilayah
+    const lineLayers = ['JARINGAN_PIPA_SALURAN', 'SALURAN_AIR', 'RUTE_SAMPAH'];
+    lineLayers.forEach(key => {
+        if (mapLayers[key] && map.hasLayer(mapLayers[key])) {
+            mapLayers[key].bringToFront();
+        }
+    });
+
+    // 6. Marker titik — paling atas
+    const markerLayers = [
+        'POINT_RUTE_SAMPAH', 'CCTV_EKSISTING', 'CCTV_RENCANA',
+        'TITIK_SAMPAH', 'TITIK_SAMPAH_RENCANA', 'TPS', 'TPS3R',
+        'DAMKAR', 'PAUD', 'SD_MI', 'SMP_MTS', 'RUKOM',
+        'DEKORASI_KOTA', 'TITIK_POMPA_AIR',
+        'ANALYSIS_RESULT', 'CLUSTER_BOUNDARIES'
+    ];
+    markerLayers.forEach(key => {
         if (mapLayers[key] && map.hasLayer(mapLayers[key])) {
             mapLayers[key].bringToFront();
         }

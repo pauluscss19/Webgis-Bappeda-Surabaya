@@ -95,8 +95,9 @@ async function captureLocationDiagram(targetBounds) {
   tempDiv.style.position = 'fixed';
   tempDiv.style.top = '0';
   tempDiv.style.left = '0';
-  tempDiv.style.zIndex = '99999';
+  tempDiv.style.zIndex = '1';   // Di bawah loading overlay, tapi tetap ter-render browser
   tempDiv.style.background = '#fff';
+  tempDiv.style.pointerEvents = 'none';
   document.body.appendChild(tempDiv);
   
   try {
@@ -228,7 +229,7 @@ function drawPopulationDensityLegend(ctx, x, y, width, scale = 1, legIndent = nu
     let curY = y;
 
     ctx.font = `bold ${10 * scale}px Arial`;
-    ctx.fillStyle = '#334155';
+    ctx.fillStyle = '#000000';
     ctx.textAlign = 'left';
     ctx.fillText("Kepadatan Penduduk", indent, curY);
     curY += 15 * scale;
@@ -301,11 +302,12 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   ctx.font = `bold ${14 * scale}px Arial`;
   ctx.fillText("PETA KELENGKAPAN KOTA SURABAYA", centerX, curY);
   curY += 30 * scale;
-  
+
   ctx.beginPath();
   ctx.moveTo(x + 15 * scale, curY);
   ctx.lineTo(x + w - 15 * scale, curY);
   ctx.lineWidth = 1 * scale;
+  ctx.strokeStyle = '#000000';
   ctx.stroke();
   curY += 20 * scale;
   
@@ -479,17 +481,41 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
       return { legIndentCol, legSymbolCX, legTextX };
     }
     
+    // Sub-header: Filter Wilayah (jika aktif)
+    const _filterActive = window.FilterWilayah
+      && typeof window.FilterWilayah.isFilterActive === 'function'
+      && window.FilterWilayah.isFilterActive();
+    const _filterLabel = _filterActive
+      && typeof window.FilterWilayah.getFilterLabel === 'function'
+      ? window.FilterWilayah.getFilterLabel() : null;
+
+    if (_filterActive && _filterLabel) {
+      checkColumnSwitch(30 * scale);
+      const posF = getColumnPositions();
+      ctx.font = `bold ${10 * scale}px Arial`;
+      ctx.fillStyle = '#000000';
+      ctx.fillText("Filter Wilayah", posF.legIndentCol, currentY);
+      currentY += 15 * scale;
+
+      const posF2 = getColumnPositions();
+      ctx.font = `${9 * scale}px Arial`;
+      ctx.fillStyle = '#000000';
+      ctx.fillText(_filterLabel, posF2.legTextX, currentY + 3 * scale);
+      currentY += LEG_ROW_H + 4 * scale;
+    }
+
     // Sub-header: Administrasi & Batas Wilayah
     checkColumnSwitch(100 * scale);
     const pos1 = getColumnPositions();
     ctx.font = `bold ${10 * scale}px Arial`;
-    ctx.fillStyle = '#334155';
+    ctx.fillStyle = '#000000';
     ctx.fillText("Administrasi & Batas Wilayah", pos1.legIndentCol, currentY);
     currentY += 15 * scale;
 
     const boundaryItems = [
+      { color: '#808080', label: 'Batas Kota',          dash: [4, 2] },
       { color: '#6366f1', label: 'Batas Kecamatan', dash: [4, 2] },
-      { color: '#f59e0b', label: 'Batas Kelurahan',  dash: [2, 2] },
+      { color: '#f59e0b', label: 'Batas Kelurahan',  dash: [4, 2] },
       { color: '#14b8a6', label: 'Batas RW',          dash: [4, 2] }
     ];
     boundaryItems.forEach(item => {
@@ -523,7 +549,7 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
     
     const pos2 = getColumnPositions();
     ctx.font = `bold ${10 * scale}px Arial`;
-    ctx.fillStyle = '#334155';
+    ctx.fillStyle = '#000000';
     ctx.fillText("Lokasi & Fasilitas", pos2.legIndentCol, currentY);
     currentY += 15 * scale;
     
@@ -591,7 +617,7 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
       checkColumnSwitch(80 * scale);
       const posHm = getColumnPositions();
       ctx.font = `bold ${10 * scale}px Arial`;
-      ctx.fillStyle = '#334155';
+      ctx.fillStyle = '#000000';
       ctx.fillText("Analisis Heatmap", posHm.legIndentCol, currentY);
       currentY += 15 * scale;
       
@@ -622,7 +648,7 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
       checkColumnSwitch(80 * scale);
       const posAn = getColumnPositions();
       ctx.font = `bold ${10 * scale}px Arial`;
-      ctx.fillStyle = '#334155';
+      ctx.fillStyle = '#000000';
       ctx.fillText("Hasil Analisis Prioritas", posAn.legIndentCol, currentY);
       currentY += 15 * scale;
       
@@ -653,7 +679,7 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
     checkColumnSwitch(50 * scale);
     const posNat = getColumnPositions();
     ctx.font = `bold ${10 * scale}px Arial`;
-    ctx.fillStyle = '#334155';
+    ctx.fillStyle = '#000000';
     ctx.fillText("Fitur Alam & Perairan", posNat.legIndentCol, currentY);
     currentY += 15 * scale;
     {

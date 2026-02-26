@@ -518,8 +518,16 @@ window.FilterWilayah = (function () {
     // Expose state untuk kebutuhan eksternal (misal pdf-export)
     function getInsideCount() { return _insideCount; }
     function isFilterActive() { return _isActive; }
+    function getFilterLabel() {
+        if (!_isActive) return null;
+        if (_activeKel) return _activeKec
+            ? 'Kec. ' + _activeKec + ' \u203a Kel. ' + _activeKel
+            : 'Kel. ' + _activeKel;
+        if (_activeKec) return 'Kec. ' + _activeKec;
+        return null;
+    }
 
-    return { init, applyFromUI, clearFilter, getInsideCount, isFilterActive };
+    return { init, applyFromUI, clearFilter, getInsideCount, isFilterActive, getFilterLabel };
 
 })();
 

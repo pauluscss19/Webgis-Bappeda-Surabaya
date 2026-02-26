@@ -1,3 +1,8 @@
+{{-- peta.blade.php
+     FIX: Hapus inline style dari #heatmap-legend
+          Semua styling dikelola oleh peta.css Section 10
+          JS (analysis.js) cukup: legendDiv.style.display = 'block'
+--}}
 <!doctype html>
 <html lang="id">
 <head>
@@ -12,9 +17,7 @@
 
   <style>
     /* Style untuk dropdown accordion */
-    .layer-group {
-        margin-bottom: 10px;
-    }
+    .layer-group { margin-bottom: 10px; }
 
     .layer-group-header {
         background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
@@ -36,13 +39,8 @@
         box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
     }
 
-    .layer-group-header i.toggle-icon {
-        transition: transform 0.3s ease;
-    }
-
-    .layer-group-header.active i.toggle-icon {
-        transform: rotate(180deg);
-    }
+    .layer-group-header i.toggle-icon { transition: transform 0.3s ease; }
+    .layer-group-header.active i.toggle-icon { transform: rotate(180deg); }
 
     .layer-group-content {
         max-height: 0;
@@ -51,44 +49,17 @@
         padding-left: 12px;
     }
 
-    .layer-group-content.active {
-        max-height: 1000px;
-        margin-bottom: 10px;
-    }
+    .layer-group-content.active { max-height: 1000px; margin-bottom: 10px; }
 
-    .layer-group-infrastruktur .layer-group-header {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    }
+    .layer-group-infrastruktur  .layer-group-header { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+    .layer-group-pendidikan     .layer-group-header { background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); }
+    .layer-group-persampahan    .layer-group-header { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
+    .layer-group-fasilitas      .layer-group-header { background: linear-gradient(135deg, #64748b 0%, #475569 100%); }
+    .layer-group-demografi      .layer-group-header { background: linear-gradient(135deg, #334155 0%, #1e293b 100%); }
+    .layer-group-batas          .layer-group-header { background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%); color: #334155; }
+    .layer-group-pompa-saluran  .layer-group-header { background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); }
 
-    .layer-group-pendidikan .layer-group-header {
-        background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-    }
-
-    .layer-group-persampahan .layer-group-header {
-        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-    }
-
-    .layer-group-fasilitas .layer-group-header {
-        background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-    }
-
-    .layer-group-demografi .layer-group-header {
-        background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
-    }
-
-    .layer-group-batas .layer-group-header {
-        background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%);
-        color: #334155;
-    }
-
-    .layer-group-pompa-saluran .layer-group-header {
-        background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
-    }
-
-    /* ============================================================
-       CSS UNTUK LABEL NAMA RW
-       ============================================================ */
-
+    /* Label nama RW */
     .rw-label {
         background: rgba(20, 184, 166, 0.9) !important;
         border: 2px solid #ffffff !important;
@@ -105,26 +76,12 @@
         letter-spacing: 0.5px !important;
     }
 
-    .rw-label:before {
-        display: none !important;
-    }
-
-    /* Hover effect untuk polygon RW */
-    .leaflet-interactive:hover {
-        stroke-width: 3 !important;
-        stroke-opacity: 1 !important;
-    }
-
-    /* Animasi smooth untuk label */
-    .leaflet-zoom-animated .rw-label {
-        transition: all 0.2s ease;
-    }
-
+    .rw-label:before { display: none !important; }
   </style>
 </head>
 <body>
 
-  @include('partials.header') 
+  @include('partials.header')
 
   <main class="peta-page">
     <section class="peta-banner">
@@ -148,8 +105,12 @@
 
         <div id="filter-sidebar">
             <div class="sidebar-header">
-                <h5 style="margin:0; font-weight:700; color:#334155;"><i class="bi bi-layers-fill me-2"></i> Kontrol Peta</h5>
-                <button class="close-btn" onclick="toggleSidebar()"><i class="bi bi-x-lg"></i></button>
+                <h5 style="margin:0; font-weight:700; color:#334155;">
+                    <i class="bi bi-layers-fill me-2"></i> Kontrol Peta
+                </h5>
+                <button class="close-btn" onclick="toggleSidebar()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </div>
 
             <div class="sidebar-content">
@@ -163,22 +124,16 @@
                             <span>Pilih Sumber Data (Gabungan):</span>
                             <span style="display:flex; gap:4px;">
                                 <button onclick="toggleAllAnalysisSources(true)" type="button"
-                                    style="font-size:10px; padding:1px 7px; border-radius:4px;
-                                           border:1px solid #cbd5e1; background:#f8fafc;
-                                           color:#475569; cursor:pointer; line-height:1.6;">
+                                    style="font-size:10px; padding:1px 7px; border-radius:4px; border:1px solid #cbd5e1; background:#f8fafc; color:#475569; cursor:pointer; line-height:1.6;">
                                     Semua
                                 </button>
                                 <button onclick="toggleAllAnalysisSources(false)" type="button"
-                                    style="font-size:10px; padding:1px 7px; border-radius:4px;
-                                           border:1px solid #cbd5e1; background:#f8fafc;
-                                           color:#475569; cursor:pointer; line-height:1.6;">
+                                    style="font-size:10px; padding:1px 7px; border-radius:4px; border:1px solid #cbd5e1; background:#f8fafc; color:#475569; cursor:pointer; line-height:1.6;">
                                     Hapus
                                 </button>
                             </span>
                         </label>
-                        <!-- Diisi otomatis oleh populateAnalysisSources() di analysis.js -->
-                        <div id="analysis-sources-container" class="checkbox-list"
-                             style="max-height:200px; overflow-y:auto;">
+                        <div id="analysis-sources-container" class="checkbox-list" style="max-height:200px; overflow-y:auto;">
                             <span style="font-size:11px; color:#94a3b8; padding:6px 0; display:block; text-align:center;">
                                 Memuat sumber data...
                             </span>
@@ -190,21 +145,20 @@
                         <input type="number" id="cluster-count" class="form-control" value="3" min="1" max="10">
                     </div>
 
-                    <!-- Tombol Hitung Rekomendasi + Help -->
-                   <div class="btn-help-wrap">
-                        <button class="btn-analysis" onclick="runClustering()">
-                            Hitung Rekomendasi
-                        </button>
+                    <div class="btn-help-wrap">
+                        <button class="btn-analysis" onclick="runClustering()">Hitung Rekomendasi</button>
                         <button class="help-btn help-btn-rec" onclick="showHelp('rec')" title="Info Analisis Rekomendasi">?</button>
                     </div>
 
-                    <div class="btn-help-wrap" style="margin-top: 15px;">
-                        <button class="btn-analysis" onclick="runHeatmapAnalysis()" style="background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);">
+                    <div class="btn-help-wrap" style="margin-top:15px;">
+                        <button class="btn-analysis" onclick="runHeatmapAnalysis()"
+                                style="background:linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);">
                             Analisis Heatmap
                         </button>
                         <button class="help-btn help-btn-heat" onclick="showHelp('heat')" title="Info Analisis Heatmap">?</button>
                     </div>
 
+                    <!-- Help Popup: Rekomendasi -->
                     <div class="help-popup-overlay" id="help-popup-rec" onclick="closeHelpIfOutside(event,'rec')">
                         <div class="help-popup">
                             <div class="help-popup-header">
@@ -233,6 +187,7 @@
                         </div>
                     </div>
 
+                    <!-- Help Popup: Heatmap -->
                     <div class="help-popup-overlay" id="help-popup-heat" onclick="closeHelpIfOutside(event,'heat')">
                         <div class="help-popup">
                             <div class="help-popup-header">
@@ -261,18 +216,17 @@
                         </div>
                     </div>
 
-                    <div id="analysis-result" style="font-size: 11px; color: #0c4a6e; margin-top: 8px; display: none;">
-                    </div>
+                    <div id="analysis-result" style="font-size:11px; color:#0c4a6e; margin-top:8px; display:none;"></div>
                 </div>
 
-                <hr style="border-top:1px dashed #cbd5e1; margin: 15px 0;">
+                <hr style="border-top:1px dashed #cbd5e1; margin:15px 0;">
 
-                <!-- SECTION LAYERS DENGAN DROPDOWN -->
+                <!-- SECTION LAYERS -->
                 <div style="font-size:12px; font-weight:700; color:#64748b; margin-bottom:10px;">
                     <i class="bi bi-stack"></i> LAYER DATA
                 </div>
 
-                <!-- GROUP 1: INFRASTRUKTUR -->
+                <!-- GROUP: INFRASTRUKTUR -->
                 <div class="layer-group layer-group-infrastruktur">
                     <div class="layer-group-header" onclick="toggleLayerGroup(this)">
                         <span><i class="bi bi-broadcast-pin"></i> Infrastruktur</span>
@@ -281,23 +235,23 @@
                     <div class="layer-group-content">
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="CCTV_EKSISTING">
-                            <span class="layer-color" style="background: #B153D7;"></span>
+                            <span class="layer-color" style="background:#B153D7;"></span>
                             <span style="font-size:14px;">CCTV Eksisting</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="CCTV_RENCANA">
-                            <span class="layer-color" style="background: #f97316;"></span>
+                            <span class="layer-color" style="background:#f97316;"></span>
                             <span style="font-size:14px;">CCTV Rencana</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="DAMKAR">
-                            <span class="layer-color" style="background: #FF0000;"></span>
+                            <span class="layer-color" style="background:#FF0000;"></span>
                             <span style="font-size:14px;">Pos Damkar</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- GROUP 2: PENDIDIKAN -->
+                <!-- GROUP: PENDIDIKAN -->
                 <div class="layer-group layer-group-pendidikan">
                     <div class="layer-group-header" onclick="toggleLayerGroup(this)">
                         <span><i class="bi bi-mortarboard-fill"></i> Pendidikan</span>
@@ -306,23 +260,23 @@
                     <div class="layer-group-content">
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="PAUD">
-                            <span class="layer-color" style="background: #ec4899;"></span>
+                            <span class="layer-color" style="background:#ec4899;"></span>
                             <span style="font-size:14px;">PAUD/TK</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="SD_MI">
-                            <span class="layer-color" style="background: #8b5cf6;"></span>
+                            <span class="layer-color" style="background:#8b5cf6;"></span>
                             <span style="font-size:14px;">SD/MI</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="SMP_MTS">
-                            <span class="layer-color" style="background: #06b6d4;"></span>
+                            <span class="layer-color" style="background:#06b6d4;"></span>
                             <span style="font-size:14px;">SMP/MTS</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- GROUP 3: PERSAMPAHAN & LINGKUNGAN -->
+                <!-- GROUP: PERSAMPAHAN -->
                 <div class="layer-group layer-group-persampahan">
                     <div class="layer-group-header" onclick="toggleLayerGroup(this)">
                         <span><i class="bi bi-recycle"></i> Persampahan & Lingkungan</span>
@@ -331,48 +285,48 @@
                     <div class="layer-group-content">
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="TPS3R">
-                            <span class="layer-color" style="background: #10b981;"></span>
+                            <span class="layer-color" style="background:#10b981;"></span>
                             <span style="font-size:14px;">TPS3R</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="TPS">
-                            <span class="layer-color" style="background: #f59e0b;"></span>
+                            <span class="layer-color" style="background:#f59e0b;"></span>
                             <span style="font-size:14px;">TPS</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="RUTE_SAMPAH">
-                            <span class="layer-color" style="background: #8b5cf6; width: 20px; height: 3px;"></span>
+                            <span class="layer-color" style="background:#8b5cf6; width:20px; height:3px;"></span>
                             <span style="font-size:14px;">Rute Pengangkutan Sampah</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="POINT_RUTE_SAMPAH">
-                            <span class="layer-color" style="background: #ec4899;"></span>
+                            <span class="layer-color" style="background:#ec4899;"></span>
                             <span style="font-size:14px;">Titik Rute Sampah</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="TITIK_SAMPAH">
-                            <span class="layer-color" style="background: #facc15;"></span>
+                            <span class="layer-color" style="background:#facc15;"></span>
                             <span style="font-size:14px;">Titik Sampah</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="TITIK_SAMPAH_RENCANA">
-                            <span class="layer-color" style="background: #22c55e;"></span>
+                            <span class="layer-color" style="background:#22c55e;"></span>
                             <span style="font-size:14px;">Sampah Rencana</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="MAKAM">
-                            <span class="layer-color" style="background: #3b82f6;"></span>
+                            <span class="layer-color" style="background:#3b82f6;"></span>
                             <span style="font-size:14px;">Makam</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="RUKOM">
-                            <span class="layer-color" style="background: #06b6d4;"></span>
+                            <span class="layer-color" style="background:#06b6d4;"></span>
                             <span style="font-size:14px;">Rumah Kompos</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- GROUP 4: FASILITAS UMUM -->
+                <!-- GROUP: FASILITAS UMUM -->
                 <div class="layer-group layer-group-fasilitas">
                     <div class="layer-group-header" onclick="toggleLayerGroup(this)">
                         <span><i class="bi bi-buildings-fill"></i> Fasilitas Umum</span>
@@ -381,13 +335,13 @@
                     <div class="layer-group-content">
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="DEKORASI_KOTA">
-                            <span class="layer-color" style="background: #f97316;"></span>
+                            <span class="layer-color" style="background:#f97316;"></span>
                             <span style="font-size:14px;">Dekorasi Kota</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- GROUP 5: DEMOGRAFI -->
+                <!-- GROUP: DEMOGRAFI -->
                 <div class="layer-group layer-group-demografi">
                     <div class="layer-group-header" onclick="toggleLayerGroup(this)">
                         <span><i class="bi bi-people-fill"></i> Demografi</span>
@@ -396,7 +350,7 @@
                     <div class="layer-group-content">
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="KEPADATAN_PENDUDUK">
-                            <span class="layer-color" style="background: transparent; border: 2px solid #8b5cf6;"></span>
+                            <span class="layer-color" style="background:transparent; border:2px solid #8b5cf6;"></span>
                             <span style="font-size:14px;">Kepadatan Penduduk</span>
                         </label>
                     </div>
@@ -411,35 +365,35 @@
                     <div class="layer-group-content">
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="AREA_RAYON">
-                            <span class="layer-color" style="background: #0d9488;"></span>
+                            <span class="layer-color" style="background:#0d9488;"></span>
                             <span style="font-size:14px;">Area Rayon</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="POMPA_AIR_7_RAYON">
-                            <span class="layer-color" style="background: #0891b2;"></span>
+                            <span class="layer-color" style="background:#0891b2;"></span>
                             <span style="font-size:14px;">Area Pompa Air 7 Rayon</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="JARINGAN_PIPA_SALURAN">
-                            <span class="layer-color" style="background: #0284c7; width: 20px; height: 3px;"></span>
+                            <span class="layer-color" style="background:#0284c7; width:20px; height:3px;"></span>
                             <span style="font-size:14px;">Jaringan Pipa & Saluran Air</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="TITIK_POMPA_AIR">
-                            <span class="layer-color" style="background: #0369a1;"></span>
+                            <span class="layer-color" style="background:#0369a1;"></span>
                             <span style="font-size:14px;">Titik Lokasi Pompa Air</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="SALURAN_AIR">
-                            <span class="layer-color" style="background: #0e7490;"></span>
+                            <span class="layer-color" style="background:#0e7490;"></span>
                             <span style="font-size:14px;">Saluran Air</span>
                         </label>
                     </div>
                 </div>
 
-                <hr style="border-top:1px dashed #cbd5e1; margin: 15px 0;">
+                <hr style="border-top:1px dashed #cbd5e1; margin:15px 0;">
 
-                <!-- GROUP 6: BATAS WILAYAH -->
+                <!-- GROUP: BATAS WILAYAH -->
                 <div class="layer-group layer-group-batas">
                     <div class="layer-group-header" onclick="toggleLayerGroup(this)">
                         <span><i class="bi bi-geo-alt-fill"></i> Batas Wilayah</span>
@@ -448,41 +402,42 @@
                     <div class="layer-group-content">
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="KECAMATAN">
-                            <span class="layer-color" style="background: transparent; border: 2px solid #6366f1;"></span>
+                            <span class="layer-color" style="background:transparent; border:2px solid #6366f1;"></span>
                             <span style="font-size:14px;">Batas Kecamatan</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-label-toggle me-2" data-layer="KECAMATAN">
-                            <span class="layer-color" style="background: transparent; border: 2px solid #6366f1;"></span>
+                            <span class="layer-color" style="background:transparent; border:2px solid #6366f1;"></span>
                             <span style="font-size:14px;">Label Kecamatan</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="KELURAHAN">
-                            <span class="layer-color" style="background: transparent; border: 2px solid #f59e0b;"></span>
+                            <span class="layer-color" style="background:transparent; border:2px solid #f59e0b;"></span>
                             <span style="font-size:14px;">Batas Kelurahan</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-label-toggle me-2" data-layer="KELURAHAN">
-                            <span class="layer-color" style="background: transparent; border: 2px solid #f59e0b;"></span>
+                            <span class="layer-color" style="background:transparent; border:2px solid #f59e0b;"></span>
                             <span style="font-size:14px;">Label Kelurahan</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="BATAS_RW">
-                            <span class="layer-color" style="background: transparent; border: 2px solid #06b6d4;"></span>
+                            <span class="layer-color" style="background:transparent; border:2px solid #06b6d4;"></span>
                             <span style="font-size:14px;">Batas RW</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-label-toggle me-2" data-layer="BATAS_RW">
-                            <span class="layer-color" style="background: transparent; border: 2px solid #06b6d4;"></span>
+                            <span class="layer-color" style="background:transparent; border:2px solid #06b6d4;"></span>
                             <span style="font-size:14px;">Label RW</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="mask-toggle me-2" id="surabaya-mask-toggle" checked>
-                            <span class="layer-color" style="background: #e2e8f0; border: 2px solid #94a3b8;"></span>
+                            <span class="layer-color" style="background:#e2e8f0; border:2px solid #94a3b8;"></span>
                             <span style="font-size:14px;">Tampilkan Hanya Surabaya</span>
                         </label>
                     </div>
                 </div>
+
                 <!-- FILTER WILAYAH -->
                 <div class="fw-section">
                     <div class="fw-section-title">
@@ -511,18 +466,18 @@
                     <div id="fw-active-badge"></div>
                 </div>
 
-            </div>
+            </div><!-- /sidebar-content -->
 
             <div class="sidebar-footer">
                 <button onclick="resetMap()" style="
-                    width: 100%; padding: 10px; background: #e2e8f0; color: #334155; 
-                    border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;">
+                    width:100%; padding:10px; background:#e2e8f0; color:#334155;
+                    border:none; border-radius:8px; font-weight:600; cursor:pointer; transition:0.2s;">
                     <i class="bi bi-arrow-counterclockwise"></i> Reset Peta
                 </button>
             </div>
-        </div>
+        </div><!-- /filter-sidebar -->
 
-        <!-- Overlay: Memuat Peta (saat refresh) -->
+        <!-- Overlay: Memuat Peta -->
         <div id="loading-overlay" style="display:flex; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(248,250,252,0.97); z-index:3000; align-items:center; justify-content:center; border-radius:8px;">
             <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
                 <div style="position:relative; width:40px; height:40px;">
@@ -565,50 +520,50 @@
             </div>
         </div>
 
-        <style>@keyframes _spin { to { transform:rotate(360deg); } }</style>
+        <style>@keyframes _spin { to { transform: rotate(360deg); } }</style>
 
+        <!-- Map -->
         <div id="map"></div>
 
-        <!-- Legend untuk Heatmap -->
-        <div id="heatmap-legend" style="display:none; position: absolute; bottom: 110px; left: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1000; min-width: 200px;">
-            <div style="font-weight: 700; font-size: 13px; color: #334155; margin-bottom: 10px;">
+        <!--
+            HEATMAP LEGEND
+            FIX: Inline style DIHAPUS — styling 100% dari peta.css Section 10.
+            JS (analysis.js) set: legendDiv.style.display = 'block' saat analisis selesai.
+        -->
+        <div id="heatmap-legend">
+            <div class="legend-title">
                 <i class="bi bi-thermometer-half"></i> Intensitas Nilai
             </div>
-            <div id="legend-gradient" style="height: 20px; background: linear-gradient(to right, #ffe0e0, #ff4d4d, #cc0000, #800000); border-radius: 4px; margin-bottom: 8px;"></div>
-            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b;">
+            <div id="legend-gradient"></div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b;">
                 <span>Rendah</span>
                 <span>Sedang</span>
                 <span>Tinggi</span>
             </div>
-            <div id="legend-values" style="margin-top: 10px; font-size: 11px; color: #475569;">
-            </div>
+            <div id="legend-values"></div>
         </div>
 
-        <!-- SECTION PRINT PDF & EXPORT EXCEL -->
+        <!-- SECTION PRINT & EXPORT (non-fullscreen) -->
         <div class="print-section">
             <div class="print-title">
-                <i class="bi bi-printer-fill"></i>
-                Export Peta & Data
+                <i class="bi bi-printer-fill"></i> Export Peta & Data
             </div>
             <div class="print-buttons">
                 <button class="btn-print" onclick="printMap()">
-                    <i class="bi bi-file-earmark-pdf-fill"></i>
-                    Export PDF
+                    <i class="bi bi-file-earmark-pdf-fill"></i> Export PDF
                 </button>
                 <button class="btn-print btn-print-excel" onclick="exportMapDataToExcel()">
-                    <i class="bi bi-file-earmark-excel-fill"></i>
-                    Export Excel
+                    <i class="bi bi-file-earmark-excel-fill"></i> Export Excel
                 </button>
             </div>
-            <div style="margin-top: 10px; font-size: 11px; color: #64748b; line-height: 1.4;">
-                <i class="bi bi-info-circle"></i> PDF: A4 Landscape, skala 1:50.000. <br>
-                <i class="bi bi-info-circle"></i> Excel: data layer yang aktif (nama, koordinat, atribut).
+            <div style="margin-top:10px; font-size:11px; color:#64748b; line-height:1.4;">
+                <i class="bi bi-info-circle"></i> PDF: A4 Landscape, skala 1:50.000.<br>
+                <i class="bi bi-info-circle"></i> Excel: data layer yang aktif (nama, koordinat, atribut).<br>
+                <i class="bi bi-info-circle"></i> <strong>Mode Fullscreen</strong>: tombol PDF &amp; Excel muncul di pojok kanan atas peta.
             </div>
         </div>
 
-        
-
-      </div>
+      </div><!-- /peta-card -->
     </section>
   </main>
 
@@ -621,25 +576,16 @@
   <script src="https://unpkg.com/leaflet-simple-map-screenshoter"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
-  <!-- Load external JS files in correct order -->
   <script>
-    // Pass asset URL to external JS
     window.ASSET_BASE_URL = "{{ asset('') }}";
 
-    // Function to toggle layer group dropdown
     function toggleLayerGroup(header) {
         const content = header.nextElementSibling;
         const isActive = content.classList.contains('active');
-        if (isActive) {
-            header.classList.remove('active');
-            content.classList.remove('active');
-        } else {
-            header.classList.add('active');
-            content.classList.add('active');
-        }
+        if (isActive) { header.classList.remove('active'); content.classList.remove('active'); }
+        else          { header.classList.add('active');    content.classList.add('active'); }
     }
 
-    // ── Help Popup ────────────────────────────────────────────
     function showHelp(type) {
         document.getElementById('help-popup-' + type).classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -649,10 +595,8 @@
         document.body.style.overflow = '';
     }
     function closeHelpIfOutside(event, type) {
-        // Tutup hanya jika klik langsung di overlay (bukan di dalam popup)
         if (event.target === event.currentTarget) closeHelp(type);
     }
-    // Tutup dengan tombol Escape
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             ['rec', 'heat'].forEach(function(t) {
@@ -663,36 +607,16 @@
     });
   </script>
 
-  <!-- 1. Config - harus dimuat pertama karena berisi konfigurasi global -->
   <script src="{{ asset('js/config.js') }}"></script>
-
-  <!-- 2. UI - fungsi UI sidebar dan fullscreen -->
   <script src="{{ asset('js/ui.js') }}"></script>
-
-  <!-- 3. Map Init - inisialisasi peta dan kontrol -->
   <script src="{{ asset('js/map-init.js') }}"></script>
-
-  <!-- 4. Layer Loader - fungsi load dan manage layer -->
   <script src="{{ asset('js/layer-loader.js') }}"></script>
-
-  <!-- 5. Event Handlers - event listeners -->
   <script src="{{ asset('js/event-handlers.js') }}"></script>
-
-  <!-- 6. Analysis - fungsi analisis clustering dan heatmap -->
   <script src="{{ asset('js/analysis.js') }}"></script>
-
-  <!-- 7. PDF Export - fungsi export PDF -->
   <script src="{{ asset('js/pdf-export.js') }}"></script>
-
-  <!-- 8. Excel Export - fungsi export data layer ke Excel -->
   <script src="{{ asset('js/excel-export.js') }}"></script>
-
   <script src="{{ asset('js/filter-wilayah.js') }}"></script>
-
-  <!-- 9. Main - inisialisasi aplikasi (harus terakhir) -->
   <script src="{{ asset('js/main.js') }}"></script>
-
-
 
 </body>
 </html>
