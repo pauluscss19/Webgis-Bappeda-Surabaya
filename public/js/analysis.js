@@ -643,20 +643,35 @@ function runHeatmapAnalysis() {
                 mapLayers['ANALYSIS_RESULT'].bringToFront();
             }
 
-            const legendDiv = document.getElementById('heatmap-legend');
-            const legendValues = document.getElementById('legend-values');
-            legendDiv.style.display = 'block';
-            
-            legendValues.innerHTML = `
-                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                    <span>Min:</span>
-                    <span style="font-weight: 600;">${minCount} titik</span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Max:</span>
-                    <span style="font-weight: 600;">${maxCount} titik</span>
-                </div>
-            `;
+            // FIX untuk Heatmap Legend Display
+            const legendDiv = infoLegend._heatmapDiv; // Ambil dari container legend
+
+            if (legendDiv) {
+                legendDiv.style.display = 'block';
+                
+                // Update content heatmap legend
+                legendDiv.innerHTML = `
+                    <div class="legend-title">
+                        <i class="bi bi-thermometer-half"></i> Intensitas Nilai
+                    </div>
+                    <div id="legend-gradient"></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b;">
+                        <span>Rendah</span>
+                        <span>Sedang</span>
+                        <span>Tinggi</span>
+                    </div>
+                    <div id="legend-values">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span>Min:</span>
+                            <span style="font-weight: 600;">${minCount} titik</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Max:</span>
+                            <span style="font-weight: 600;">${maxCount} titik</span>
+                        </div>
+                    </div>
+                `;
+            }
 
             statusDiv.innerHTML = `
                 Analisis selesai! ${kelurahanData.length} kelurahan dianalisis. 

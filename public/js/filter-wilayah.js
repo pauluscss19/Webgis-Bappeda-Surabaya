@@ -12,6 +12,9 @@ window.FilterWilayah = (function () {
     let _activeKel = null;
     let _isActive  = false;
     let _autoAddedBoundary = [];
+    
+    // FIX: Variabel untuk menyimpan feature wilayah yang sedang aktif (dibutuhkan Excel Export)
+    let _currentTargetFeature = null; 
 
     // Simpan jumlah marker inside per layer saat filter aktif
     // { layerKey: countInside }
@@ -224,7 +227,9 @@ window.FilterWilayah = (function () {
 
             if (!hasActive) html += '<div style="color:#777; font-size:11px;">Tidak ada layer aktif</div>';
             html += '<div style="margin-top:6px; font-size:10px; color:#64748b;">Klik untuk refresh</div>';
-            this._div.innerHTML = html;
+            // FIX: Tulis ke _statsDiv bukan _div agar struktur legend (heatmap-legend) tidak tertimpa
+            const target = this._statsDiv || this._div;
+            target.innerHTML = html;
         };
 
         infoLegend.update();
@@ -258,6 +263,9 @@ window.FilterWilayah = (function () {
         _isActive    = true;
         _insideCount = {};
         _autoAddedBoundary = [];
+        
+        // FIX: Simpan target yang sedang difilter ke variabel global agar bisa ditarik oleh Excel
+        _currentTargetFeature = targetFeature;
 
         // ── 1. Dim/normal marker, hitung yang inside ──────────
         Object.keys(mapLayers).forEach(function(layerKey) {
@@ -293,6 +301,11 @@ window.FilterWilayah = (function () {
 
         // ── 3. Marker ke depan ────────────────────────────────
         _liftMarkers();
+
+        // ── 3b. FIX: Re-angkat border filter SETELAH marker ──
+        // _liftMarkers() menimpa bringToFront dari _showBoundary,
+        // sehingga border tertutup layer marker/polygon.
+        _reliftBoundary(targetFeature);
 
         // ── 4. Zoom ───────────────────────────────────────────
         _zoomTo(targetFeature);
@@ -332,36 +345,77 @@ window.FilterWilayah = (function () {
                 if (_activeKel) {
                     // Saat filter kelurahan: tampilkan HANYA kelurahan yang dicari, sisanya hide
                     if (isTarget) {
+                        // FIX: Border tebal dan fill yang lebih visible
                         if (sub.setStyle) sub.setStyle({
-                            color: cfg.color, weight: 3, opacity: 1,
-                            fillColor: cfg.color, fillOpacity: 0.08, dashArray: ''
+                            color: cfg.color || '#3b82f6',       // Warna border
+                            weight: 5,                            // Border tebal (dari 4 → 5)
+                            opacity: 1,                           // Border solid 100%
+                            fillColor: cfg.color || '#3b82f6',   // Warna fill
+                            fillOpacity: 0.25,                    // Fill visible (dari 0.1 → 0.25)
+                            dashArray: '',                        // Garis solid
+                            className: 'boundary-filter-active'  // CSS class untuk z-index fix
                         });
-                        sub.bringToBack();
+                        // FIX: Angkat border ke atas agar tidak tertimpa mask/layer lain
+                        sub.bringToFront(); 
+                        
+                        // FIX CSS: Tambahkan class ke SVG path
                         const el = sub.getElement ? sub.getElement() : null;
-                        if (el) el.style.display = '';
+                        if (el) {
+                            el.style.display = '';
+                            el.classList.add('boundary-filter-active');
+                        }
                     } else {
                         // Sembunyikan kelurahan lain sepenuhnya
                         if (sub.setStyle) sub.setStyle({
-                            opacity: 0, fillOpacity: 0, weight: 0
+                            opacity: 0, fillOpacity: 0, weight: 0,
+                            className: 'boundary-filter-inactive'
                         });
                         const el = sub.getElement ? sub.getElement() : null;
-                        if (el) el.style.display = 'none';
+                        if (el) {
+                            el.style.display = 'none';
+                            el.classList.add('boundary-filter-inactive');
+                            el.classList.remove('boundary-filter-active');
+                        }
                     }
                 } else {
                     // Saat filter kecamatan: highlight target, dim sisanya
                     if (sub.setStyle) {
                         sub.setStyle(isTarget ? {
-                            color: cfg.color, weight: 3, opacity: 1,
-                            fillColor: cfg.color, fillOpacity: 0.08, dashArray: ''
+                            color: cfg.color || '#3b82f6',       // Warna border
+                            weight: 5,                            // Border tebal (dari 4 → 5)
+                            opacity: 1,                           // Border solid
+                            fillColor: cfg.color || '#3b82f6',   // Warna fill
+                            fillOpacity: 0.25,                    // Fill visible (dari 0.1 → 0.25)
+                            dashArray: '',                        // Garis solid
+                            className: 'boundary-filter-active'  // CSS class untuk z-index
                         } : {
-                            color: '#94a3b8', weight: 1, opacity: 0.25,
-                            fillColor: '#f1f5f9', fillOpacity: 0.02, dashArray: '4,4'
+                            color: '#94a3b8',                     // Border abu untuk non-target
+                            weight: 1,
+                            opacity: 0.25,
+                            fillColor: '#f1f5f9',
+                            fillOpacity: 0.02,
+                            dashArray: '4,4',                     // Garis putus-putus untuk non-target
+                            className: 'boundary-filter-inactive'
                         });
                     }
-                    sub.bringToBack();
+                    // FIX: Angkat border target ke atas + tambahkan CSS class
+                    const el = sub.getElement ? sub.getElement() : null;
+                    if (isTarget) {
+                        sub.bringToFront();
+                        if (el) {
+                            el.classList.add('boundary-filter-active');
+                            el.classList.remove('boundary-filter-inactive');
+                        }
+                    } else {
+                        sub.bringToBack();
+                        if (el) {
+                            el.classList.add('boundary-filter-inactive');
+                            el.classList.remove('boundary-filter-active');
+                        }
+                    }
                 }
             });
-            mapLayers[boundaryKey].bringToBack();
+            // Tidak perlu bringToBack layer utamanya jika isTarget sudah di Front
         }
 
         // Kecamatan sebagai konteks tipis saat filter kelurahan
@@ -373,12 +427,35 @@ window.FilterWilayah = (function () {
                 });
                 sub.bringToBack();
             });
-            mapLayers['KECAMATAN'].bringToBack();
         }
 
         if (mapLayers['SURABAYA_MASK'] && map.hasLayer(mapLayers['SURABAYA_MASK'])) {
             mapLayers['SURABAYA_MASK'].bringToBack();
         }
+    }
+
+    // ── FIX: Re-angkat border wilayah filter ke atas marker ──
+    // Dipanggil SETELAH _liftMarkers() agar border tidak tertimpa.
+    // Untuk polygon layer (KEPADATAN_PENDUDUK dll) yang menutupi seluruh
+    // Surabaya, border harus selalu paling atas agar tetap visible.
+    function _reliftBoundary(targetFeature) {
+        const boundaryKey = _activeKel ? 'KELURAHAN' : 'KECAMATAN';
+        if (!mapLayers[boundaryKey] || !map.hasLayer(mapLayers[boundaryKey])) return;
+        
+        mapLayers[boundaryKey].eachLayer(function(sub) {
+            const feat  = sub.feature;
+            if (!feat) return;
+            const props = feat.properties || {};
+            let isTarget = false;
+            if (_activeKel) {
+                const v = props.K || props.KELURAHAN || props.name || '';
+                isTarget = v.toLowerCase() === _activeKel.toLowerCase();
+            } else if (_activeKec) {
+                const v = props.Name || props.KECAMATAN || props.name || '';
+                isTarget = v.toLowerCase() === _activeKec.toLowerCase();
+            }
+            if (isTarget) sub.bringToFront();
+        });
     }
 
     function _liftMarkers() {
@@ -397,6 +474,9 @@ window.FilterWilayah = (function () {
     function _clear() {
         _isActive    = false;
         _kelKecCache = null;  // reset cache agar fresh
+        
+        // FIX: Hapus target aktif
+        _currentTargetFeature = null;
 
         // Kembalikan semua marker ke style asli
         Object.keys(mapLayers).forEach(function(layerKey) {
@@ -518,6 +598,10 @@ window.FilterWilayah = (function () {
     // Expose state untuk kebutuhan eksternal (misal pdf-export)
     function getInsideCount() { return _insideCount; }
     function isFilterActive() { return _isActive; }
+    
+    // FIX: Fungsi baru untuk diambil oleh excel-export.js
+    function getActiveFeature() { return _currentTargetFeature; }
+
     function getFilterLabel() {
         if (!_isActive) return null;
         if (_activeKel) return _activeKec
@@ -527,7 +611,8 @@ window.FilterWilayah = (function () {
         return null;
     }
 
-    return { init, applyFromUI, clearFilter, getInsideCount, isFilterActive, getFilterLabel };
+    // Pastikan getActiveFeature dimasukkan ke dalam return
+    return { init, applyFromUI, clearFilter, getInsideCount, isFilterActive, getFilterLabel, getActiveFeature };
 
 })();
 

@@ -1,8 +1,9 @@
 // ============================================================
-// EXCEL-EXPORT.JS - Export data layer aktif ke Excel (Premium)
+// EXCEL-EXPORT.JS - Export Data Layer Aktif ke Excel
+// Desain: Formal, profesional, bersih tanpa ikon dekoratif
 // ============================================================
 
-// ── Palet warna per grup layer ───────────────────────────────
+// ── Palet warna per grup layer ────────────────────────────────
 const GROUP_PALETTES = {
     infrastruktur: { h1: '0D2137', h2: '1A56DB', h3: '3F83F8', r1: 'DBEAFE', r2: 'EFF6FF', accent: '60A5FA', stripe: 'BFDBFE', badge: '1E40AF' },
     pendidikan:    { h1: '064E3B', h2: '059669', h3: '10B981', r1: 'D1FAE5', r2: 'ECFDF5', accent: '34D399', stripe: 'A7F3D0', badge: '065F46' },
@@ -59,225 +60,282 @@ function colLetter(n) {
 
 // ── Style helpers ─────────────────────────────────────────────
 
-function _f(opts) {
-    return Object.assign({ name: 'Arial' }, opts || {});
+function _f(opts) { return Object.assign({ name: 'Arial' }, opts || {}); }
+function _fill(rgb) { return { fgColor: { rgb: rgb }, patternType: 'solid' }; }
+function _border(style, rgb) { return { style: style, color: { rgb: rgb } }; }
+function _allBorder(style, rgb) { const b = _border(style, rgb); return { top: b, bottom: b, left: b, right: b }; }
+
+// ── Label grup ────────────────────────────────────────────────
+
+const GRP_MAP = {
+    infrastruktur: 'Infrastruktur',
+    pendidikan:    'Pendidikan',
+    persampahan:   'Persampahan & Lingkungan',
+    fasilitas:     'Fasilitas Umum',
+    demografi:     'Demografi',
+    pompa_saluran: 'Pompa & Saluran Air',
+    batas:         'Batas Wilayah'
+};
+
+// ── Helper: jumlah marker konsisten ──────────────────────────
+
+function _getMarkerCount(layerKey) {
+    if (window.FilterWilayah &&
+        typeof window.FilterWilayah.isFilterActive === 'function' &&
+        window.FilterWilayah.isFilterActive() &&
+        typeof window.FilterWilayah.getInsideCount === 'function') {
+        const insideCount = window.FilterWilayah.getInsideCount();
+        if (insideCount[layerKey] !== undefined) return insideCount[layerKey];
+    }
+    if (typeof geoJsonStore !== 'undefined' && geoJsonStore[layerKey] && geoJsonStore[layerKey].features) {
+        return geoJsonStore[layerKey].features.length;
+    }
+    if (window.mapLayers && window.mapLayers[layerKey] && typeof window.mapLayers[layerKey].getLayers === 'function') {
+        return window.mapLayers[layerKey].getLayers().length;
+    }
+    return 0;
 }
 
-function _fill(rgb) {
-    return { fgColor: { rgb: rgb }, patternType: 'solid' };
-}
+// ============================================================
+// SHEET: RINGKASAN
+// ============================================================
 
-function _border(style, rgb) {
-    return { style: style, color: { rgb: rgb } };
-}
-
-function _allBorder(style, rgb) {
-    const b = _border(style, rgb);
-    return { top: b, bottom: b, left: b, right: b };
-}
-
-function _thickBorder(outerStyle, outerRgb, innerStyle, innerRgb) {
-    return {
-        top:    _border(outerStyle, outerRgb),
-        bottom: _border(outerStyle, outerRgb),
-        left:   _border(outerStyle, outerRgb),
-        right:  _border(innerStyle, innerRgb)
-    };
-}
-
-function _cell(v, t, font, fill, align, border) {
-    return { t: t || 's', v: v, s: { font: font, fill: fill, alignment: align, border: border } };
-}
-
-// ── Sheet RINGKASAN ───────────────────────────────────────────
-
-function _buildSummarySheet(layerGroups, filterLabel) {
+function _buildSummarySheet(layerGroups, filterLabel, filterDetails) {
     const ws = {};
-    const total = layerGroups.reduce(function(a, g) { return a + g.rows.length; }, 0);
-    const dateStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
-    const numCols = 5;
+    const total    = layerGroups.reduce(function(a, g) { return a + g.rows.length; }, 0);
+    const numCols  = 5;
+    const dateStr  = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    const exportedAt = 'Diekspor pada: ' + dateStr;
 
-    // ── Baris 1: Judul utama – gradient gelap ──
+    // ── Header Instansi ────────────────────────────────────────
+    // Baris 1: Nama instansi / sistem
     for (let c = 1; c <= numCols; c++) {
         ws[colLetter(c) + '1'] = {
-            t: 's', v: c === 1 ? '🗺  REKAP DATA PETA KOTA SURABAYA' : '',
+            t: 's', v: c === 1 ? 'PEMERINTAH KOTA SURABAYA' : '',
             s: {
-                font: _f({ bold: true, sz: 22, color: { rgb: 'FFFFFF' } }),
-                fill: _fill('050E1D'),
+                font: _f({ bold: true, sz: 11, color: { rgb: 'FFFFFF' } }),
+                fill: _fill('0D2137'),
                 alignment: { horizontal: 'center', vertical: 'center' },
-                border: { bottom: _border('thick', '1D4ED8') }
             }
         };
     }
 
-    // ── Baris 2: Sub judul ──
+    // Baris 2: Judul laporan
     for (let c = 1; c <= numCols; c++) {
         ws[colLetter(c) + '2'] = {
-            t: 's', v: c === 1 ? 'SISTEM INFORMASI DATA PETA SURABAYA  ( S I D A P E T A )' : '',
+            t: 's', v: c === 1 ? 'REKAP DATA PETA KOTA SURABAYA' : '',
             s: {
-                font: _f({ sz: 12, bold: true, color: { rgb: 'BFDBFE' }, italic: true }),
-                fill: _fill('0D2451'),
-                alignment: { horizontal: 'center', vertical: 'center' }
+                font: _f({ bold: true, sz: 20, color: { rgb: 'FFFFFF' } }),
+                fill: _fill('152B52'),
+                alignment: { horizontal: 'center', vertical: 'center' },
+                border: { bottom: _border('medium', '3B82F6') }
             }
         };
     }
 
-    // ── Baris 3: Tanggal ──
+    // Baris 3: Sub judul sistem
     for (let c = 1; c <= numCols; c++) {
         ws[colLetter(c) + '3'] = {
-            t: 's', v: c === 1 ? '📅  Diekspor pada: ' + dateStr : '',
+            t: 's', v: c === 1 ? 'Sistem Informasi Data Peta Surabaya (SIDAPETA)' : '',
             s: {
-                font: _f({ sz: 9, color: { rgb: '94A3B8' }, italic: true }),
-                fill: _fill('0F172A'),
+                font: _f({ sz: 10, italic: true, color: { rgb: 'BFDBFE' } }),
+                fill: _fill('0F2040'),
                 alignment: { horizontal: 'center', vertical: 'center' }
             }
         };
     }
 
-    // ── Baris 3b (dinamis): Info filter wilayah jika aktif ──
-    // Geser baris berikutnya berdasarkan apakah ada filter atau tidak
+    // Baris 4: Tanggal ekspor
+    for (let c = 1; c <= numCols; c++) {
+        ws[colLetter(c) + '4'] = {
+            t: 's', v: c === 1 ? exportedAt : '',
+            s: {
+                font: _f({ sz: 9, color: { rgb: '94A3B8' } }),
+                fill: _fill('0B1A2E'),
+                alignment: { horizontal: 'center', vertical: 'center' }
+            }
+        };
+    }
+
+    // Baris 5: Filter wilayah (kondisional)
     const filterOffset = filterLabel ? 1 : 0;
     if (filterLabel) {
+        let filterText = 'Filter Wilayah: ';
+        if (filterDetails && filterDetails.kelurahan) {
+            filterText += 'Kelurahan ' + filterDetails.kelurahan;
+            if (filterDetails.kecamatan) filterText += ', Kecamatan ' + filterDetails.kecamatan;
+        } else if (filterDetails && filterDetails.kecamatan) {
+            filterText += 'Kecamatan ' + filterDetails.kecamatan;
+        } else {
+            filterText += filterLabel;
+        }
+
         for (let c = 1; c <= numCols; c++) {
-            ws[colLetter(c) + '4'] = {
-                t: 's', v: c === 1 ? '\uD83D\uDCCD  Filter Wilayah: ' + filterLabel : '',
+            ws[colLetter(c) + '5'] = {
+                t: 's', v: c === 1 ? filterText : '',
                 s: {
-                    font: _f({ bold: true, sz: 10, color: { rgb: 'FEF08A' } }),
-                    fill: _fill('713F12'),
-                    alignment: { horizontal: 'center', vertical: 'center' }
+                    font: _f({ bold: true, sz: 10, color: { rgb: '1E3A5F' } }),
+                    fill: _fill('DBEAFE'),
+                    alignment: { horizontal: 'center', vertical: 'center' },
+                    border: { top: _border('thin', '93C5FD'), bottom: _border('thin', '93C5FD') }
                 }
             };
         }
     }
 
-    // ── Baris aksen (4 atau 5 tergantung filter) ──
-    const accentRow = 4 + filterOffset;
-    const accentColors = ['1D4ED8', '2563EB', '3B82F6', '2563EB', '1D4ED8'];
+    // Baris pembatas (garis tipis biru)
+    const sepRow = 5 + filterOffset;
     for (let c = 1; c <= numCols; c++) {
-        ws[colLetter(c) + accentRow] = { t: 's', v: '', s: { fill: _fill(accentColors[c - 1]), border: _allBorder('thick', accentColors[c - 1]) } };
+        ws[colLetter(c) + sepRow] = {
+            t: 's', v: '',
+            s: { fill: _fill('1D4ED8'), border: _allBorder('thin', '1D4ED8') }
+        };
     }
 
-    // ── Baris kosong (5 atau 6) ──
-    const emptyRow1 = 5 + filterOffset;
-    for (let c = 1; c <= numCols; c++) {
-        ws[colLetter(c) + emptyRow1] = { t: 's', v: '', s: { fill: _fill('EFF6FF') } };
-    }
-
-    // ── Baris 6–7 (atau 7–8): Kartu statistik ──
+    // ── Kartu Statistik ──────────────────────────────────────
     const cardRow1 = 6 + filterOffset;
     const cardRow2 = 7 + filterOffset;
-    // Kartu kiri: Total Layer (biru gelap)
-    ws['A' + cardRow1] = { t: 's', v: '▣  TOTAL LAYER AKTIF', s: { font: _f({ bold: true, sz: 10, color: { rgb: 'DBEAFE' } }), fill: _fill('1E3A8A'), alignment: { horizontal: 'center', vertical: 'center' }, border: _allBorder('medium', '1D4ED8') } };
-    ws['B' + cardRow1] = { t: 's', v: '', s: { fill: _fill('1E3A8A'), border: _allBorder('medium', '1D4ED8') } };
-    ws['A' + cardRow2] = { t: 'n', v: layerGroups.length, s: { font: _f({ bold: true, sz: 32, color: { rgb: 'FFFFFF' } }), fill: _fill('1D4ED8'), alignment: { horizontal: 'center', vertical: 'center' }, border: { top: _border('thin', '3B82F6'), bottom: _border('thick', '93C5FD'), left: _border('medium', '1D4ED8'), right: _border('medium', '1D4ED8') } } };
-    ws['B' + cardRow2] = { t: 's', v: 'LAYER', s: { font: _f({ bold: true, sz: 14, color: { rgb: '93C5FD' } }), fill: _fill('1D4ED8'), alignment: { horizontal: 'left', vertical: 'center' }, border: { top: _border('thin', '3B82F6'), bottom: _border('thick', '93C5FD'), left: _border('thin', '3B82F6'), right: _border('medium', '1D4ED8') } } };
 
-    // Kolom C: spacer
-    ws['C' + cardRow1] = { t: 's', v: '', s: { fill: _fill('EFF6FF') } };
-    ws['C' + cardRow2] = { t: 's', v: '', s: { fill: _fill('EFF6FF') } };
+    // Kartu kiri: Total Layer
+    ws['A' + cardRow1] = { t: 's', v: 'TOTAL LAYER AKTIF', s: { font: _f({ bold: true, sz: 9, color: { rgb: 'BFDBFE' } }), fill: _fill('1E3A8A'), alignment: { horizontal: 'center', vertical: 'center' }, border: { top: _border('medium', '1D4ED8'), left: _border('medium', '1D4ED8'), right: _border('thin', '3B82F6') } } };
+    ws['B' + cardRow1] = { t: 's', v: '', s: { fill: _fill('1E3A8A'), border: { top: _border('medium', '1D4ED8'), right: _border('medium', '1D4ED8') } } };
+    ws['A' + cardRow2] = { t: 'n', v: layerGroups.length, s: { font: _f({ bold: true, sz: 28, color: { rgb: 'FFFFFF' } }), fill: _fill('1D4ED8'), alignment: { horizontal: 'center', vertical: 'center' }, border: { bottom: _border('medium', '1D4ED8'), left: _border('medium', '1D4ED8'), right: _border('thin', '3B82F6') } } };
+    ws['B' + cardRow2] = { t: 's', v: 'Layer', s: { font: _f({ bold: true, sz: 12, color: { rgb: '93C5FD' } }), fill: _fill('1D4ED8'), alignment: { horizontal: 'left', vertical: 'center' }, border: { bottom: _border('medium', '1D4ED8'), right: _border('medium', '1D4ED8') } } };
 
-    // Kartu kanan: Total Data (hijau teal)
-    ws['D' + cardRow1] = { t: 's', v: '◉  TOTAL KESELURUHAN DATA', s: { font: _f({ bold: true, sz: 10, color: { rgb: 'CCFBF1' } }), fill: _fill('0F766E'), alignment: { horizontal: 'center', vertical: 'center' }, border: _allBorder('medium', '0D9488') } };
-    ws['E' + cardRow1] = { t: 's', v: '', s: { fill: _fill('0F766E'), border: _allBorder('medium', '0D9488') } };
-    ws['D' + cardRow2] = { t: 'n', v: total, s: { font: _f({ bold: true, sz: 32, color: { rgb: 'FFFFFF' } }), fill: _fill('0D9488'), alignment: { horizontal: 'center', vertical: 'center' }, border: { top: _border('thin', '14B8A6'), bottom: _border('thick', '5EEAD4'), left: _border('medium', '0D9488'), right: _border('thin', '14B8A6') } } };
-    ws['E' + cardRow2] = { t: 's', v: 'DATA', s: { font: _f({ bold: true, sz: 14, color: { rgb: '5EEAD4' } }), fill: _fill('0D9488'), alignment: { horizontal: 'left', vertical: 'center' }, border: { top: _border('thin', '14B8A6'), bottom: _border('thick', '5EEAD4'), left: _border('thin', '14B8A6'), right: _border('medium', '0D9488') } } };
+    // Spacer kolom C
+    ws['C' + cardRow1] = { t: 's', v: '', s: { fill: _fill('F8FAFC') } };
+    ws['C' + cardRow2] = { t: 's', v: '', s: { fill: _fill('F8FAFC') } };
 
-    // ── Baris kosong ke-2 ──
-    const emptyRow2 = 8 + filterOffset;
+    // Kartu kanan: Total Data
+    ws['D' + cardRow1] = { t: 's', v: 'TOTAL KESELURUHAN DATA', s: { font: _f({ bold: true, sz: 9, color: { rgb: 'CCFBF1' } }), fill: _fill('0F766E'), alignment: { horizontal: 'center', vertical: 'center' }, border: { top: _border('medium', '0D9488'), left: _border('medium', '0D9488'), right: _border('thin', '14B8A6') } } };
+    ws['E' + cardRow1] = { t: 's', v: '', s: { fill: _fill('0F766E'), border: { top: _border('medium', '0D9488'), right: _border('medium', '0D9488') } } };
+    ws['D' + cardRow2] = { t: 'n', v: total, s: { font: _f({ bold: true, sz: 28, color: { rgb: 'FFFFFF' } }), fill: _fill('0D9488'), alignment: { horizontal: 'center', vertical: 'center' }, border: { bottom: _border('medium', '0D9488'), left: _border('medium', '0D9488'), right: _border('thin', '14B8A6') } } };
+    ws['E' + cardRow2] = { t: 's', v: 'Data', s: { font: _f({ bold: true, sz: 12, color: { rgb: '5EEAD4' } }), fill: _fill('0D9488'), alignment: { horizontal: 'left', vertical: 'center' }, border: { bottom: _border('medium', '0D9488'), right: _border('medium', '0D9488') } } };
+
+    // Baris kosong sebelum tabel
+    const emptyRow = 8 + filterOffset;
     for (let c = 1; c <= numCols; c++) {
-        ws[colLetter(c) + emptyRow2] = { t: 's', v: '', s: { fill: _fill('F8FAFC') } };
+        ws[colLetter(c) + emptyRow] = { t: 's', v: '', s: { fill: _fill('F8FAFC') } };
     }
 
-    // ── Baris header tabel ──
+    // ── Header Tabel ──────────────────────────────────────────
     const headerRow = 9 + filterOffset;
-    const hdCols  = ['No', 'Nama Layer', 'Kategori', 'Jumlah Data', 'Persentase'];
-    const hdFills = ['050E1D', '0D2451', '1D4ED8', '0D2451', '050E1D'];
+    const hdCols    = ['No', 'Nama Layer', 'Kategori', 'Jumlah Data', 'Persentase'];
     hdCols.forEach(function(h, ci) {
         ws[colLetter(ci + 1) + headerRow] = {
             t: 's', v: h,
             s: {
-                font: _f({ bold: true, sz: 11, color: { rgb: 'FFFFFF' } }),
-                fill: _fill(hdFills[ci]),
+                font: _f({ bold: true, sz: 10, color: { rgb: 'FFFFFF' } }),
+                fill: _fill('0F2040'),
                 alignment: { horizontal: 'center', vertical: 'center' },
                 border: {
-                    top:    _border('thick',  '000000'),
-                    bottom: _border('thick',  '3B82F6'),
-                    left:   _border('medium', '1D4ED8'),
-                    right:  _border('medium', '1D4ED8')
+                    top:    _border('medium', '1D4ED8'),
+                    bottom: _border('medium', '3B82F6'),
+                    left:   _border('thin',   '1D4ED8'),
+                    right:  _border('thin',   '1D4ED8')
                 }
             }
         };
     });
 
-    // ── Baris data ringkasan ──
+    // ── Baris Data Ringkasan ──────────────────────────────────
     layerGroups.forEach(function(group, idx) {
-        const r = idx + headerRow + 1;
-        const isOdd = idx % 2 === 0;
-        // Ambil warna dari palette layer masing-masing untuk zebra stripe
-        const p = _pal(group.key);
-        const bg1 = isOdd ? p.r1  : 'FFFFFF';
-        const bg2 = isOdd ? p.stripe : p.r2;
+        const r      = idx + headerRow + 1;
+        const isOdd  = idx % 2 === 0;
+        const p      = _pal(group.key);
+        const bg     = isOdd ? p.r1 : 'FFFFFF';
+        const bgAlt  = isOdd ? p.stripe : p.r2;
 
-        const cfg = (typeof layerConfig !== 'undefined') ? layerConfig[group.key] : null;
-        const grpRaw = cfg ? (cfg.group || '–') : '–';
-        const grpMap = { infrastruktur:'Infrastruktur', pendidikan:'Pendidikan', persampahan:'Persampahan', fasilitas:'Fasilitas Umum', demografi:'Demografi', pompa_saluran:'Pompa & Saluran Air', batas:'Batas Wilayah' };
-        const grpDisplay = grpMap[grpRaw] || grpRaw;
-        const pct = total > 0 ? group.rows.length / total : 0;
+        const cfg        = (typeof layerConfig !== 'undefined') ? layerConfig[group.key] : null;
+        const grpDisplay = GRP_MAP[cfg ? (cfg.group || '_default') : '_default'] || '-';
+        const pct        = total > 0 ? group.rows.length / total : 0;
 
-        const brdOuter = { top: _border('thin', 'CBD5E1'), bottom: _border('thin', 'CBD5E1'), left: _border('medium', p.h2), right: _border('thin', 'CBD5E1') };
-        const brdInner = _allBorder('thin', 'CBD5E1');
+        const brd = {
+            top:   _border('thin', 'D1D5DB'),
+            bottom:_border('thin', 'D1D5DB'),
+            left:  _border('thin', 'CBD5E1'),
+            right: _border('thin', 'CBD5E1')
+        };
+        const brdLeft = Object.assign({}, brd, { left: _border('medium', p.h2) });
 
-        ws['A' + r] = { t: 'n', v: idx + 1,         s: { font: _f({ bold: true, sz: 11, color: { rgb: 'FFFFFF' } }),        fill: _fill(p.badge), alignment: { horizontal: 'center', vertical: 'center' }, border: brdOuter } };
-        ws['B' + r] = { t: 's', v: group.label,       s: { font: _f({ bold: true, sz: 10, color: { rgb: p.h1 } }),            fill: _fill(bg1),     alignment: { horizontal: 'left',   vertical: 'center' }, border: brdInner } };
-        ws['C' + r] = { t: 's', v: grpDisplay,        s: { font: _f({ sz: 10, italic: true, color: { rgb: '475569' } }),      fill: _fill(bg2),     alignment: { horizontal: 'center', vertical: 'center' }, border: brdInner } };
-        ws['D' + r] = { t: 'n', v: group.rows.length, s: { font: _f({ bold: true, sz: 11, color: { rgb: p.badge } }),         fill: _fill(bg1),     alignment: { horizontal: 'center', vertical: 'center' }, border: brdInner } };
-        ws['E' + r] = { t: 'n', v: pct,               s: { font: _f({ bold: true, sz: 10, color: { rgb: '0F766E' } }),        fill: _fill(bg2),     alignment: { horizontal: 'center', vertical: 'center' }, border: brdInner, numFmt: '0.0%' }, z: '0.0%' };
+        ws['A' + r] = { t: 'n', v: idx + 1,         s: { font: _f({ bold: true, sz: 10, color: { rgb: 'FFFFFF' } }), fill: _fill(p.badge), alignment: { horizontal: 'center', vertical: 'center' }, border: brdLeft } };
+        ws['B' + r] = { t: 's', v: group.label,       s: { font: _f({ bold: true, sz: 10, color: { rgb: p.h1 } }),    fill: _fill(bg),      alignment: { horizontal: 'left',   vertical: 'center' }, border: brd } };
+        ws['C' + r] = { t: 's', v: grpDisplay,        s: { font: _f({ sz: 9,  italic: true, color: { rgb: '64748B' } }), fill: _fill(bgAlt), alignment: { horizontal: 'center', vertical: 'center' }, border: brd } };
+        ws['D' + r] = { t: 'n', v: group.rows.length, s: { font: _f({ bold: true, sz: 11, color: { rgb: p.badge } }),  fill: _fill(bg),     alignment: { horizontal: 'center', vertical: 'center' }, border: brd } };
+        ws['E' + r] = { t: 'n', v: pct,               s: { font: _f({ sz: 10, color: { rgb: '0F766E' } }),             fill: _fill(bgAlt),  alignment: { horizontal: 'center', vertical: 'center' }, border: brd }, z: '0.0%' };
     });
 
-    // ── Baris total ──
+    // ── Baris Total ───────────────────────────────────────────
     const totR = layerGroups.length + headerRow + 1;
-    const totS = { font: _f({ bold: true, sz: 12, color: { rgb: 'FFFFFF' } }), fill: _fill('050E1D'), alignment: { horizontal: 'center', vertical: 'center' }, border: _allBorder('thick', '1D4ED8') };
-    ws['A' + totR] = { t: 's', v: '\u2211',      s: totS };
-    ws['B' + totR] = { t: 's', v: 'TOTAL KESELURUHAN', s: Object.assign({}, totS, { alignment: { horizontal: 'left', vertical: 'center' } }) };
-    ws['C' + totR] = { t: 's', v: '',       s: totS };
-    ws['D' + totR] = { t: 'n', v: total,    s: Object.assign({}, totS, { font: _f({ bold: true, sz: 14, color: { rgb: '7DD3FC' } }) }) };
-    ws['E' + totR] = { t: 'n', v: 1,        s: Object.assign({}, totS, { font: _f({ bold: true, sz: 11, color: { rgb: '5EEAD4' } }) }), z: '0%' };
+    const totS = { font: _f({ bold: true, sz: 11, color: { rgb: 'FFFFFF' } }), fill: _fill('0F2040'), alignment: { horizontal: 'center', vertical: 'center' }, border: _allBorder('medium', '1D4ED8') };
+    ws['A' + totR] = { t: 's', v: '',                    s: totS };
+    ws['B' + totR] = { t: 's', v: 'TOTAL KESELURUHAN',   s: Object.assign({}, totS, { alignment: { horizontal: 'left', vertical: 'center' } }) };
+    ws['C' + totR] = { t: 's', v: '',                    s: totS };
+    ws['D' + totR] = { t: 'n', v: total,                 s: Object.assign({}, totS, { font: _f({ bold: true, sz: 14, color: { rgb: '7DD3FC' } }) }) };
+    ws['E' + totR] = { t: 'n', v: 1,                     s: Object.assign({}, totS, { font: _f({ bold: true, sz: 10, color: { rgb: '5EEAD4' } }) }), z: '0%' };
 
-    ws['!ref'] = 'A1:E' + totR;
+    // ── Baris Catatan Kaki ────────────────────────────────────
+    const noteRow = totR + 1;
+    for (let c = 1; c <= numCols; c++) {
+        ws[colLetter(c) + noteRow] = {
+            t: 's',
+            v: c === 1 ? 'Catatan: Data dihitung berdasarkan layer yang aktif pada saat ekspor dilakukan.' : '',
+            s: {
+                font: _f({ sz: 8, italic: true, color: { rgb: '94A3B8' } }),
+                fill: _fill('F8FAFC'),
+                alignment: { horizontal: 'left', vertical: 'center' }
+            }
+        };
+    }
 
-    // Merges — sesuaikan dengan filterOffset
+    ws['!ref'] = 'A1:E' + noteRow;
+
+    // ── Merges ───────────────────────────────────────────────
     const merges = [
-        { s:{r:0,c:0}, e:{r:0,c:4} },
-        { s:{r:1,c:0}, e:{r:1,c:4} },
-        { s:{r:2,c:0}, e:{r:2,c:4} },
+        { s:{r:0,c:0}, e:{r:0,c:4} }, // instansi
+        { s:{r:1,c:0}, e:{r:1,c:4} }, // judul
+        { s:{r:2,c:0}, e:{r:2,c:4} }, // sub judul
+        { s:{r:3,c:0}, e:{r:3,c:4} }, // tanggal
     ];
     if (filterLabel) {
-        merges.push({ s:{r:3,c:0}, e:{r:3,c:4} }); // baris filter wilayah
+        merges.push({ s:{r:4,c:0}, e:{r:4,c:4} }); // filter baris
     }
-    merges.push({ s:{r:3+filterOffset,c:0}, e:{r:3+filterOffset,c:4} }); // accent
-    merges.push({ s:{r:4+filterOffset,c:0}, e:{r:4+filterOffset,c:4} }); // empty
-    merges.push({ s:{r:5+filterOffset,c:0}, e:{r:5+filterOffset,c:1} }); // card kiri top
-    merges.push({ s:{r:6+filterOffset,c:0}, e:{r:6+filterOffset,c:1} }); // card kiri bot
-    merges.push({ s:{r:5+filterOffset,c:3}, e:{r:5+filterOffset,c:4} }); // card kanan top
-    merges.push({ s:{r:6+filterOffset,c:3}, e:{r:6+filterOffset,c:4} }); // card kanan bot
-    merges.push({ s:{r:7+filterOffset,c:0}, e:{r:7+filterOffset,c:4} }); // empty2
+    merges.push({ s:{r:4+filterOffset,c:0}, e:{r:4+filterOffset,c:4} }); // garis biru
+    merges.push({ s:{r:5+filterOffset,c:0}, e:{r:5+filterOffset,c:1} }); // kartu kiri atas
+    merges.push({ s:{r:6+filterOffset,c:0}, e:{r:6+filterOffset,c:1} }); // kartu kiri bawah
+    merges.push({ s:{r:5+filterOffset,c:3}, e:{r:5+filterOffset,c:4} }); // kartu kanan atas
+    merges.push({ s:{r:6+filterOffset,c:3}, e:{r:6+filterOffset,c:4} }); // kartu kanan bawah
+    merges.push({ s:{r:7+filterOffset,c:0}, e:{r:7+filterOffset,c:4} }); // baris kosong
+    merges.push({ s:{r:noteRow-1,c:0},      e:{r:noteRow-1,c:4} });       // catatan kaki
 
     ws['!merges'] = merges;
-    ws['!cols'] = [{ wch: 7 }, { wch: 36 }, { wch: 24 }, { wch: 16 }, { wch: 14 }];
-    ws['!rows'] = [{ hpt: 52 }, { hpt: 28 }, { hpt: 18 }, { hpt: 6 }, { hpt: 12 }, { hpt: 24 }, { hpt: 48 }, { hpt: 12 }, { hpt: 30 }];
+    ws['!cols']   = [{ wch: 7 }, { wch: 38 }, { wch: 26 }, { wch: 16 }, { wch: 13 }];
+    ws['!rows']   = [
+        { hpt: 22 }, // instansi
+        { hpt: 46 }, // judul
+        { hpt: 18 }, // sub judul
+        { hpt: 16 }, // tanggal
+        ...(filterLabel ? [{ hpt: 18 }] : []),
+        { hpt: 5  }, // garis biru
+        { hpt: 20 }, // kartu atas
+        { hpt: 40 }, // kartu bawah
+        { hpt: 10 }, // kosong
+        { hpt: 28 }, // header tabel
+    ];
 
     return ws;
 }
 
-// ── Sheet per Layer ───────────────────────────────────────────
+// ============================================================
+// SHEET: PER LAYER
+// ============================================================
 
-function _buildLayerSheet(group, filterLabel) {
-    const ws = {};
-    const p = _pal(group.key);
-    const cfg = (typeof layerConfig !== 'undefined') ? layerConfig[group.key] : null;
-    const grpRaw = cfg ? (cfg.group || '_default') : '_default';
-    const grpMap = { infrastruktur:'Infrastruktur', pendidikan:'Pendidikan', persampahan:'Persampahan & Lingkungan', fasilitas:'Fasilitas Umum', demografi:'Demografi', pompa_saluran:'Pompa & Saluran Air', batas:'Batas Wilayah' };
-    const grpDisplay = grpMap[grpRaw] || grpRaw;
+function _buildLayerSheet(group, filterLabel, filterDetails) {
+    const ws      = {};
+    const p       = _pal(group.key);
+    const cfg     = (typeof layerConfig !== 'undefined') ? layerConfig[group.key] : null;
+    const grpRaw  = cfg ? (cfg.group || '_default') : '_default';
+    const grpDisplay = GRP_MAP[grpRaw] || grpRaw;
     const dateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 
     const allKeys = ['No', 'Nama', 'Latitude', 'Longitude'];
@@ -287,203 +345,240 @@ function _buildLayerSheet(group, filterLabel) {
     const numCols = allKeys.length;
     const lastCol = colLetter(numCols);
 
-    // ── Baris 1: Banner utama ──
+    // ── Baris 1: Nama Instansi ────────────────────────────────
     for (let c = 1; c <= numCols; c++) {
         ws[colLetter(c) + '1'] = {
-            t: 's', v: c === 1 ? group.label.toUpperCase() : '',
+            t: 's', v: c === 1 ? 'PEMERINTAH KOTA SURABAYA' : '',
             s: {
-                font: _f({ bold: true, sz: 20, color: { rgb: 'FFFFFF' } }),
+                font: _f({ bold: true, sz: 9, color: { rgb: 'BFDBFE' } }),
                 fill: _fill(p.h1),
-                alignment: { horizontal: 'center', vertical: 'center' },
-                border: { bottom: _border('thick', p.h3) }
+                alignment: { horizontal: 'center', vertical: 'center' }
             }
         };
     }
 
-    // ── Baris 2: Strip info ──
+    // ── Baris 2: Nama Layer (Judul Sheet) ────────────────────
     for (let c = 1; c <= numCols; c++) {
-        const isLast = c === numCols;
-        const isFirst = c === 1;
         ws[colLetter(c) + '2'] = {
-            t: 's',
-            v: isFirst ? '  \uD83D\uDCC2 Kategori: ' + grpDisplay : isLast ? 'Diekspor: ' + dateStr + '  ' : '',
+            t: 's', v: c === 1 ? group.label.toUpperCase() : '',
             s: {
-                font: _f({ sz: 10, bold: isFirst, color: { rgb: 'E0F2FE' }, italic: !isFirst }),
+                font: _f({ bold: true, sz: 18, color: { rgb: 'FFFFFF' } }),
                 fill: _fill(p.h2),
+                alignment: { horizontal: 'center', vertical: 'center' },
+                border: { bottom: _border('medium', p.h3) }
+            }
+        };
+    }
+
+    // ── Baris 3: Kategori & Tanggal ──────────────────────────
+    for (let c = 1; c <= numCols; c++) {
+        const isFirst = c === 1;
+        const isLast  = c === numCols;
+        ws[colLetter(c) + '3'] = {
+            t: 's',
+            v: isFirst ? 'Kategori: ' + grpDisplay : isLast ? 'Tanggal Ekspor: ' + dateStr : '',
+            s: {
+                font: _f({ sz: 9, bold: isFirst, italic: isLast, color: { rgb: 'E0F2FE' } }),
+                fill: _fill(p.h1),
                 alignment: { horizontal: isFirst ? 'left' : isLast ? 'right' : 'center', vertical: 'center' }
             }
         };
     }
 
-    // ── Baris 2b (opsional): Info filter wilayah ──
+    // ── Baris 4 (kondisional): Filter Wilayah ────────────────
     const filterOffset = filterLabel ? 1 : 0;
     if (filterLabel) {
+        let filterText = 'Filter Wilayah: ';
+        if (filterDetails && filterDetails.kelurahan) {
+            filterText += 'Kelurahan ' + filterDetails.kelurahan;
+            if (filterDetails.kecamatan) filterText += ', Kecamatan ' + filterDetails.kecamatan;
+        } else if (filterDetails && filterDetails.kecamatan) {
+            filterText += 'Kecamatan ' + filterDetails.kecamatan;
+        } else {
+            filterText += filterLabel;
+        }
+
         for (let c = 1; c <= numCols; c++) {
-            ws[colLetter(c) + '3'] = {
-                t: 's', v: c === 1 ? '\uD83D\uDCCD  Filter Wilayah: ' + filterLabel : '',
+            ws[colLetter(c) + '4'] = {
+                t: 's', v: c === 1 ? filterText : '',
                 s: {
-                    font: _f({ bold: true, sz: 10, color: { rgb: 'FEF08A' } }),
-                    fill: _fill('713F12'),
-                    alignment: { horizontal: 'center', vertical: 'center' }
+                    font: _f({ bold: true, sz: 9, color: { rgb: '1E3A5F' } }),
+                    fill: _fill('DBEAFE'),
+                    alignment: { horizontal: 'center', vertical: 'center' },
+                    border: { top: _border('thin', '93C5FD'), bottom: _border('thin', '93C5FD') }
                 }
             };
         }
     }
 
-    // ── Baris aksen triple ──
-    const accentLineRow = 3 + filterOffset;
+    // ── Baris info jumlah data ────────────────────────────────
+    const infoRow = 4 + filterOffset;
     for (let c = 1; c <= numCols; c++) {
-        const shade = (c % 3 === 0) ? p.h3 : (c % 3 === 1) ? p.h2 : p.accent;
-        ws[colLetter(c) + accentLineRow] = { t: 's', v: '', s: { fill: _fill(shade), border: _allBorder('thick', shade) } };
-    }
-
-    // ── Baris statistik ringkas ──
-    const statsRow = 4 + filterOffset;
-    const mid = Math.ceil(numCols / 2);
-    for (let c = 1; c <= numCols; c++) {
-        const isLabel = c === mid - 1;
-        const isValue = c === mid;
-        ws[colLetter(c) + statsRow] = {
-            t: isValue ? 'n' : 's',
-            v: isValue ? group.rows.length : (isLabel ? '  \uD83D\uDCCA JUMLAH DATA:' : ''),
+        const isLabel = c === 1;
+        const isVal   = c === 2;
+        ws[colLetter(c) + infoRow] = {
+            t: isVal ? 'n' : 's',
+            v: isVal ? group.rows.length : (isLabel ? 'Jumlah Data' : ''),
             s: {
-                font: _f({ bold: true, sz: isValue ? 16 : 11, color: { rgb: isValue ? 'FFFFFF' : (isLabel ? p.h3 : '94A3B8') } }),
-                fill: _fill(isValue ? p.badge : (isLabel ? p.h1 : p.r1)),
-                alignment: { horizontal: isValue ? 'center' : (isLabel ? 'right' : 'center'), vertical: 'center' },
-                border: isValue
-                    ? _allBorder('thick', p.accent)
-                    : (isLabel ? { right: _border('medium', p.accent), bottom: _border('thin', p.stripe) }
-                               : { bottom: _border('thin', p.stripe) })
+                font: _f({ bold: true, sz: isVal ? 14 : 10, color: { rgb: isVal ? 'FFFFFF' : (isLabel ? p.h3 : '94A3B8') } }),
+                fill: _fill(isVal ? p.badge : (isLabel ? p.h1 : p.r1)),
+                alignment: { horizontal: isVal ? 'center' : (isLabel ? 'right' : 'center'), vertical: 'center' },
+                border: isVal ? _allBorder('medium', p.accent) : { bottom: _border('thin', p.stripe) }
             }
         };
     }
 
-    // ── Baris kosong ──
+    // ── Baris kosong pemisah ──────────────────────────────────
     const emptyRow = 5 + filterOffset;
     for (let c = 1; c <= numCols; c++) {
         ws[colLetter(c) + emptyRow] = { t: 's', v: '', s: { fill: _fill('F8FAFC'), border: { bottom: _border('thin', p.stripe) } } };
     }
 
-    // ── Baris header kolom ──
-    const headerColRow = 6 + filterOffset;
+    // ── Header Kolom ──────────────────────────────────────────
+    const headerRow = 6 + filterOffset;
     allKeys.forEach(function(key, ci) {
-        const isFixed = ['No','Nama','Latitude','Longitude'].includes(key);
-        ws[colLetter(ci + 1) + headerColRow] = {
+        const isFixed = ['No', 'Nama', 'Latitude', 'Longitude'].includes(key);
+        ws[colLetter(ci + 1) + headerRow] = {
             t: 's', v: key,
             s: {
-                font: _f({ bold: true, sz: 11, color: { rgb: 'FFFFFF' } }),
+                font: _f({ bold: true, sz: 10, color: { rgb: 'FFFFFF' } }),
                 fill: _fill(isFixed ? p.h1 : p.h2),
                 alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
                 border: {
-                    top:    _border('thick',  p.h1),
-                    bottom: _border('thick',  p.h3),
-                    left:   _border('medium', p.badge),
-                    right:  _border('medium', p.badge)
+                    top:    _border('medium', p.h1),
+                    bottom: _border('medium', p.h3),
+                    left:   _border('thin',   p.badge),
+                    right:  _border('thin',   p.badge)
                 }
             }
         };
     });
 
-    // ── Baris data ──
+    // ── Baris Data ────────────────────────────────────────────
     group.rows.forEach(function(row, ri) {
         const excelRow = ri + 7 + filterOffset;
-        const isOdd = ri % 2 === 0;
-        const bg = isOdd ? p.r1 : p.r2;
-        const stripeBg = isOdd ? p.stripe : p.r1;
+        const isOdd    = ri % 2 === 0;
+        const bg       = isOdd ? p.r1 : 'FFFFFF';
+        const bgStripe = isOdd ? p.stripe : p.r2;
 
         allKeys.forEach(function(key, ci) {
-            const val = row[key] !== undefined ? row[key] : '';
-            const isNum = typeof val === 'number';
-            const isCenter = (key === 'No' || key === 'Latitude' || key === 'Longitude');
-            const isNama  = key === 'Nama';
-            const colRef  = colLetter(ci + 1) + excelRow;
-            const isNoCol = key === 'No';
+            const val      = row[key] !== undefined ? row[key] : '';
+            const isNum    = typeof val === 'number';
+            const isNo     = key === 'No';
+            const isNama   = key === 'Nama';
+            const isCenter = isNo || key === 'Latitude' || key === 'Longitude';
+            const colRef   = colLetter(ci + 1) + excelRow;
 
             ws[colRef] = {
                 t: isNum ? 'n' : 's', v: val,
                 s: {
                     font: _f({
                         sz: 10,
-                        bold: isNama || isNoCol,
-                        color: { rgb: isNoCol ? 'FFFFFF' : (isNama ? p.h1 : '1E293B') }
+                        bold: isNo || isNama,
+                        color: { rgb: isNo ? 'FFFFFF' : (isNama ? p.h1 : '1E293B') }
                     }),
-                    fill: _fill(isNoCol ? (isOdd ? p.badge : p.h2) : (isNama ? stripeBg : bg)),
+                    fill: _fill(isNo ? (isOdd ? p.badge : p.h2) : (isNama ? bgStripe : bg)),
                     alignment: { horizontal: isCenter ? 'center' : 'left', vertical: 'center' },
                     border: {
-                        top:    _border('thin', p.stripe),
-                        bottom: _border('thin', p.stripe),
-                        left:   _border(isNoCol ? 'thick' : 'thin',  isNoCol ? p.h1   : 'D1D5DB'),
-                        right:  _border(isNoCol ? 'medium' : 'thin', isNoCol ? p.badge : 'D1D5DB')
+                        top:    _border('thin', p.r1),
+                        bottom: _border('thin', p.r1),
+                        left:   _border(isNo ? 'medium' : 'thin', isNo ? p.h1 : 'D1D5DB'),
+                        right:  _border(isNo ? 'thin'   : 'thin', isNo ? p.badge : 'D1D5DB')
                     }
                 }
             };
         });
     });
 
-    // ── Baris footer ──
+    // ── Baris Footer ─────────────────────────────────────────
     const footerRow = group.rows.length + 7 + filterOffset;
     for (let c = 1; c <= numCols; c++) {
-        const isLabel = c === 2;
+        let footerText = '';
+        if (c === 1) {
+            footerText = 'Total: ' + group.rows.length + ' record';
+            if (filterLabel) {
+                if (filterDetails && filterDetails.kelurahan) {
+                    footerText += ' - Filter: Kel. ' + filterDetails.kelurahan;
+                    if (filterDetails.kecamatan) footerText += ', Kec. ' + filterDetails.kecamatan;
+                } else if (filterDetails && filterDetails.kecamatan) {
+                    footerText += ' - Filter: Kec. ' + filterDetails.kecamatan;
+                }
+            }
+        }
+
         ws[colLetter(c) + footerRow] = {
-            t: 's',
-            v: isLabel ? '  \u2714 TOTAL: ' + group.rows.length + ' record data' + (filterLabel ? ' (Filter: ' + filterLabel + ')' : '') : '',
+            t: 's', v: footerText,
             s: {
-                font: _f({ bold: true, sz: 11, color: { rgb: isLabel ? p.accent : 'FFFFFF' } }),
+                font: _f({ bold: true, sz: 10, color: { rgb: c === 1 ? p.accent : 'FFFFFF' } }),
                 fill: _fill(p.h1),
-                alignment: { horizontal: isLabel ? 'left' : 'center', vertical: 'center' },
+                alignment: { horizontal: c === 1 ? 'left' : 'center', vertical: 'center' },
                 border: {
-                    top:    _border('thick',  p.h3),
-                    bottom: _border('medium', p.h1),
-                    left:   _border('medium', p.badge),
+                    top:    _border('medium', p.h3),
+                    bottom: _border('thin',   p.h1),
+                    left:   _border('thin',   p.badge),
                     right:  _border('thin',   p.h2)
                 }
             }
         };
     }
 
-    const lastRow = footerRow;
-    ws['!ref'] = 'A1:' + lastCol + lastRow;
+    // ── Baris Catatan Sumber Data ─────────────────────────────
+    const sourceRow = footerRow + 1;
+    for (let c = 1; c <= numCols; c++) {
+        ws[colLetter(c) + sourceRow] = {
+            t: 's',
+            v: c === 1 ? 'Sumber: Sistem Informasi Data Peta Surabaya (SIDAPETA). Koordinat dalam format desimal (WGS 84).' : '',
+            s: {
+                font: _f({ sz: 8, italic: true, color: { rgb: '94A3B8' } }),
+                fill: _fill('F8FAFC'),
+                alignment: { horizontal: 'left', vertical: 'center' }
+            }
+        };
+    }
 
-    // Merges — sesuaikan dengan filterOffset
-    const layerMerges = [
-        { s:{r:0,c:0}, e:{r:0,c:numCols-1} }, // banner
-        { s:{r:1,c:0}, e:{r:1,c:numCols-1} }, // strip info
+    ws['!ref'] = 'A1:' + lastCol + sourceRow;
+
+    // ── Merges ───────────────────────────────────────────────
+    const merges = [
+        { s:{r:0,c:0}, e:{r:0,c:numCols-1} }, // instansi
+        { s:{r:1,c:0}, e:{r:1,c:numCols-1} }, // judul layer
+        { s:{r:2,c:0}, e:{r:2,c:numCols-2} }, // kategori (kiri)
+        // kolom terakhir baris 3 (tanggal) tidak di-merge agar rata kanan bisa benar
     ];
     if (filterLabel) {
-        layerMerges.push({ s:{r:2,c:0}, e:{r:2,c:numCols-1} }); // filter label row
+        merges.push({ s:{r:3,c:0}, e:{r:3,c:numCols-1} }); // filter
     }
-    layerMerges.push({ s:{r:2+filterOffset,c:0}, e:{r:2+filterOffset,c:numCols-1} }); // accent
-    layerMerges.push({ s:{r:3+filterOffset,c:0}, e:{r:3+filterOffset,c:numCols-1} }); // stats
-    layerMerges.push({ s:{r:4+filterOffset,c:0}, e:{r:4+filterOffset,c:numCols-1} }); // kosong
-    layerMerges.push({ s:{r:lastRow-1,c:1},      e:{r:lastRow-1,c:numCols-1} }); // footer
+    merges.push({ s:{r:footerRow-1,c:0},  e:{r:footerRow-1,c:numCols-1} }); // footer
+    merges.push({ s:{r:sourceRow-1,c:0},  e:{r:sourceRow-1,c:numCols-1} }); // catatan sumber
 
-    ws['!merges'] = layerMerges;
+    ws['!merges'] = merges;
 
     ws['!cols'] = allKeys.map(function(k) {
-        if (k === 'No') return { wch: 6 };
-        if (k === 'Nama') return { wch: 36 };
+        if (k === 'No')        return { wch: 6 };
+        if (k === 'Nama')      return { wch: 38 };
         if (k === 'Latitude' || k === 'Longitude') return { wch: 16 };
         const maxLen = Math.max(k.length, ...group.rows.map(function(r) { return String(r[k] !== undefined ? r[k] : '').length; }));
-        return { wch: Math.min(Math.max(maxLen + 3, 13), 40) };
+        return { wch: Math.min(Math.max(maxLen + 4, 14), 42) };
     });
 
-    const rowHeights = [
-        { hpt: 50 }, // Banner
-        { hpt: 22 }, // Strip info
+    ws['!rows'] = [
+        { hpt: 18 }, // instansi
+        { hpt: 40 }, // judul
+        { hpt: 18 }, // kategori & tanggal
+        ...(filterLabel ? [{ hpt: 16 }] : []),
+        { hpt: 28 }, // info jumlah
+        { hpt: 8  }, // kosong
+        { hpt: 26 }, // header kolom
     ];
-    if (filterLabel) rowHeights.push({ hpt: 20 }); // Filter label
-    rowHeights.push({ hpt: 6  }); // Garis triple
-    rowHeights.push({ hpt: 32 }); // Statistik
-    rowHeights.push({ hpt: 10 }); // Kosong
-    rowHeights.push({ hpt: 30 }); // Header
-    ws['!rows'] = rowHeights;
 
     return ws;
 }
 
-// ── Fungsi Utama ──────────────────────────────────────────────
+// ============================================================
+// FUNGSI UTAMA EKSPOR
+// ============================================================
 
-window.exportMapDataToExcel = function() {
+window.exportMapDataToExcel = function () {
     if (typeof XLSX === 'undefined') {
         alert('Library Excel belum dimuat. Pastikan SheetJS (xlsx) sudah di-include.');
         return;
@@ -499,17 +594,18 @@ window.exportMapDataToExcel = function() {
         return;
     }
 
-    // ── Cek apakah filter wilayah sedang aktif ──────────────────
-    const filterActive = (typeof FilterWilayah !== 'undefined') && FilterWilayah.isFilterActive();
+    // Cek filter wilayah
+    const filterActive  = (typeof FilterWilayah !== 'undefined') && FilterWilayah.isFilterActive();
     const activeFeature = filterActive ? FilterWilayah.getActiveFeature() : null;
     const filterLabel   = filterActive ? FilterWilayah.getFilterLabel()   : null;
+    const filterDetails = filterActive ? {
+        kecamatan: (document.getElementById('fw-kecamatan') || {}).value || null,
+        kelurahan: (document.getElementById('fw-kelurahan') || {}).value || null
+    } : null;
 
-    /**
-     * Helper: cek apakah sebuah GeoJSON feature ada di dalam wilayah aktif.
-     * Menggunakan centroid/titik representatif feature vs polygon wilayah.
-     */
+    // Helper: apakah feature ada di dalam wilayah filter
     function _featureInsideRegion(feature) {
-        if (!activeFeature || !feature || !feature.geometry) return true; // jika tidak ada filter, semua masuk
+        if (!activeFeature || !feature || !feature.geometry) return true;
         try {
             const g = feature.geometry;
             let point;
@@ -523,47 +619,44 @@ window.exportMapDataToExcel = function() {
                 const seg = g.coordinates[0];
                 point = turf.point(seg[Math.floor(seg.length / 2)]);
             } else {
-                // Polygon / MultiPolygon: gunakan centroid
                 point = turf.centroid(feature);
             }
-
             let poly;
             if (activeFeature.geometry.type === 'Polygon') {
                 poly = turf.polygon(activeFeature.geometry.coordinates);
             } else if (activeFeature.geometry.type === 'MultiPolygon') {
                 poly = turf.multiPolygon(activeFeature.geometry.coordinates);
             } else {
-                return true; // geometri wilayah tidak dikenal, loloskan semua
+                return true;
             }
             return turf.booleanPointInPolygon(point, poly);
         } catch (e) {
-            return true; // jika error turf, loloskan agar tidak kehilangan data
+            return true;
         }
     }
 
+    // Kumpulkan data tiap layer
     const layerGroups = [];
     checked.forEach(function(checkbox) {
         const layerKey = checkbox.getAttribute('data-layer');
-        const layer  = mapLayers[layerKey];
-        const config = (typeof layerConfig !== 'undefined') ? layerConfig[layerKey] : null;
+        const layer    = mapLayers[layerKey];
+        const config   = (typeof layerConfig !== 'undefined') ? layerConfig[layerKey] : null;
         if (!layer || !map.hasLayer(layer)) return;
-
-        // Skip layer batas wilayah — tidak relevan untuk export tabel
         if (config && config.isBoundary) return;
 
         const rows = [];
         const data = geoJsonStore[layerKey];
 
         if (data && data.features && data.features.length) {
-            data.features.forEach(function(feature, i) {
-                if (filterActive && !_featureInsideRegion(feature)) return; // ← filter wilayah
+            data.features.forEach(function(feature) {
+                if (filterActive && !_featureInsideRegion(feature)) return;
                 rows.push(featureToRow(layerKey, feature, rows.length, config));
             });
         } else {
             layer.eachLayer(function(l) {
                 const feature = l.feature;
                 if (!feature) return;
-                if (filterActive && !_featureInsideRegion(feature)) return; // ← filter wilayah
+                if (filterActive && !_featureInsideRegion(feature)) return;
                 rows.push(featureToRow(layerKey, feature, rows.length, config));
             });
         }
@@ -574,17 +667,14 @@ window.exportMapDataToExcel = function() {
     });
 
     if (layerGroups.length === 0) {
-        alert('Tidak ada data yang bisa diekspor' + (filterActive ? ' dalam wilayah filter "' + filterLabel + '".' : '.'));
+        alert('Tidak ada data yang dapat diekspor' + (filterActive ? ' dalam wilayah "' + filterLabel + '".' : '.'));
         return;
     }
 
     const wb = XLSX.utils.book_new();
-
-    // Kirim info filter ke sheet ringkasan
-    XLSX.utils.book_append_sheet(wb, _buildSummarySheet(layerGroups, filterLabel), 'Ringkasan');
-
+    XLSX.utils.book_append_sheet(wb, _buildSummarySheet(layerGroups, filterLabel, filterDetails), 'Ringkasan');
     layerGroups.forEach(function(group) {
-        const ws = _buildLayerSheet(group, filterLabel);
+        const ws        = _buildLayerSheet(group, filterLabel, filterDetails);
         const sheetName = group.label.replace(/[:\\\/\?\*\[\]]/g, '').substring(0, 31);
         XLSX.utils.book_append_sheet(wb, ws, sheetName);
     });

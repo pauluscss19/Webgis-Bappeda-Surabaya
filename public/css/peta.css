@@ -1,70 +1,64 @@
 /* ============================================================
-   PETA.CSS — Stylesheet Utama Halaman Peta
-   Struktur:
-    1.  CSS Variables
-    2.  Reset & Base
-    3.  Layout: Page, Banner, Content
-    4.  Map Card & Map Container
-    5.  Sidebar Filter (Floating)
-    6.  Tombol Toggle Sidebar
-    7.  Layer Items & Layer Colors
-    8.  Analisis Box & Form Controls
-    9.  Legend Statistik (Leaflet Control)
-   10.  Heatmap Legend (Intensitas Nilai)
-   11.  Leaflet Controls: Zoom, Fullscreen, PDF, Excel, Layer Switcher
-   12.  Popup Ranking (Clustering Result)
-   13.  Label Wilayah (Kecamatan, Kelurahan, RW)
-   14.  Print / Export Section
-   15.  Help Popup (Tombol ?)
-   16.  Filter Wilayah
-   17.  Fullscreen Mode
-   18.  Loading Overlays
-   19.  Responsive / Mobile
+   PETA.CSS — Stylesheet Utama Halaman Peta (FIXED)
+   
+   FIXES:
+   1. Heatmap legend position: left bottom (tidak bentrok Excel & statistik)
+   2. Layer switcher: custom icon support
+   3. Z-index hierarchy: Excel button selalu clickable
    ============================================================ */
-
 
 /* ============================================================
    1. CSS VARIABLES
    ============================================================ */
 :root {
-    --bg:        #f6f7fb;
-    --card:      #ffffff;
-    --text:      #0f172a;
-    --muted:     rgba(15, 23, 42, 0.65);
-    --blue:      #1f6feb;
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: rgba(15, 23, 42, 0.65);
+    --blue: #1f6feb;
     --blue-dark: #0b4aa7;
-    --shadow:    0 18px 50px rgba(2, 6, 23, 0.1);
-    --radius:    14px;
+    --shadow: 0 18px 50px rgba(2, 6, 23, 0.1);
+    --radius: 14px;
 
     /* Leaflet controls — ukuran & gaya seragam semua tombol */
-    --ctrl-size:   36px;
+    --ctrl-size: 36px;
     --ctrl-radius: 6px;
     --ctrl-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
-    --ctrl-color:  #334155;
-    --ctrl-bg:     #ffffff;
-    --ctrl-hover:  #f1f5f9;
+    --ctrl-color: #334155;
+    --ctrl-bg: #ffffff;
+    --ctrl-hover: #f1f5f9;
 }
-
 
 /* ============================================================
    2. RESET & BASE
    ============================================================ */
-* { box-sizing: border-box; }
+* {
+    box-sizing: border-box;
+}
 
 body {
     margin: 0;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    font-family:
+        system-ui,
+        -apple-system,
+        Segoe UI,
+        Roboto,
+        Arial,
+        sans-serif;
     color: var(--text);
     background: var(--bg);
 }
 
-
 /* ============================================================
    3. LAYOUT: PAGE, BANNER, CONTENT
    ============================================================ */
-.peta-page { padding-top: 110px; }
+.peta-page {
+    padding-top: 110px;
+}
 
-.peta-banner { padding: 18px 18px 0; }
+.peta-banner {
+    padding: 18px 18px 0;
+}
 
 .peta-banner__inner {
     max-width: 1100px;
@@ -88,7 +82,10 @@ body {
     font-size: 30px;
 }
 
-.peta-banner__icon a   { display: grid; place-items: center; }
+.peta-banner__icon a {
+    display: grid;
+    place-items: center;
+}
 
 .peta-banner__icon img {
     width: 60px;
@@ -104,10 +101,14 @@ body {
     line-height: 1.05;
 }
 
-.peta-banner__subtitle { margin: 6px 0 0; opacity: 0.92; }
+.peta-banner__subtitle {
+    margin: 6px 0 0;
+    opacity: 0.92;
+}
 
-.peta-content { padding: 26px 18px 70px; }
-
+.peta-content {
+    padding: 26px 18px 70px;
+}
 
 /* ============================================================
    4. MAP CARD & MAP CONTAINER
@@ -134,18 +135,20 @@ body {
     border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
-.peta-card__label { font-weight: 900; }
-.peta-card__hint  { color: var(--muted); font-size: 13px; }
+.peta-card__label {
+    font-weight: 900;
+}
+.peta-card__hint {
+    color: var(--muted);
+    font-size: 13px;
+}
 
 #map {
     height: 560px;
     width: 100%;
-    /* z-index: 1 — sudah default Leaflet, kontrol Leaflet ada di z-index 1000+
-       Sidebar di z-index 2000, toggle-btn di 2001 */
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
-
 
 /* ============================================================
    5. SIDEBAR FILTER (FLOATING)
@@ -168,7 +171,9 @@ body {
     transform: translateX(0);
 }
 
-#filter-sidebar.hidden { transform: translateX(-310px); }
+#filter-sidebar.hidden {
+    transform: translateX(-310px);
+}
 
 .sidebar-header {
     padding: 10px 14px;
@@ -187,8 +192,13 @@ body {
     padding: 10px;
 }
 
-.sidebar-content::-webkit-scrollbar       { width: 6px; }
-.sidebar-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.sidebar-content::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar-content::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
 
 .sidebar-footer {
     padding: 10px;
@@ -198,9 +208,16 @@ body {
     flex-shrink: 0;
 }
 
-.close-btn          { background: none; border: none; font-size: 20px; color: #64748b; cursor: pointer; }
-.close-btn:hover    { color: #ef4444; }
-
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #64748b;
+    cursor: pointer;
+}
+.close-btn:hover {
+    color: #ef4444;
+}
 
 /* ============================================================
    6. TOMBOL TOGGLE SIDEBAR
@@ -221,8 +238,10 @@ body {
     display: none;
 }
 
-#toggle-btn:hover { background: #2563eb; transform: scale(1.05); }
-
+#toggle-btn:hover {
+    background: #2563eb;
+    transform: scale(1.05);
+}
 
 /* ============================================================
    7. LAYER ITEMS & LAYER COLORS
@@ -239,7 +258,10 @@ body {
     transition: all 0.2s;
 }
 
-.layer-item:hover { border-color: #3b82f6; background: #eff6ff; }
+.layer-item:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
 
 .layer-color {
     width: 16px;
@@ -250,7 +272,6 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     flex-shrink: 0;
 }
-
 
 /* ============================================================
    8. ANALISIS BOX & FORM CONTROLS
@@ -273,7 +294,9 @@ body {
     gap: 8px;
 }
 
-.form-group { margin-bottom: 10px; }
+.form-group {
+    margin-bottom: 10px;
+}
 
 .form-group label {
     display: block;
@@ -292,12 +315,26 @@ body {
     overflow-y: auto;
 }
 
-.checkbox-list::-webkit-scrollbar       { width: 5px; }
-.checkbox-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.checkbox-list::-webkit-scrollbar {
+    width: 5px;
+}
+.checkbox-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
 
-.checkbox-item                { display: flex; align-items: center; font-size: 12px; margin-bottom: 5px; }
-.checkbox-item:last-child     { margin-bottom: 0; }
-.checkbox-item input          { margin-right: 8px; }
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+.checkbox-item:last-child {
+    margin-bottom: 0;
+}
+.checkbox-item input {
+    margin-right: 8px;
+}
 
 .form-control {
     width: 100%;
@@ -320,10 +357,20 @@ body {
     margin-top: 5px;
 }
 
-.btn-analysis:hover { background: #0284c7; }
+.btn-analysis:hover {
+    background: #0284c7;
+}
 
-.btn-help-wrap                { display: flex; align-items: center; gap: 5px; margin-top: 8px; }
-.btn-help-wrap .btn-analysis  { margin-top: 0 !important; flex: 1; }
+.btn-help-wrap {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+}
+.btn-help-wrap .btn-analysis {
+    margin-top: 0 !important;
+    flex: 1;
+}
 
 .section-separator {
     margin: 20px 0 15px 0;
@@ -350,14 +397,21 @@ body {
     color: #166534;
 }
 
-.tps-area-tip strong { display: block; margin-bottom: 4px; }
-
+.tps-area-tip strong {
+    display: block;
+    margin-bottom: 4px;
+}
 
 /* ============================================================
    9. LEGEND STATISTIK (Leaflet Control — bottomright)
-   Leaflet secara otomatis memberi z-index 700+ pada semua
-   .leaflet-control, sehingga legenda ini sudah di atas peta.
    ============================================================ */
+
+/* Wrapper container untuk heatmap + statistik legend */
+.legend-container {
+    position: relative;
+    z-index: 1100 !important; /* Di atas boundary (650) & marker (600), di bawah controls (1500) */
+}
+
 .info-legend {
     padding: 10px 15px;
     font: 13px Arial;
@@ -377,33 +431,36 @@ body {
     color: #1e293b;
 }
 
-.legend-item { display: flex; justify-content: space-between; margin-bottom: 4px; }
-
+.legend-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
 
 /* ============================================================
    10. HEATMAP LEGEND (Intensitas Nilai)
-   FIX: Semua styling di sini — inline style di blade.php DIHAPUS
+   FIX #1: Posisi di ATAS statistik data legend (dalam satu container)
    ============================================================ */
 #heatmap-legend {
-    position: absolute;
-    bottom: 40px;
-    right: 10px;
-    left: auto;
+    padding: 10px 15px;
+    font: 13px Arial;
     background: rgba(255, 255, 255, 0.97);
-    padding: 12px 14px;
     border-radius: 8px;
-    box-shadow: var(--ctrl-shadow);
-    z-index: 1000;
-    min-width: 200px;
+    min-width: 180px;
+    max-width: 220px;
     border-left: 4px solid #ef4444;
+    margin-bottom: 10px; /* Jarak dengan statistik data di bawahnya */
     display: none; /* JS atur via style.display = 'block' */
+    box-shadow: var(--ctrl-shadow);
 }
 
 #heatmap-legend .legend-title {
     font-weight: 700;
     font-size: 13px;
     color: #334155;
-    margin-bottom: 10px;
+    margin: 0 0 10px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 5px;
 }
 
 #legend-gradient {
@@ -413,43 +470,34 @@ body {
     margin-bottom: 6px;
 }
 
-#legend-values { margin-top: 8px; font-size: 11px; color: #475569; }
-
+#legend-values {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #475569;
+}
 
 /* ============================================================
    11. LEAFLET CONTROLS: ZOOM, FULLSCREEN, PDF, EXCEL, LAYER SWITCHER
-
-   KUNCI Z-INDEX agar semua tombol SELALU di atas peta:
-   - #map tidak punya z-index eksplisit (default auto/0)
-   - .leaflet-control-container default Leaflet = z-index 1000
-     → sudah di atas peta, tapi kita naikkan lebih tinggi
-     → agar juga di atas .peta-card border/background
+   FIX #3: Z-index hierarchy agar Excel selalu clickable
    ============================================================ */
 
-/* Pastikan container kontrol Leaflet selalu di atas semua elemen */
+/* FIX #3: Pastikan container kontrol Leaflet selalu di atas heatmap */
 .leaflet-control-container {
     z-index: 1500 !important;
-    /* Di bawah sidebar (2000) agar sidebar bisa overlap kontrol kiri,
-       tapi kontrol kanan (topright) tidak terhalang apapun */
 }
 
-/* ── Utility: ctrl-hidden ────────────────────────────────────
-   Digunakan untuk sembunyikan PDF & Excel control di luar fullscreen.
-   Lebih andal dari display:none karena tidak bentrok dengan
-   display:block dari handleFullscreenChange.
-   FIX: Gunakan visibility+height agar tidak menggeser layout */
+/* Utility: ctrl-hidden */
 .leaflet-control.ctrl-hidden {
-    visibility: hidden  !important;
+    visibility: hidden !important;
     pointer-events: none !important;
-    height: 0           !important;
-    overflow: hidden    !important;
-    margin-top: 0       !important;
-    margin-bottom: 0    !important;
-    padding: 0          !important;
-    border: none        !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+    border: none !important;
 }
 
-/* Saat ctrl-hidden dihapus (= fullscreen aktif) */
 .leaflet-control:not(.ctrl-hidden)#export-pdf-control,
 .leaflet-control:not(.ctrl-hidden)#export-excel-control {
     visibility: visible !important;
@@ -458,7 +506,7 @@ body {
     overflow: visible !important;
 }
 
-/* ── Base: semua .leaflet-bar ────────────────────────────────── */
+/* Base: semua .leaflet-bar */
 .leaflet-control-zoom,
 .leaflet-bar {
     border: none !important;
@@ -467,7 +515,7 @@ body {
     overflow: hidden;
 }
 
-/* ── Base: semua anchor/button di dalam .leaflet-bar ────────── */
+/* Base: semua anchor/button di dalam .leaflet-bar */
 .leaflet-control-zoom a,
 .leaflet-bar a {
     width: var(--ctrl-size) !important;
@@ -480,7 +528,9 @@ body {
     display: flex !important;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s, color 0.15s;
+    transition:
+        background 0.15s,
+        color 0.15s;
     border: none !important;
     text-decoration: none !important;
 }
@@ -501,11 +551,11 @@ body {
     border-radius: 0 0 var(--ctrl-radius) var(--ctrl-radius) !important;
 }
 
-/* ── Tombol Fullscreen ───────────────────────────────────────── */
-/* FIX: Reset semua style lama (posisi absolut, width:100px, dll) */
+/* Tombol Fullscreen */
 #fullscreen-btn {
     position: static !important;
-    top: auto !important; right: auto !important;
+    top: auto !important;
+    right: auto !important;
     width: var(--ctrl-size) !important;
     height: var(--ctrl-size) !important;
     padding: 0 !important;
@@ -517,7 +567,9 @@ body {
     display: flex !important;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s, color 0.15s;
+    transition:
+        background 0.15s,
+        color 0.15s;
     box-shadow: none !important;
     border-radius: var(--ctrl-radius) !important;
 }
@@ -527,8 +579,7 @@ body {
     color: #1e40af !important;
 }
 
-/* ── Tombol Export PDF (hanya saat fullscreen) ───────────────── */
-/* FIX: Reset inline style lama (width:50px, height:50px) */
+/* Tombol Export PDF (hanya saat fullscreen) */
 #export-pdf-btn-fs {
     position: static !important;
     width: var(--ctrl-size) !important;
@@ -536,13 +587,15 @@ body {
     padding: 0 !important;
     border: none !important;
     background: var(--ctrl-bg) !important;
-    color: #dc2626 !important;   /* merah untuk PDF */
+    color: #dc2626 !important;
     font-size: 16px !important;
     cursor: pointer;
     display: flex !important;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s, color 0.15s;
+    transition:
+        background 0.15s,
+        color 0.15s;
     border-radius: var(--ctrl-radius) !important;
 }
 
@@ -551,7 +604,7 @@ body {
     color: #b91c1c !important;
 }
 
-/* ── Tombol Export Excel (hanya saat fullscreen) ─────────────── */
+/* Tombol Export Excel (hanya saat fullscreen) */
 #export-excel-btn-fs {
     position: static !important;
     width: var(--ctrl-size) !important;
@@ -559,14 +612,17 @@ body {
     padding: 0 !important;
     border: none !important;
     background: var(--ctrl-bg) !important;
-    color: #16a34a !important;   /* hijau untuk Excel */
+    color: #16a34a !important;
     font-size: 16px !important;
     cursor: pointer;
     display: flex !important;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s, color 0.15s;
+    transition:
+        background 0.15s,
+        color 0.15s;
     border-radius: var(--ctrl-radius) !important;
+    z-index: 1501 !important; /* FIX #3: Lebih tinggi dari container (1500) */
 }
 
 #export-excel-btn-fs:hover {
@@ -574,70 +630,205 @@ body {
     color: #15803d !important;
 }
 
-/* ── Layer Switcher ──────────────────────────────────────────── */
-.leaflet-control-layers {
+/* FIX #2: Layer Switcher dengan Dropdown (Style mirip Layer Data) */
+.leaflet-control-layers-custom {
     border: none !important;
     border-radius: var(--ctrl-radius) !important;
     box-shadow: var(--ctrl-shadow) !important;
-    background: var(--ctrl-bg) !important;
+    background: transparent !important;
     overflow: visible !important;
+    position: relative;
 }
 
-.leaflet-control-layers-toggle {
+.layer-switcher-toggle {
     width: var(--ctrl-size) !important;
     height: var(--ctrl-size) !important;
-    background-image: none !important;   /* hapus ikon bawaan Leaflet */
     background: var(--ctrl-bg) !important;
+    border: none;
     border-radius: var(--ctrl-radius) !important;
     display: flex !important;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s;
-}
-
-/* Ikon layer switcher via ::after (Bootstrap Icons) */
-.leaflet-control-layers-toggle::after {
-    content: '\F24D';                    /* bi-stack */
-    font-family: 'bootstrap-icons';
-    font-size: 17px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-size: 18px;
     color: var(--ctrl-color);
-    line-height: 1;
-    pointer-events: none;
 }
 
-.leaflet-control-layers-toggle:hover                { background: var(--ctrl-hover) !important; }
-.leaflet-control-layers-toggle:hover::after         { color: #1e40af; }
-
-/* Panel dropdown layer switcher */
-.leaflet-control-layers-expanded {
-    padding: 10px 12px !important;
-    border-radius: var(--ctrl-radius) !important;
-    box-shadow: var(--ctrl-shadow) !important;
-    font-size: 12px !important;
-    color: #334155 !important;
-    min-width: 160px;
-    background: var(--ctrl-bg) !important;
-    overflow: visible !important;
+.layer-switcher-toggle:hover {
+    background: var(--ctrl-hover) !important;
+    transform: scale(1.05);
 }
 
-.leaflet-control-layers-base label,
-.leaflet-control-layers-overlays label {
+.layer-switcher-toggle:hover i,
+.layer-switcher-toggle.active i {
+    color: #1e40af;
+}
+
+.layer-switcher-toggle.active {
+    background: #eff6ff !important;
+    box-shadow: 0 0 0 2px #3b82f6;
+}
+
+/* Dropdown Panel - Style mirip Layer Data */
+.layer-switcher-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 200px;
+    background: white;
+    border-radius: 10px;
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.15),
+        0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 12px 8px;
+    animation: dropdownFadeIn 0.25s ease;
+    border: 1px solid #e2e8f0;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Header dropdown */
+.layer-switcher-panel::before {
+    content: "Base Maps";
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 8px 8px;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 8px;
+}
+
+/* Option items - mirip layer toggle */
+.layer-option {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 4px 0;
+    padding: 10px 12px;
+    margin: 3px 0;
     cursor: pointer;
-    font-size: 12px;
-    color: #1e293b;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+    font-size: 13px;
+    color: #334155;
+    position: relative;
 }
 
-.leaflet-control-layers-base label:hover,
-.leaflet-control-layers-overlays label:hover { color: #1d4ed8; }
+.layer-option:hover {
+    background: #f8fafc;
+    transform: translateX(3px);
+}
+
+.layer-option input[type="radio"] {
+    margin: 0 10px 0 0;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    accent-color: #3b82f6;
+}
+
+.layer-option span {
+    flex: 1;
+    font-weight: 500;
+}
+
+/* Active state */
+.layer-option:has(input:checked) {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-left: 3px solid #3b82f6;
+    padding-left: 9px;
+}
+
+.layer-option input[type="radio"]:checked + span {
+    font-weight: 700;
+    color: #1e40af;
+}
+
+/* Icon indicator untuk selected */
+.layer-option:has(input:checked)::after {
+    content: "✓";
+    position: absolute;
+    right: 12px;
+    color: #3b82f6;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .layer-switcher-panel {
+        min-width: 180px;
+        padding: 10px 6px;
+    }
+
+    .layer-option {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+}
 
 /* Spacing semua kontrol topright */
-.leaflet-top.leaflet-right .leaflet-control { margin-top: 8px; margin-right: 10px; }
-.leaflet-top.leaflet-right .leaflet-control:first-child { margin-top: 10px; }
+.leaflet-top.leaflet-right .leaflet-control {
+    margin-top: 8px;
+    margin-right: 10px;
+}
+.leaflet-top.leaflet-right .leaflet-control:first-child {
+    margin-top: 10px;
+}
 
+/* ============================================================
+   11.5 CRITICAL FIX: BOUNDARY LAYER Z-INDEX
+   Border wilayah filter harus SELALU di ATAS marker
+   ============================================================ */
+
+/* Leaflet default pane hierarchy:
+   - tilePane: 200 (basemap)
+   - overlayPane: 400 (polygon/polyline - BOUNDARY ADA DI SINI)
+   - shadowPane: 500 (marker shadows)
+   - markerPane: 600 (markers - INI YANG MENUTUPI BOUNDARY!)
+   - tooltipPane: 650
+   - popupPane: 700
+   
+   MASALAH: overlayPane (400) < markerPane (600)
+   SOLUSI: Naikkan overlayPane ke 650 (di atas marker tapi di bawah popup)
+*/
+
+.leaflet-overlay-pane {
+    z-index: 650 !important; /* Di atas markerPane (600) tapi di bawah popup (700) */
+}
+
+/* Pastikan SVG path boundary bisa diklik dan terlihat */
+.leaflet-overlay-pane svg {
+    position: relative;
+    z-index: 650 !important;
+}
+
+/* Border aktif (yang sedang difilter) harus paling atas */
+.leaflet-interactive.boundary-filter-active {
+    z-index: 9999 !important;
+    stroke-width: 5 !important;
+    stroke-opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Border tidak aktif tetap di belakang */
+.leaflet-interactive.boundary-filter-inactive {
+    z-index: 1 !important;
+    pointer-events: none !important;
+    opacity: 0.3 !important;
+}
 
 /* ============================================================
    12. POPUP RANKING (Clustering Result)
@@ -651,10 +842,22 @@ body {
     margin-bottom: 8px;
 }
 
-.rank-1     { background: #ffd700; color: #000; }
-.rank-2     { background: #c0c0c0; color: #000; }
-.rank-3     { background: #cd7f32; color: #fff; }
-.rank-other { background: #3b82f6; color: #fff; }
+.rank-1 {
+    background: #ffd700;
+    color: #000;
+}
+.rank-2 {
+    background: #c0c0c0;
+    color: #000;
+}
+.rank-3 {
+    background: #cd7f32;
+    color: #fff;
+}
+.rank-other {
+    background: #3b82f6;
+    color: #fff;
+}
 
 .score-bar {
     width: 100%;
@@ -680,10 +883,17 @@ body {
     font-size: 12px;
 }
 
-.metric-item:last-child { border-bottom: none; }
-.metric-label           { color: #64748b; font-weight: 500; }
-.metric-value           { color: #1e293b; font-weight: 700; }
-
+.metric-item:last-child {
+    border-bottom: none;
+}
+.metric-label {
+    color: #64748b;
+    font-weight: 500;
+}
+.metric-value {
+    color: #1e293b;
+    font-weight: 700;
+}
 
 /* ============================================================
    13. LABEL WILAYAH (Kecamatan, Kelurahan, RW)
@@ -696,10 +906,14 @@ body {
     font-size: 12px;
     color: #1e293b;
     text-shadow:
-        -1px -1px 0 #fff,  1px -1px 0 #fff,
-        -1px  1px 0 #fff,  1px  1px 0 #fff,
-        -2px  0   0 #fff,  2px  0   0 #fff,
-         0   -2px 0 #fff,  0    2px  0 #fff;
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        -2px 0 0 #fff,
+        2px 0 0 #fff,
+        0 -2px 0 #fff,
+        0 2px 0 #fff;
     pointer-events: none;
 }
 
@@ -711,13 +925,16 @@ body {
     font-size: 11px;
     color: #475569;
     text-shadow:
-        -1px   -1px   0 #fff,  1px   -1px   0 #fff,
-        -1px    1px   0 #fff,  1px    1px   0 #fff,
-        -1.5px  0     0 #fff,  1.5px  0     0 #fff,
-         0     -1.5px 0 #fff,  0      1.5px 0 #fff;
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        -1.5px 0 0 #fff,
+        1.5px 0 0 #fff,
+        0 -1.5px 0 #fff,
+        0 1.5px 0 #fff;
     pointer-events: none;
 }
-
 
 /* ============================================================
    14. PRINT / EXPORT SECTION (di bawah peta, non-fullscreen)
@@ -740,7 +957,11 @@ body {
     gap: 8px;
 }
 
-.print-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+.print-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
 
 .btn-print {
     flex: 1;
@@ -766,15 +987,20 @@ body {
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.btn-print:active { transform: translateY(0); }
-.btn-print i      { font-size: 16px; }
+.btn-print:active {
+    transform: translateY(0);
+}
+.btn-print i {
+    font-size: 16px;
+}
 
-.btn-print-excel { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+.btn-print-excel {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
 .btn-print-excel:hover {
     background: linear-gradient(135deg, #047857 0%, #065f46 100%);
     box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 }
-
 
 /* ============================================================
    15. HELP POPUP (Tombol ?)
@@ -798,10 +1024,22 @@ body {
     font-family: inherit;
 }
 
-.help-btn-rec        { color: #7c3aed; border-color: #7c3aed; }
-.help-btn-heat       { color: #1e40af; border-color: #1e40af; }
-.help-btn-rec:hover  { background: #7c3aed; color: #fff; }
-.help-btn-heat:hover { background: #1e40af; color: #fff; }
+.help-btn-rec {
+    color: #7c3aed;
+    border-color: #7c3aed;
+}
+.help-btn-heat {
+    color: #1e40af;
+    border-color: #1e40af;
+}
+.help-btn-rec:hover {
+    background: #7c3aed;
+    color: #fff;
+}
+.help-btn-heat:hover {
+    background: #1e40af;
+    color: #fff;
+}
 
 .help-popup-overlay {
     display: none;
@@ -814,7 +1052,9 @@ body {
     justify-content: center;
 }
 
-.help-popup-overlay.active { display: flex; }
+.help-popup-overlay.active {
+    display: flex;
+}
 
 .help-popup {
     background: #fff;
@@ -829,12 +1069,23 @@ body {
 }
 
 @keyframes helpPopupIn {
-    from { transform: scale(0.93) translateY(8px); opacity: 0; }
-    to   { transform: scale(1) translateY(0); opacity: 1; }
+    from {
+        transform: scale(0.93) translateY(8px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
 }
 
-.help-popup::-webkit-scrollbar       { width: 4px; }
-.help-popup::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+.help-popup::-webkit-scrollbar {
+    width: 4px;
+}
+.help-popup::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 2px;
+}
 
 .help-popup-header {
     padding: 13px 14px 10px;
@@ -850,7 +1101,8 @@ body {
 }
 
 .help-popup-icon {
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -859,11 +1111,26 @@ body {
     flex-shrink: 0;
 }
 
-.help-popup-icon-rec  { background: #ede9fe; color: #7c3aed; }
-.help-popup-icon-heat { background: #dbeafe; color: #1e40af; }
+.help-popup-icon-rec {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+.help-popup-icon-heat {
+    background: #dbeafe;
+    color: #1e40af;
+}
 
-.help-popup-title    { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 2px; line-height: 1.3; }
-.help-popup-subtitle { font-size: 10.5px; color: #64748b; }
+.help-popup-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 2px;
+    line-height: 1.3;
+}
+.help-popup-subtitle {
+    font-size: 10.5px;
+    color: #64748b;
+}
 
 .help-popup-close {
     margin-left: auto;
@@ -877,12 +1144,20 @@ body {
     flex-shrink: 0;
 }
 
-.help-popup-close:hover { color: #334155; }
+.help-popup-close:hover {
+    color: #334155;
+}
 
-.help-popup-body { padding: 12px 14px 16px; }
+.help-popup-body {
+    padding: 12px 14px 16px;
+}
 
-.help-section            { margin-bottom: 13px; }
-.help-section:last-child { margin-bottom: 0; }
+.help-section {
+    margin-bottom: 13px;
+}
+.help-section:last-child {
+    margin-bottom: 0;
+}
 
 .help-section-title {
     font-size: 10px;
@@ -895,10 +1170,19 @@ body {
     gap: 4px;
 }
 
-.help-section-title-rec  { color: #7c3aed; }
-.help-section-title-heat { color: #1e40af; }
+.help-section-title-rec {
+    color: #7c3aed;
+}
+.help-section-title-heat {
+    color: #1e40af;
+}
 
-.help-section p { font-size: 11.5px; color: #374151; line-height: 1.6; margin: 0; }
+.help-section p {
+    font-size: 11.5px;
+    color: #374151;
+    line-height: 1.6;
+    margin: 0;
+}
 
 .help-example {
     background: #f8fafc;
@@ -911,16 +1195,42 @@ body {
     line-height: 1.55;
 }
 
-.help-example-rec  { border-left-color: #a78bfa; background: #faf5ff; }
-.help-example-heat { border-left-color: #93c5fd; background: #eff6ff; }
+.help-example-rec {
+    border-left-color: #a78bfa;
+    background: #faf5ff;
+}
+.help-example-heat {
+    border-left-color: #93c5fd;
+    background: #eff6ff;
+}
 
-.help-example strong { color: #1e293b; display: block; margin-bottom: 3px; font-size: 11px; }
+.help-example strong {
+    color: #1e293b;
+    display: block;
+    margin-bottom: 3px;
+    font-size: 11px;
+}
 
-.help-divider { border: none; border-top: 1px dashed #e8ecf0; margin: 11px 0; }
+.help-divider {
+    border: none;
+    border-top: 1px dashed #e8ecf0;
+    margin: 11px 0;
+}
 
-.help-steps    { margin: 6px 0 0; padding-left: 16px; }
-.help-steps li { font-size: 11px; color: #475569; margin-bottom: 4px; line-height: 1.5; }
-.help-steps li span { font-weight: 700; color: #1e293b; }
+.help-steps {
+    margin: 6px 0 0;
+    padding-left: 16px;
+}
+.help-steps li {
+    font-size: 11px;
+    color: #475569;
+    margin-bottom: 4px;
+    line-height: 1.5;
+}
+.help-steps li span {
+    font-weight: 700;
+    color: #1e293b;
+}
 
 .help-tag {
     display: inline-block;
@@ -931,9 +1241,14 @@ body {
     margin-bottom: 6px;
 }
 
-.help-tag-rec  { background: #ede9fe; color: #6d28d9; }
-.help-tag-heat { background: #dbeafe; color: #1d4ed8; }
-
+.help-tag-rec {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+.help-tag-heat {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
 
 /* ============================================================
    16. FILTER WILAYAH
@@ -958,9 +1273,19 @@ body {
     padding-bottom: 6px;
 }
 
-.fw-row { margin-bottom: 8px; }
-.fw-row label { display: block; font-size: 10px; font-weight: 600; color: #64748b; margin-bottom: 4px; }
-.fw-row label i { margin-right: 4px; }
+.fw-row {
+    margin-bottom: 8px;
+}
+.fw-row label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+.fw-row label i {
+    margin-right: 4px;
+}
 
 .fw-select {
     width: 100%;
@@ -975,9 +1300,16 @@ body {
     cursor: pointer;
 }
 
-.fw-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15); }
+.fw-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
 
-.fw-btn-row { display: flex; gap: 6px; margin-top: 10px; }
+.fw-btn-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+}
 
 .fw-btn-apply {
     flex: 1;
@@ -996,7 +1328,9 @@ body {
     transition: background-color 0.2s;
 }
 
-.fw-btn-apply:hover { background-color: #2563eb; }
+.fw-btn-apply:hover {
+    background-color: #2563eb;
+}
 
 .fw-btn-reset {
     background-color: #ffffff;
@@ -1011,7 +1345,11 @@ body {
     transition: all 0.2s;
 }
 
-.fw-btn-reset:hover { background-color: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+.fw-btn-reset:hover {
+    background-color: #fee2e2;
+    color: #ef4444;
+    border-color: #fca5a5;
+}
 
 #fw-active-badge {
     margin-top: 8px;
@@ -1026,16 +1364,19 @@ body {
     font-weight: 500;
 }
 
-#fw-active-badge:not(:empty) { display: block; }
-
+#fw-active-badge:not(:empty) {
+    display: block;
+}
 
 /* ============================================================
    17. FULLSCREEN MODE
    ============================================================ */
 .peta-card.fullscreen {
     position: fixed !important;
-    top: 0 !important; left: 0 !important;
-    right: 0 !important; bottom: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
     max-width: none !important;
@@ -1055,14 +1396,22 @@ body {
     max-height: none;
 }
 
-.peta-card.fullscreen #heatmap-legend { bottom: 10px; right: 10px; }
+.peta-card.fullscreen #heatmap-legend {
+    bottom: 10px;
+    left: 10px;
+}
 
 body.fullscreen-active .peta-banner,
-body.fullscreen-active .peta-content > :not(.peta-card) { display: none !important; }
+body.fullscreen-active .peta-content > :not(.peta-card) {
+    display: none !important;
+}
 
-body.fullscreen-active             { overflow: hidden; }
-body.fullscreen-active .peta-content { padding: 0 !important; }
-
+body.fullscreen-active {
+    overflow: hidden;
+}
+body.fullscreen-active .peta-content {
+    padding: 0 !important;
+}
 
 /* ============================================================
    18. LOADING OVERLAYS
@@ -1070,37 +1419,108 @@ body.fullscreen-active .peta-content { padding: 0 !important; }
 #loading-overlay {
     display: none;
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 3000;
     border-radius: 8px;
     align-items: center;
     justify-content: center;
 }
 
-@keyframes pdf-spin { to { transform: rotate(360deg); } }
-
+@keyframes pdf-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
 
 /* ============================================================
    19. RESPONSIVE / MOBILE
    ============================================================ */
 @media (max-width: 768px) {
-    .peta-banner__title { font-size: 24px; }
-    .peta-card__header  { flex-direction: column; align-items: flex-start; }
-    #map                { height: 340px; }
-    #filter-sidebar     { width: 240px; max-height: 320px; }
+    .peta-banner__title {
+        font-size: 24px;
+    }
+    .peta-card__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    #map {
+        height: 340px;
+    }
+    #filter-sidebar {
+        width: 240px;
+        max-height: 320px;
+    }
 
     #heatmap-legend {
-        bottom: 8px; right: 8px;
+        bottom: 8px;
+        left: 8px;
         min-width: 160px;
         padding: 10px 12px;
         font-size: 11px;
     }
 
-    .print-buttons { flex-direction: column; }
-    .btn-print     { width: 100%; min-width: auto; }
+    .print-buttons {
+        flex-direction: column;
+    }
+    .btn-print {
+        width: 100%;
+        min-width: auto;
+    }
 
     :root {
-        --ctrl-size:   30px;
+        --ctrl-size: 30px;
         --ctrl-radius: 5px;
     }
+}
+/* ============================================================
+   EXTREME FIX: PAKSA BOUNDARY DI ATAS DENGAN !IMPORTANT
+   ============================================================ */
+
+/* PAKSA overlayPane ke z-index tertinggi */
+.leaflet-overlay-pane,
+.leaflet-overlay-pane svg,
+.leaflet-overlay-pane path {
+    z-index: 9999 !important;
+    position: relative !important;
+}
+
+/* PAKSA semua polygon/path di overlay pane ke atas */
+.leaflet-overlay-pane .leaflet-interactive {
+    z-index: 9999 !important;
+}
+
+/* PAKSA boundary filter active dengan stroke tebal */
+.leaflet-interactive[stroke="#3b82f6"],
+.leaflet-interactive[stroke="rgb(59, 130, 246)"],
+path[stroke="#3b82f6"],
+path[stroke="rgb(59, 130, 246)"] {
+    stroke-width: 5 !important;
+    stroke-opacity: 1 !important;
+    fill-opacity: 0.25 !important;
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+}
+
+/* Class-based override */
+.boundary-filter-active,
+path.boundary-filter-active,
+.leaflet-interactive.boundary-filter-active {
+    stroke-width: 5 !important;
+    stroke-opacity: 1 !important;
+    fill-opacity: 0.25 !important;
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+}
+
+/* Turunkan marker pane */
+.leaflet-marker-pane {
+    z-index: 500 !important; /* Di bawah overlay (9999) */
+}
+
+/* Turunkan shadow pane */
+.leaflet-shadow-pane {
+    z-index: 400 !important;
 }
