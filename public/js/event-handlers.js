@@ -134,7 +134,7 @@ function reorderLayers() {
     });
 
     // 5. Garis rute — di atas batas wilayah
-    const lineLayers = ['JARINGAN_PIPA_SALURAN', 'SALURAN_AIR', 'RUTE_SAMPAH'];
+    const lineLayers = ['JARINGAN_PIPA_SALURAN', 'SALURAN_AIR', 'RUTE_SAMPAH', 'FIBEROPTIK'];
     lineLayers.forEach(key => {
         if (mapLayers[key] && map.hasLayer(mapLayers[key])) {
             mapLayers[key].bringToFront();

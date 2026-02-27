@@ -71,6 +71,14 @@ const layerConfig = {
         isPolygon: true, 
         group: 'infrastruktur' 
     },
+    'FIBEROPTIK': { 
+        file: 'FiberOptic.json',   
+        color: '#ff1493',             
+        label: 'Jaringan Fiberoptik', 
+        isLine: true, 
+        nameField: 'name',             
+        group: 'infrastruktur'         
+    },
     
     // PENDIDIKAN
     'PAUD': { 

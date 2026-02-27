@@ -221,10 +221,17 @@ async function loadLayer(layerKey) {
                 }
 
                 if (config.isLine || feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiLineString') {
+                    // Weight tipis per layer agar tidak terlihat numpuk saat data dense
+                    const lineWeights = {
+                        'JARINGAN_PIPA_SALURAN': 1.2,
+                        'SALURAN_AIR':           1.2,
+                        'RUTE_SAMPAH':           2,
+                        'FIBEROPTIK':            1.5
+                    };
                     return {
-                        color: config.color,
-                        weight: 3,
-                        opacity: 0.8
+                        color:   config.color,
+                        weight:  lineWeights[layerKey] !== undefined ? lineWeights[layerKey] : 2,
+                        opacity: 0.85
                     };
                 }
                 return defaultStyle;
@@ -383,6 +390,12 @@ async function initMapData() {
         await Promise.all(promises);
 
         console.log('✅ All layers loaded');
+
+        // Tata urutan layer setelah semua selesai dimuat
+        // Penting: Promise.all tidak menjamin urutan render, jadi reorder wajib dipanggil di sini
+        if (typeof reorderLayers === 'function') {
+            setTimeout(() => reorderLayers(), 150);
+        }
 
         // Refresh badge jumlah data di panel analisis
         if (typeof refreshAnalysisSourceCounts === 'function') {

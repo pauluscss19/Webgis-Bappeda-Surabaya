@@ -275,7 +275,7 @@ function handleFullscreenChange() {
         if (icon) icon.className = 'bi bi-arrows-fullscreen';
         if (mapElement) mapElement.style.height = '';
     }
-
+    
     setTimeout(function() {
         if (window.map) window.map.invalidateSize();
     }, 100);

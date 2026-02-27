@@ -36,7 +36,8 @@ const PDF_CONFIG = {
     'POMPA_AIR_7_RAYON': { label: 'Area Pompa Air 7 Rayon', color: '#0891b2', type: 'polygon', isBoundary: false },
     'JARINGAN_PIPA_SALURAN': { label: 'Jaringan Pipa & Saluran Air', color: '#0284c7', type: 'line', isBoundary: false },
     'TITIK_POMPA_AIR': { label: 'Titik Lokasi Pompa Air', color: '#0369a1', type: 'circle', isBoundary: false },
-    'SALURAN_AIR': { label: 'Saluran Air', color: '#0e7490', type: 'circle', isBoundary: false }
+    'SALURAN_AIR': { label: 'Saluran Air', color: '#0e7490', type: 'circle', isBoundary: false },
+    'FIBEROPTIK': { label: 'Jaringan Fiberoptik', color: '#ff1493', type: 'line', isBoundary: false }
   }
 };
 

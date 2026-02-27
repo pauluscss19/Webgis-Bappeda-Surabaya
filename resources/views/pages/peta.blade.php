@@ -248,8 +248,13 @@
                             <span class="layer-color" style="background:#FF0000;"></span>
                             <span style="font-size:14px;">Pos Damkar</span>
                         </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="FIBEROPTIK">
+                            <span class="layer-color" style="background:#ff1493;"></span>
+                            <span style="font-size:14px;">Jaringan Fiberoptik</span>
+                        </label>
                     </div>
-                </div>
+                </div>  
 
                 <!-- GROUP: PENDIDIKAN -->
                 <div class="layer-group layer-group-pendidikan">

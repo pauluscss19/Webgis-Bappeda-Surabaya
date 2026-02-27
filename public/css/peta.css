@@ -405,13 +405,6 @@ body {
 /* ============================================================
    9. LEGEND STATISTIK (Leaflet Control — bottomright)
    ============================================================ */
-
-/* Wrapper container untuk heatmap + statistik legend */
-.legend-container {
-    position: relative;
-    z-index: 1100 !important; /* Di atas boundary (650) & marker (600), di bawah controls (1500) */
-}
-
 .info-legend {
     padding: 10px 15px;
     font: 13px Arial;
@@ -1474,53 +1467,4 @@ body.fullscreen-active .peta-content {
         --ctrl-size: 30px;
         --ctrl-radius: 5px;
     }
-}
-/* ============================================================
-   EXTREME FIX: PAKSA BOUNDARY DI ATAS DENGAN !IMPORTANT
-   ============================================================ */
-
-/* PAKSA overlayPane ke z-index tertinggi */
-.leaflet-overlay-pane,
-.leaflet-overlay-pane svg,
-.leaflet-overlay-pane path {
-    z-index: 9999 !important;
-    position: relative !important;
-}
-
-/* PAKSA semua polygon/path di overlay pane ke atas */
-.leaflet-overlay-pane .leaflet-interactive {
-    z-index: 9999 !important;
-}
-
-/* PAKSA boundary filter active dengan stroke tebal */
-.leaflet-interactive[stroke="#3b82f6"],
-.leaflet-interactive[stroke="rgb(59, 130, 246)"],
-path[stroke="#3b82f6"],
-path[stroke="rgb(59, 130, 246)"] {
-    stroke-width: 5 !important;
-    stroke-opacity: 1 !important;
-    fill-opacity: 0.25 !important;
-    z-index: 99999 !important;
-    pointer-events: auto !important;
-}
-
-/* Class-based override */
-.boundary-filter-active,
-path.boundary-filter-active,
-.leaflet-interactive.boundary-filter-active {
-    stroke-width: 5 !important;
-    stroke-opacity: 1 !important;
-    fill-opacity: 0.25 !important;
-    z-index: 99999 !important;
-    pointer-events: auto !important;
-}
-
-/* Turunkan marker pane */
-.leaflet-marker-pane {
-    z-index: 500 !important; /* Di bawah overlay (9999) */
-}
-
-/* Turunkan shadow pane */
-.leaflet-shadow-pane {
-    z-index: 400 !important;
 }
