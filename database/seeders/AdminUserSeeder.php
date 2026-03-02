@@ -19,7 +19,7 @@ class AdminUserSeeder extends Seeder
             ['email' => 'admin@surabaya.go.id'], // Kunci pencarian (Cek apakah email ini ada)
             [
                 'name' => 'Administrator Surabaya', // Nama default
-                'password' => Hash::make('admin123'), // Password wajib di-hash
+                'password' => Hash::make('surabaya123'), // Password wajib di-hash
                 'email_verified_at' => now(), // Langsung verifikasi email
             ]
         );

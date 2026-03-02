@@ -115,109 +115,52 @@
 
             <div class="sidebar-content">
 
-                <!-- SECTION ANALISIS KLUSTERING -->
-                <div class="analysis-box">
-                    <div class="analysis-title"><i class="bi bi-cpu-fill"></i> AI Analisis Lokasi</div>
-
-                    <div class="form-group">
-                        <label style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-                            <span>Pilih Sumber Data (Gabungan):</span>
-                            <span style="display:flex; gap:4px;">
-                                <button onclick="toggleAllAnalysisSources(true)" type="button"
-                                    style="font-size:10px; padding:1px 7px; border-radius:4px; border:1px solid #cbd5e1; background:#f8fafc; color:#475569; cursor:pointer; line-height:1.6;">
-                                    Semua
-                                </button>
-                                <button onclick="toggleAllAnalysisSources(false)" type="button"
-                                    style="font-size:10px; padding:1px 7px; border-radius:4px; border:1px solid #cbd5e1; background:#f8fafc; color:#475569; cursor:pointer; line-height:1.6;">
-                                    Hapus
-                                </button>
-                            </span>
+                <!-- GROUP: BATAS WILAYAH -->
+                <div class="layer-group layer-group-batas">
+                    <div class="layer-group-header" onclick="toggleLayerGroup(this)">
+                        <span><i class="bi bi-geo-alt-fill"></i> Batas Wilayah</span>
+                        <i class="bi bi-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="layer-group-content">
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="KECAMATAN">
+                            <span class="layer-color" style="background:transparent; border:2px solid #6366f1;"></span>
+                            <span style="font-size:14px;">Batas Kecamatan</span>
                         </label>
-                        <div id="analysis-sources-container" class="checkbox-list" style="max-height:200px; overflow-y:auto;">
-                            <span style="font-size:11px; color:#94a3b8; padding:6px 0; display:block; text-align:center;">
-                                Memuat sumber data...
-                            </span>
-                        </div>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-label-toggle me-2" data-layer="KECAMATAN">
+                            <span class="layer-color" style="background:transparent; border:2px solid #6366f1;"></span>
+                            <span style="font-size:14px;">Label Kecamatan</span>
+                        </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="KELURAHAN">
+                            <span class="layer-color" style="background:transparent; border:2px solid #f59e0b;"></span>
+                            <span style="font-size:14px;">Batas Kelurahan</span>
+                        </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-label-toggle me-2" data-layer="KELURAHAN">
+                            <span class="layer-color" style="background:transparent; border:2px solid #f59e0b;"></span>
+                            <span style="font-size:14px;">Label Kelurahan</span>
+                        </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="BATAS_RW">
+                            <span class="layer-color" style="background:transparent; border:2px solid #06b6d4;"></span>
+                            <span style="font-size:14px;">Batas RW</span>
+                        </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-label-toggle me-2" data-layer="BATAS_RW">
+                            <span class="layer-color" style="background:transparent; border:2px solid #06b6d4;"></span>
+                            <span style="font-size:14px;">Label RW</span>
+                        </label>
+                        <label class="layer-item">
+                            <input type="checkbox" class="mask-toggle me-2" id="surabaya-mask-toggle" checked>
+                            <span class="layer-color" style="background:#e2e8f0; border:2px solid #94a3b8;"></span>
+                            <span style="font-size:14px;">Tampilkan Hanya Surabaya</span>
+                        </label>
                     </div>
-
-                    <div class="form-group">
-                        <label>Target Rekomendasi (Titik):</label>
-                        <input type="number" id="cluster-count" class="form-control" value="3" min="1" max="10">
-                    </div>
-
-                    <div class="btn-help-wrap">
-                        <button class="btn-analysis" onclick="runClustering()">Hitung Rekomendasi</button>
-                        <button class="help-btn help-btn-rec" onclick="showHelp('rec')" title="Info Analisis Rekomendasi">?</button>
-                    </div>
-
-                    <div class="btn-help-wrap" style="margin-top:15px;">
-                        <button class="btn-analysis" onclick="runHeatmapAnalysis()"
-                                style="background:linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);">
-                            Analisis Heatmap
-                        </button>
-                        <button class="help-btn help-btn-heat" onclick="showHelp('heat')" title="Info Analisis Heatmap">?</button>
-                    </div>
-
-                    <!-- Help Popup: Rekomendasi -->
-                    <div class="help-popup-overlay" id="help-popup-rec" onclick="closeHelpIfOutside(event,'rec')">
-                        <div class="help-popup">
-                            <div class="help-popup-header">
-                                <div>
-                                    <div class="help-popup-title">Rekomendasi Lokasi</div>
-                                    <div class="help-popup-subtitle">Metode K-Means Clustering</div>
-                                </div>
-                                <button class="help-popup-close" onclick="closeHelp('rec')">&times;</button>
-                            </div>
-                            <div class="help-popup-body">
-                                <div class="help-section">
-                                    <div class="help-section-title help-section-title-rec">Definisi</div>
-                                    <p>Mencari titik lokasi baru yang paling strategis berdasarkan sebaran data yang dipilih.</p>
-                                </div>
-                                <div class="help-section">
-                                    <div class="help-section-title help-section-title-rec">Cara Kerja</div>
-                                    <p>Sistem mengelompokkan data yang berdekatan, lalu menentukan lokasi terbaik berdasarkan jumlah titik terbanyak dan jarak terdekat.</p>
-                                </div>
-                                <div class="help-section">
-                                    <div class="help-section-title help-section-title-rec">Kegunaan</div>
-                                    <div class="help-example help-example-rec">
-                                        Membantu penentuan lokasi optimal untuk membangun fasilitas baru (seperti TPS atau CCTV) di area yang padat namun belum terjangkau.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Help Popup: Heatmap -->
-                    <div class="help-popup-overlay" id="help-popup-heat" onclick="closeHelpIfOutside(event,'heat')">
-                        <div class="help-popup">
-                            <div class="help-popup-header">
-                                <div>
-                                    <div class="help-popup-title">Heatmap Kelurahan</div>
-                                    <div class="help-popup-subtitle">Pemetaan Kepadatan Data</div>
-                                </div>
-                                <button class="help-popup-close" onclick="closeHelp('heat')">&times;</button>
-                            </div>
-                            <div class="help-popup-body">
-                                <div class="help-section">
-                                    <div class="help-section-title help-section-title-heat">Definisi</div>
-                                    <p>Menampilkan visualisasi tingkat kepadatan data di setiap wilayah kelurahan.</p>
-                                </div>
-                                <div class="help-section">
-                                    <div class="help-section-title help-section-title-heat">Cara Kerja</div>
-                                    <p>Area kelurahan akan diwarnai berdasarkan jumlah data. Warna gelap berarti padat (banyak data), sedangkan warna terang berarti sepi (sedikit data).</p>
-                                </div>
-                                <div class="help-section">
-                                    <div class="help-section-title help-section-title-heat">Kegunaan</div>
-                                    <div class="help-example help-example-heat">
-                                        Memantau pemerataan fasilitas dan mengidentifikasi kelurahan mana saja yang masih kekurangan infrastruktur.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="analysis-result" style="font-size:11px; color:#0c4a6e; margin-top:8px; display:none;"></div>
                 </div>
+
+
 
                 <hr style="border-top:1px dashed #cbd5e1; margin:15px 0;">
 
@@ -248,13 +191,8 @@
                             <span class="layer-color" style="background:#FF0000;"></span>
                             <span style="font-size:14px;">Pos Damkar</span>
                         </label>
-                        <label class="layer-item">
-                            <input type="checkbox" class="layer-toggle me-2" data-layer="FIBEROPTIK">
-                            <span class="layer-color" style="background:#ff1493;"></span>
-                            <span style="font-size:14px;">Jaringan Fiberoptik</span>
-                        </label>
                     </div>
-                </div>  
+                </div>
 
                 <!-- GROUP: PENDIDIKAN -->
                 <div class="layer-group layer-group-pendidikan">
@@ -396,52 +334,117 @@
                     </div>
                 </div>
 
+
+
                 <hr style="border-top:1px dashed #cbd5e1; margin:15px 0;">
 
-                <!-- GROUP: BATAS WILAYAH -->
-                <div class="layer-group layer-group-batas">
-                    <div class="layer-group-header" onclick="toggleLayerGroup(this)">
-                        <span><i class="bi bi-geo-alt-fill"></i> Batas Wilayah</span>
-                        <i class="bi bi-chevron-down toggle-icon"></i>
+                <!-- SECTION ANALISIS KLUSTERING -->
+                <div class="analysis-box">
+                    <div class="analysis-title"><i class="bi bi-cpu-fill"></i> AI Analisis Lokasi</div>
+
+                    <div class="form-group">
+                        <label style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                            <span>Pilih Sumber Data (Gabungan):</span>
+                            <span style="display:flex; gap:4px;">
+                                <button onclick="toggleAllAnalysisSources(true)" type="button"
+                                    style="font-size:10px; padding:1px 7px; border-radius:4px; border:1px solid #cbd5e1; background:#f8fafc; color:#475569; cursor:pointer; line-height:1.6;">
+                                    Semua
+                                </button>
+                                <button onclick="toggleAllAnalysisSources(false)" type="button"
+                                    style="font-size:10px; padding:1px 7px; border-radius:4px; border:1px solid #cbd5e1; background:#f8fafc; color:#475569; cursor:pointer; line-height:1.6;">
+                                    Hapus
+                                </button>
+                            </span>
+                        </label>
+                        <div id="analysis-sources-container" class="checkbox-list" style="max-height:200px; overflow-y:auto;">
+                            <span style="font-size:11px; color:#94a3b8; padding:6px 0; display:block; text-align:center;">
+                                Memuat sumber data...
+                            </span>
+                        </div>
                     </div>
-                    <div class="layer-group-content">
-                        <label class="layer-item">
-                            <input type="checkbox" class="layer-toggle me-2" data-layer="KECAMATAN">
-                            <span class="layer-color" style="background:transparent; border:2px solid #6366f1;"></span>
-                            <span style="font-size:14px;">Batas Kecamatan</span>
-                        </label>
-                        <label class="layer-item">
-                            <input type="checkbox" class="layer-label-toggle me-2" data-layer="KECAMATAN">
-                            <span class="layer-color" style="background:transparent; border:2px solid #6366f1;"></span>
-                            <span style="font-size:14px;">Label Kecamatan</span>
-                        </label>
-                        <label class="layer-item">
-                            <input type="checkbox" class="layer-toggle me-2" data-layer="KELURAHAN">
-                            <span class="layer-color" style="background:transparent; border:2px solid #f59e0b;"></span>
-                            <span style="font-size:14px;">Batas Kelurahan</span>
-                        </label>
-                        <label class="layer-item">
-                            <input type="checkbox" class="layer-label-toggle me-2" data-layer="KELURAHAN">
-                            <span class="layer-color" style="background:transparent; border:2px solid #f59e0b;"></span>
-                            <span style="font-size:14px;">Label Kelurahan</span>
-                        </label>
-                        <label class="layer-item">
-                            <input type="checkbox" class="layer-toggle me-2" data-layer="BATAS_RW">
-                            <span class="layer-color" style="background:transparent; border:2px solid #06b6d4;"></span>
-                            <span style="font-size:14px;">Batas RW</span>
-                        </label>
-                        <label class="layer-item">
-                            <input type="checkbox" class="layer-label-toggle me-2" data-layer="BATAS_RW">
-                            <span class="layer-color" style="background:transparent; border:2px solid #06b6d4;"></span>
-                            <span style="font-size:14px;">Label RW</span>
-                        </label>
-                        <label class="layer-item">
-                            <input type="checkbox" class="mask-toggle me-2" id="surabaya-mask-toggle" checked>
-                            <span class="layer-color" style="background:#e2e8f0; border:2px solid #94a3b8;"></span>
-                            <span style="font-size:14px;">Tampilkan Hanya Surabaya</span>
-                        </label>
+
+                    <div class="form-group">
+                        <label>Target Rekomendasi (Titik):</label>
+                        <input type="number" id="cluster-count" class="form-control" value="3" min="1" max="10">
                     </div>
+
+                    <div class="btn-help-wrap">
+                        <button class="btn-analysis" onclick="runClustering()">Hitung Rekomendasi</button>
+                        <button class="help-btn help-btn-rec" onclick="showHelp('rec')" title="Info Analisis Rekomendasi">?</button>
+                    </div>
+
+                    <div class="btn-help-wrap" style="margin-top:15px;">
+                        <button class="btn-analysis" onclick="runHeatmapAnalysis()"
+                                style="background:linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);">
+                            Analisis Heatmap
+                        </button>
+                        <button class="help-btn help-btn-heat" onclick="showHelp('heat')" title="Info Analisis Heatmap">?</button>
+                    </div>
+
+                    <!-- Help Popup: Rekomendasi -->
+                    <div class="help-popup-overlay" id="help-popup-rec" onclick="closeHelpIfOutside(event,'rec')">
+                        <div class="help-popup">
+                            <div class="help-popup-header">
+                                <div>
+                                    <div class="help-popup-title">Rekomendasi Lokasi</div>
+                                    <div class="help-popup-subtitle">Metode K-Means Clustering</div>
+                                </div>
+                                <button class="help-popup-close" onclick="closeHelp('rec')">&times;</button>
+                            </div>
+                            <div class="help-popup-body">
+                                <div class="help-section">
+                                    <div class="help-section-title help-section-title-rec">Definisi</div>
+                                    <p>Mencari titik lokasi baru yang paling strategis berdasarkan sebaran data yang dipilih.</p>
+                                </div>
+                                <div class="help-section">
+                                    <div class="help-section-title help-section-title-rec">Cara Kerja</div>
+                                    <p>Sistem mengelompokkan data yang berdekatan, lalu menentukan lokasi terbaik berdasarkan jumlah titik terbanyak dan jarak terdekat.</p>
+                                </div>
+                                <div class="help-section">
+                                    <div class="help-section-title help-section-title-rec">Kegunaan</div>
+                                    <div class="help-example help-example-rec">
+                                        Membantu penentuan lokasi optimal untuk membangun fasilitas baru (seperti TPS atau CCTV) di area yang padat namun belum terjangkau.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Help Popup: Heatmap -->
+                    <div class="help-popup-overlay" id="help-popup-heat" onclick="closeHelpIfOutside(event,'heat')">
+                        <div class="help-popup">
+                            <div class="help-popup-header">
+                                <div>
+                                    <div class="help-popup-title">Heatmap Kelurahan</div>
+                                    <div class="help-popup-subtitle">Pemetaan Kepadatan Data</div>
+                                </div>
+                                <button class="help-popup-close" onclick="closeHelp('heat')">&times;</button>
+                            </div>
+                            <div class="help-popup-body">
+                                <div class="help-section">
+                                    <div class="help-section-title help-section-title-heat">Definisi</div>
+                                    <p>Menampilkan visualisasi tingkat kepadatan data di setiap wilayah kelurahan.</p>
+                                </div>
+                                <div class="help-section">
+                                    <div class="help-section-title help-section-title-heat">Cara Kerja</div>
+                                    <p>Area kelurahan akan diwarnai berdasarkan jumlah data. Warna gelap berarti padat (banyak data), sedangkan warna terang berarti sepi (sedikit data).</p>
+                                </div>
+                                <div class="help-section">
+                                    <div class="help-section-title help-section-title-heat">Kegunaan</div>
+                                    <div class="help-example help-example-heat">
+                                        Memantau pemerataan fasilitas dan mengidentifikasi kelurahan mana saja yang masih kekurangan infrastruktur.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="analysis-result" style="font-size:11px; color:#0c4a6e; margin-top:8px; display:none;"></div>
                 </div>
+
+
+
+                <hr style="border-top:1px dashed #cbd5e1; margin:15px 0;">
 
                 <!-- FILTER WILAYAH -->
                 <div class="fw-section">
@@ -471,7 +474,7 @@
                     <div id="fw-active-badge"></div>
                 </div>
 
-            </div><!-- /sidebar-content -->
+</div><!-- /sidebar-content -->
 
             <div class="sidebar-footer">
                 <button onclick="resetMap()" style="
