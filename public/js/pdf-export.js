@@ -36,8 +36,7 @@ const PDF_CONFIG = {
     'POMPA_AIR_7_RAYON': { label: 'Area Pompa Air 7 Rayon', color: '#0891b2', type: 'polygon', isBoundary: false },
     'JARINGAN_PIPA_SALURAN': { label: 'Jaringan Pipa & Saluran Air', color: '#0284c7', type: 'line', isBoundary: false },
     'TITIK_POMPA_AIR': { label: 'Titik Lokasi Pompa Air', color: '#0369a1', type: 'circle', isBoundary: false },
-    'SALURAN_AIR': { label: 'Saluran Air', color: '#0e7490', type: 'circle', isBoundary: false },
-    'FIBEROPTIK': { label: 'Jaringan Fiberoptik', color: '#ff1493', type: 'line', isBoundary: false }
+    'SALURAN_AIR': { label: 'Saluran Air', color: '#0e7490', type: 'circle', isBoundary: false }
   }
 };
 
@@ -302,7 +301,70 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   // B. JUDUL PETA
   ctx.font = `bold ${14 * scale}px Arial`;
   ctx.fillText("PETA KELENGKAPAN KOTA SURABAYA", centerX, curY);
-  curY += 30 * scale;
+  curY += 18 * scale;
+
+  // B2. SUBTITLE DINAMIS - nama layer yang aktif
+  const activeLayerNames = [];
+  document.querySelectorAll('.layer-toggle:checked').forEach(cb => {
+    const key = cb.getAttribute('data-layer');
+    const cfg = PDF_CONFIG.layerConfig[key];
+    if (cfg && !cfg.isBoundary) {
+      activeLayerNames.push(cfg.label);
+    }
+  });
+
+  if (activeLayerNames.length > 0) {
+    // Ukuran font subtitle
+    const subtitleFontSize = 9 * scale;
+    ctx.font = `${subtitleFontSize}px Arial`;
+
+    // Lebar area teks tersedia (sidebar width dikurangi padding kiri kanan)
+    const maxTextWidth = w - 30 * scale;
+
+    // Gabungkan semua nama layer jadi satu string
+    const fullText = activeLayerNames.join(', ');
+
+    // Fungsi wrap teks ke beberapa baris
+    function wrapText(text, maxWidth) {
+      const words = text.split(', ');
+      const lines = [];
+      let current = '';
+      words.forEach((word, i) => {
+        const test = current ? current + ', ' + word : word;
+        if (ctx.measureText(test).width > maxWidth && current) {
+          lines.push(current);
+          current = word;
+        } else {
+          current = test;
+        }
+      });
+      if (current) lines.push(current);
+      return lines;
+    }
+
+    const lines = wrapText(fullText, maxTextWidth);
+    const maxLines = 3; // maksimal 3 baris agar tidak makan terlalu banyak ruang
+    const displayLines = lines.slice(0, maxLines);
+    if (lines.length > maxLines) {
+      // Potong baris terakhir dan tambah "..."
+      let last = displayLines[maxLines - 1];
+      while (ctx.measureText(last + '...').width > maxTextWidth && last.length > 0) {
+        last = last.slice(0, last.lastIndexOf(',')) || last.slice(0, -1);
+      }
+      displayLines[maxLines - 1] = last + '...';
+    }
+
+    ctx.fillStyle = '#1e3a8a';
+    ctx.textAlign = 'center';
+    const lineH = 13 * scale;
+    displayLines.forEach(line => {
+      ctx.fillText(line, centerX, curY);
+      curY += lineH;
+    });
+    curY += 4 * scale;
+  } else {
+    curY += 6 * scale;
+  }
 
   ctx.beginPath();
   ctx.moveTo(x + 15 * scale, curY);
