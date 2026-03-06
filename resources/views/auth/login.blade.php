@@ -47,15 +47,9 @@
         <input class="input" id="password" name="password" type="password"
                required autocomplete="current-password">
 
-        {{-- Opsi Remember Me (Opsional, tapi disarankan) --}}
-        <div style="margin-bottom: 15px; display: flex; align-items: center; font-size: 0.85em;">
-            <input id="remember_me" type="checkbox" name="remember" style="margin-right: 5px;">
-            <label for="remember_me" style="color: #666;">Ingat Saya</label>
-        </div>
-
         {{-- === CAPTCHA (BAGIAN BARU) === --}}
         <div class="captcha-container">
-          <label class="captcha-label">Verifikasi Keamanan</label>
+          <label class="captcha-label">MASUKAN KODE</label>
           <div class="captcha-wrapper">
             <img 
               id="captcha-img" 

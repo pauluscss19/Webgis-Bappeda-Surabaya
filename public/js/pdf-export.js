@@ -35,8 +35,8 @@ const PDF_CONFIG = {
     'AREA_RAYON': { label: 'Area Rayon', color: '#0d9488', type: 'polygon', isBoundary: false },
     'POMPA_AIR_7_RAYON': { label: 'Area Pompa Air 7 Rayon', color: '#0891b2', type: 'polygon', isBoundary: false },
     'JARINGAN_PIPA_SALURAN': { label: 'Jaringan Pipa & Saluran Air', color: '#0284c7', type: 'line', isBoundary: false },
-    'TITIK_POMPA_AIR': { label: 'Titik Lokasi Pompa Air', color: '#0369a1', type: 'circle', isBoundary: false },
-    'SALURAN_AIR': { label: 'Saluran Air', color: '#0e7490', type: 'circle', isBoundary: false }
+    'SALURAN_AIR': { label: 'Saluran Air', color: '#0e7490', type: 'circle', isBoundary: false },
+    'FIBEROPTIK': { label: 'Jaringan Fiberoptik', color: '#ff1493', type: 'line', isBoundary: false }
   }
 };
 
@@ -89,17 +89,23 @@ function loadImage(src) {
 }
 
 async function captureLocationDiagram(targetBounds) {
+  const DIV_W = 340;
+  const DIV_H = 240;
+  const MARKER_LAT = -7.267;
+  const MARKER_LNG = 112.717;
+  const MAP_ZOOM = 10;
+
   const tempDiv = document.createElement('div');
-  tempDiv.style.width = '340px';
-  tempDiv.style.height = '240px';
+  tempDiv.style.width = DIV_W + 'px';
+  tempDiv.style.height = DIV_H + 'px';
   tempDiv.style.position = 'fixed';
   tempDiv.style.top = '0';
   tempDiv.style.left = '0';
-  tempDiv.style.zIndex = '1';   // Di bawah loading overlay, tapi tetap ter-render browser
+  tempDiv.style.zIndex = '1';
   tempDiv.style.background = '#fff';
   tempDiv.style.pointerEvents = 'none';
   document.body.appendChild(tempDiv);
-  
+
   try {
     const overviewMap = L.map(tempDiv, {
       zoomControl: false,
@@ -110,15 +116,15 @@ async function captureLocationDiagram(targetBounds) {
       boxZoom: false,
       keyboard: false
     });
-    
+
     const overviewLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       attribution: '',
       subdomains: 'abcd',
       maxZoom: 20
     });
     overviewLayer.addTo(overviewMap);
-    overviewMap.setView([-7.5, 112.7], 8);
-    
+    overviewMap.setView([MARKER_LAT, MARKER_LNG], MAP_ZOOM);
+
     await new Promise((resolve) => {
       let tilesLoading = 0;
       let tilesLoaded = 0;
@@ -133,38 +139,63 @@ async function captureLocationDiagram(targetBounds) {
       });
       setTimeout(resolve, 5000);
     });
-    
-    L.circleMarker([-7.2575, 112.7400], {
-      radius: 10,
-      fillColor: '#ef4444',
-      color: '#000',
-      weight: 2,
-      opacity: 1,
-      fillOpacity: 0.9
-    }).addTo(overviewMap);
-    
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
+    // Hitung posisi pixel marker SEBELUM capture, menggunakan Leaflet projection
+    // latLngToContainerPoint sudah memperhitungkan tile offset & zoom secara akurat
+    const markerContainerPt = overviewMap.latLngToContainerPoint([MARKER_LAT, MARKER_LNG]);
+
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    let mapDataUrl;
     if (typeof html2canvas !== 'undefined') {
       const canvas = await html2canvas(tempDiv, {
-        width: 340, height: 240, scale: 2,
+        width: DIV_W, height: DIV_H, scale: 2,
         useCORS: true, allowTaint: true, backgroundColor: '#ffffff'
       });
-      const dataUrl = canvas.toDataURL('image/png');
-      const img = await loadImage(dataUrl);
-      overviewMap.remove();
-      document.body.removeChild(tempDiv);
-      return img;
+      mapDataUrl = canvas.toDataURL('image/png');
     } else {
-      const dataUrl = await domtoimage.toPng(tempDiv, {
-        width: 340, height: 240, quality: 1.0, cacheBust: true,
+      mapDataUrl = await domtoimage.toPng(tempDiv, {
+        width: DIV_W, height: DIV_H, quality: 1.0, cacheBust: true,
         style: { transform: 'scale(1)', transformOrigin: 'top left' }
       });
-      const img = await loadImage(dataUrl);
-      overviewMap.remove();
-      document.body.removeChild(tempDiv);
-      return img;
     }
+
+    overviewMap.remove();
+    document.body.removeChild(tempDiv);
+
+    // Gambar titik merah langsung di canvas — BUKAN melalui DOM Leaflet
+    // sehingga posisi selalu akurat sesuai konversi lat/lng ke pixel
+    const mapImg = await loadImage(mapDataUrl);
+    if (!mapImg) return null;
+
+    const outCanvas = document.createElement('canvas');
+    const SCALE = 2; // sesuai scale html2canvas / domtoimage
+    outCanvas.width  = DIV_W * SCALE;
+    outCanvas.height = DIV_H * SCALE;
+    const octx = outCanvas.getContext('2d');
+
+    // Gambar tile peta terlebih dahulu
+    octx.drawImage(mapImg, 0, 0, outCanvas.width, outCanvas.height);
+
+    // Konversi posisi container point ke koordinat canvas (perkalikan SCALE)
+    const cx = markerContainerPt.x * SCALE;
+    const cy = markerContainerPt.y * SCALE;
+    const r  = 10 * SCALE;
+
+    // Lingkaran merah
+    octx.beginPath();
+    octx.arc(cx, cy, r, 0, Math.PI * 2);
+    octx.fillStyle = '#ef4444';
+    octx.globalAlpha = 0.9;
+    octx.fill();
+    octx.globalAlpha = 1.0;
+    octx.strokeStyle = '#000000';
+    octx.lineWidth = 2 * SCALE;
+    octx.stroke();
+
+    const finalDataUrl = outCanvas.toDataURL('image/png');
+    return await loadImage(finalDataUrl);
+
   } catch (error) {
     console.error("Error capturing diagram:", error);
     if (document.body.contains(tempDiv)) document.body.removeChild(tempDiv);
@@ -298,73 +329,52 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   ctx.stroke();
   curY += 25 * scale;
   
-  // B. JUDUL PETA
+  // B. JUDUL PETA - satu baris nyambung: PETA KELENGKAPAN [DATA] KOTA SURABAYA
+  ctx.fillStyle = '#000000';
+  ctx.textAlign = 'center';
   ctx.font = `bold ${14 * scale}px Arial`;
-  ctx.fillText("PETA KELENGKAPAN KOTA SURABAYA", centerX, curY);
-  curY += 18 * scale;
 
-  // B2. SUBTITLE DINAMIS - nama layer yang aktif
   const activeLayerNames = [];
   document.querySelectorAll('.layer-toggle:checked').forEach(cb => {
     const key = cb.getAttribute('data-layer');
     const cfg = PDF_CONFIG.layerConfig[key];
     if (cfg && !cfg.isBoundary) {
-      activeLayerNames.push(cfg.label);
+      activeLayerNames.push(cfg.label.toUpperCase());
     }
   });
 
-  if (activeLayerNames.length > 0) {
-    // Ukuran font subtitle
-    const subtitleFontSize = 9 * scale;
-    ctx.font = `${subtitleFontSize}px Arial`;
+  const maxTextWidth = w - 30 * scale;
 
-    // Lebar area teks tersedia (sidebar width dikurangi padding kiri kanan)
-    const maxTextWidth = w - 30 * scale;
-
-    // Gabungkan semua nama layer jadi satu string
-    const fullText = activeLayerNames.join(', ');
-
-    // Fungsi wrap teks ke beberapa baris
-    function wrapText(text, maxWidth) {
-      const words = text.split(', ');
-      const lines = [];
-      let current = '';
-      words.forEach((word, i) => {
-        const test = current ? current + ', ' + word : word;
-        if (ctx.measureText(test).width > maxWidth && current) {
-          lines.push(current);
-          current = word;
-        } else {
-          current = test;
-        }
-      });
-      if (current) lines.push(current);
-      return lines;
-    }
-
-    const lines = wrapText(fullText, maxTextWidth);
-    const maxLines = 3; // maksimal 3 baris agar tidak makan terlalu banyak ruang
-    const displayLines = lines.slice(0, maxLines);
-    if (lines.length > maxLines) {
-      // Potong baris terakhir dan tambah "..."
-      let last = displayLines[maxLines - 1];
-      while (ctx.measureText(last + '...').width > maxTextWidth && last.length > 0) {
-        last = last.slice(0, last.lastIndexOf(',')) || last.slice(0, -1);
+  function wrapText(text, maxWidth) {
+    const words = text.split(' ');
+    const lines = [];
+    let current = '';
+    words.forEach((word) => {
+      const test = current ? current + ' ' + word : word;
+      if (ctx.measureText(test).width > maxWidth && current) {
+        lines.push(current);
+        current = word;
+      } else {
+        current = test;
       }
-      displayLines[maxLines - 1] = last + '...';
-    }
-
-    ctx.fillStyle = '#1e3a8a';
-    ctx.textAlign = 'center';
-    const lineH = 13 * scale;
-    displayLines.forEach(line => {
-      ctx.fillText(line, centerX, curY);
-      curY += lineH;
     });
-    curY += 4 * scale;
-  } else {
-    curY += 6 * scale;
+    if (current) lines.push(current);
+    return lines;
   }
+
+  // Gabung jadi satu string judul penuh tanpa spasi antar bagian
+  const dataPart = activeLayerNames.length > 0 ? activeLayerNames.join(', ') : '';
+  const fullTitle = dataPart
+    ? `PETA KELENGKAPAN ${dataPart} KOTA SURABAYA`
+    : 'PETA KELENGKAPAN KOTA SURABAYA';
+
+  const titleLines = wrapText(fullTitle, maxTextWidth);
+  const lineH = 18 * scale;
+  titleLines.forEach(line => {
+    ctx.fillText(line, centerX, curY);
+    curY += lineH;
+  });
+  curY += 4 * scale;
 
   ctx.beginPath();
   ctx.moveTo(x + 15 * scale, curY);
@@ -874,62 +884,146 @@ window.printMap = async function() {
     
     const mapAreaWidth = width - sidebarWidth - (margin * 2);
     const mapAreaHeight = height - (margin * 2);
-    
-    mapDiv.style.width = (mapAreaWidth / HD_SCALE) + 'px';
-    mapDiv.style.height = (mapAreaHeight / HD_SCALE) + 'px';
+
+    // Div dikembalikan ke ukuran CSS normal agar zoom peta tidak berubah
+    mapDiv.style.width    = (mapAreaWidth / HD_SCALE) + 'px';
+    mapDiv.style.height   = (mapAreaHeight / HD_SCALE) + 'px';
     mapDiv.style.position = 'relative';
-    mapDiv.style.zIndex = '1';
+    mapDiv.style.zIndex   = '1';
     window.map.invalidateSize();
-    
+
     const SURABAYA_CENTER = [-7.2575, 112.7200];
     window.map.setView(SURABAYA_CENTER, PDF_ZOOM_SCALE_150000, { animate: false });
-    
+
     if (loadingOverlay) {
       updateProgress(50, "Merender peta dalam resolusi tinggi...", "Memuat tile peta HD", 3);
     }
-    
+
+    // Tunggu tile selesai dimuat
     await new Promise(r => setTimeout(r, 8000));
-    
+
     let dataUrl;
     try {
-      await domtoimage.toPng(mapDiv, {
-        width: mapAreaWidth / HD_SCALE,
-        height: mapAreaHeight / HD_SCALE,
-        quality: 1.0,
-        pixelRatio: HD_SCALE,
-        filter: function (node) {
-          if (node.classList && (
-            node.classList.contains('leaflet-control-container') ||
-            node.classList.contains('leaflet-control')
-          )) return false;
-          return true;
-        }
-      });
+      // ── HD CAPTURE: stitch tile canvas Leaflet secara langsung ──────────
+      // Cara ini mengambil pixel langsung dari tile <canvas> / <img> yang
+      // sudah dimuat browser — tidak melalui DOM serialization domtoimage —
+      // sehingga hasilnya tajam tanpa blur.
+      const mapW = Math.round(mapAreaWidth / HD_SCALE);
+      const mapH = Math.round(mapAreaHeight / HD_SCALE);
 
-      await new Promise(r => setTimeout(r, 2000));
+      // 1. Buat canvas output berukuran HD penuh
+      const hdCanvas = document.createElement('canvas');
+      hdCanvas.width  = mapAreaWidth;   // ukuran HD fisik
+      hdCanvas.height = mapAreaHeight;
+      const hdCtx = hdCanvas.getContext('2d');
+      hdCtx.imageSmoothingEnabled = true;
+      hdCtx.imageSmoothingQuality = 'high';
 
-      dataUrl = await domtoimage.toPng(mapDiv, {
-        width: mapAreaWidth / HD_SCALE,
-        height: mapAreaHeight / HD_SCALE,
-        quality: 1.0,
-        pixelRatio: HD_SCALE,
-        cacheBust: true,
-        style: {
-          transform: 'scale(1)',
-          transformOrigin: 'top left',
-          imageRendering: 'pixelated'
-        },
-        filter: function (node) {
-          if (node.classList && (
-            node.classList.contains('leaflet-control-container') ||
-            node.classList.contains('leaflet-control')
-          )) return false;
-          return true;
+      // 2. Kumpulkan semua tile yang ada di mapDiv (img & canvas)
+      const tileContainer = mapDiv.querySelector('.leaflet-tile-pane');
+      const tileImgs = tileContainer
+        ? tileContainer.querySelectorAll('img.leaflet-tile, canvas.leaflet-tile')
+        : mapDiv.querySelectorAll('img.leaflet-tile, canvas.leaflet-tile');
+
+      // 3. Ambil offset transform pane (Leaflet menerapkan CSS transform ke pane)
+      function getPaneOffset(el) {
+        let tx = 0, ty = 0;
+        let node = el;
+        while (node && node !== mapDiv) {
+          const st = window.getComputedStyle(node);
+          const tr = st.transform || st.webkitTransform || '';
+          if (tr && tr !== 'none') {
+            const m = tr.match(/matrix\(([^)]+)\)/);
+            if (m) {
+              const parts = m[1].split(',').map(Number);
+              tx += parts[4] || 0;
+              ty += parts[5] || 0;
+            }
+          }
+          node = node.parentElement;
         }
+        return { tx, ty };
+      }
+
+      // 4. Gambar setiap tile ke hdCanvas dengan scaling HD_SCALE
+      // Baca posisi dari style.left/top tile + CSS transform pane (akurat)
+      function getPaneTranslate(pane) {
+        if (!pane) return { x: 0, y: 0 };
+        const tr = pane.style.transform || pane.style.webkitTransform || '';
+        const m = tr.match(/translate3d\(([^,]+)px,\s*([^,]+)px/) ||
+                  tr.match(/translate\(([^,]+)px,\s*([^,]+)px/);
+        return m ? { x: parseFloat(m[1]), y: parseFloat(m[2]) } : { x: 0, y: 0 };
+      }
+
+      const tilePaneOffset = getPaneTranslate(tileContainer);
+
+      const drawPromises = Array.from(tileImgs).map(tile => {
+        return new Promise(resolve => {
+          // Posisi tile dalam CSS px, relatif terhadap tile pane
+          const tileX = parseFloat(tile.style.left  || 0) + tilePaneOffset.x;
+          const tileY = parseFloat(tile.style.top   || 0) + tilePaneOffset.y;
+          const tileW = parseFloat(tile.style.width || tile.width  || 256);
+          const tileH = parseFloat(tile.style.height|| tile.height || 256);
+
+          const dstX = tileX * HD_SCALE;
+          const dstY = tileY * HD_SCALE;
+          const dstW = tileW * HD_SCALE;
+          const dstH = tileH * HD_SCALE;
+
+          if (tile.tagName === 'CANVAS') {
+            hdCtx.drawImage(tile, dstX, dstY, dstW, dstH);
+            resolve();
+          } else {
+            if (tile.complete && tile.naturalWidth > 0) {
+              hdCtx.drawImage(tile, dstX, dstY, dstW, dstH);
+              resolve();
+            } else {
+              tile.onload  = () => { hdCtx.drawImage(tile, dstX, dstY, dstW, dstH); resolve(); };
+              tile.onerror = () => resolve();
+            }
+          }
+        });
       });
+      await Promise.all(drawPromises);
+
+      // 5. Gambar layer SVG (marker, polyline, polygon) di atas tile
+      const svgEls = mapDiv.querySelectorAll('.leaflet-overlay-pane svg, .leaflet-marker-pane');
+      for (const svgEl of svgEls) {
+        try {
+          const svgDataUrl = await domtoimage.toPng(svgEl, {
+            width: mapW, height: mapH,
+            pixelRatio: HD_SCALE,
+            cacheBust: true,
+            style: { overflow: 'visible' }
+          });
+          const svgImg = await loadImage(svgDataUrl);
+          if (svgImg) hdCtx.drawImage(svgImg, 0, 0, mapAreaWidth, mapAreaHeight);
+        } catch (_) { /* skip jika gagal */ }
+      }
+
+      dataUrl = hdCanvas.toDataURL('image/png', 1.0);
+
     } catch (captureError) {
-      console.error("Error saat capture peta:", captureError);
-      throw new Error("Gagal mengcapture peta: " + captureError.message);
+      console.error("Error saat capture peta HD, fallback ke domtoimage:", captureError);
+      // Fallback ke domtoimage jika canvas stitching gagal
+      try {
+        dataUrl = await domtoimage.toPng(mapDiv, {
+          width: mapAreaWidth / HD_SCALE,
+          height: mapAreaHeight / HD_SCALE,
+          quality: 1.0,
+          pixelRatio: HD_SCALE,
+          cacheBust: true,
+          filter: function (node) {
+            if (node.classList && (
+              node.classList.contains('leaflet-control-container') ||
+              node.classList.contains('leaflet-control')
+            )) return false;
+            return true;
+          }
+        });
+      } catch (fallbackError) {
+        throw new Error("Gagal mengcapture peta: " + fallbackError.message);
+      }
     }
     
     const mapImage = await loadImage(dataUrl);
@@ -992,14 +1086,17 @@ window.printMap = async function() {
     const pdfData = canvas.toDataURL('image/png', 1.0);
     
     const { jsPDF } = window.jspdf;
+    // Buat PDF seukuran canvas HD penuh agar tidak ada downscale/recompress
     const pdf = new jsPDF({
       orientation: 'landscape',
       unit: 'px',
-      format: [baseWidth, baseHeight],
+      format: [width, height],
+      hotfixes: ['px_scaling'],
       compress: false
     });
     
-    pdf.addImage(pdfData, 'PNG', 0, 0, baseWidth, baseHeight, undefined, 'FAST');
+    // addImage dengan ukuran sama persis canvas → pixel 1:1, tidak ada kompresi ulang
+    pdf.addImage(pdfData, 'PNG', 0, 0, width, height, undefined, 'NONE');
     
     const dateStr = new Date().toISOString().slice(0,10);
     pdf.save(`Peta_Surabaya_HD_${dateStr}.pdf`);

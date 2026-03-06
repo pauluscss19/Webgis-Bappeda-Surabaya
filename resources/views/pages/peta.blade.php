@@ -51,12 +51,14 @@
 
     .layer-group-content.active { max-height: 1000px; margin-bottom: 10px; }
 
+    /* ── Warna header tiap grup ── */
     .layer-group-infrastruktur  .layer-group-header { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
     .layer-group-pendidikan     .layer-group-header { background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); }
     .layer-group-persampahan    .layer-group-header { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
     .layer-group-fasilitas      .layer-group-header { background: linear-gradient(135deg, #64748b 0%, #475569 100%); }
     .layer-group-demografi      .layer-group-header { background: linear-gradient(135deg, #334155 0%, #1e293b 100%); }
-    .layer-group-batas          .layer-group-header { background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%); color: #334155; }
+    /* Batas wilayah: abu-biru elegan */
+    .layer-group-batas          .layer-group-header { background: linear-gradient(135deg, #475569 0%, #334155 100%); color: #f1f5f9; }
     .layer-group-pompa-saluran  .layer-group-header { background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); }
 
     /* Label nama RW */
@@ -115,10 +117,16 @@
 
             <div class="sidebar-content">
 
-                <!-- GROUP: BATAS WILAYAH -->
+                <!-- ═══════════════════════════════════════════════ -->
+                <!-- GROUP: BATAS WILAYAH (dengan header bergaya)    -->
+                <!-- ═══════════════════════════════════════════════ -->
+                <div style="font-size:12px; font-weight:700; color:#64748b; margin-bottom:10px;">
+                    <i class="bi bi-map-fill"></i> BATAS WILAYAH
+                </div>
+
                 <div class="layer-group layer-group-batas">
                     <div class="layer-group-header" onclick="toggleLayerGroup(this)">
-                        <span><i class="bi bi-geo-alt-fill"></i> Batas Wilayah</span>
+                        <span><i class="bi bi-geo-alt-fill"></i> Batas &amp; Tampilan Wilayah</span>
                         <i class="bi bi-chevron-down toggle-icon"></i>
                     </div>
                     <div class="layer-group-content">
@@ -160,8 +168,6 @@
                     </div>
                 </div>
 
-
-
                 <hr style="border-top:1px dashed #cbd5e1; margin:15px 0;">
 
                 <!-- SECTION LAYERS -->
@@ -190,6 +196,17 @@
                             <input type="checkbox" class="layer-toggle me-2" data-layer="DAMKAR">
                             <span class="layer-color" style="background:#FF0000;"></span>
                             <span style="font-size:14px;">Pos Damkar</span>
+                        </label>
+                        {{-- FIBEROPTIK: ada di config.js group infrastruktur, sebelumnya tidak ada di sidebar --}}
+                        <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="FIBEROPTIK">
+                            <span class="layer-color" style="background:#ff1493; width:20px; height:3px; border-radius:2px;"></span>
+                            <span style="font-size:14px;">Jaringan Fiberoptik</span>
+                        </label>
+                         <label class="layer-item">
+                            <input type="checkbox" class="layer-toggle me-2" data-layer="MAKAM">
+                            <span class="layer-color" style="background:#475569;"></span>
+                            <span style="font-size:14px;">Makam</span>
                         </label>
                     </div>
                 </div>
@@ -222,7 +239,7 @@
                 <!-- GROUP: PERSAMPAHAN -->
                 <div class="layer-group layer-group-persampahan">
                     <div class="layer-group-header" onclick="toggleLayerGroup(this)">
-                        <span><i class="bi bi-recycle"></i> Persampahan & Lingkungan</span>
+                        <span><i class="bi bi-recycle"></i> Persampahan &amp; Lingkungan</span>
                         <i class="bi bi-chevron-down toggle-icon"></i>
                     </div>
                     <div class="layer-group-content">
@@ -257,13 +274,8 @@
                             <span style="font-size:14px;">Sampah Rencana</span>
                         </label>
                         <label class="layer-item">
-                            <input type="checkbox" class="layer-toggle me-2" data-layer="MAKAM">
-                            <span class="layer-color" style="background:#3b82f6;"></span>
-                            <span style="font-size:14px;">Makam</span>
-                        </label>
-                        <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="RUKOM">
-                            <span class="layer-color" style="background:#06b6d4;"></span>
+                            <span class="layer-color" style="background:#0ea5e9;"></span>
                             <span style="font-size:14px;">Rumah Kompos</span>
                         </label>
                     </div>
@@ -278,7 +290,7 @@
                     <div class="layer-group-content">
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="DEKORASI_KOTA">
-                            <span class="layer-color" style="background:#f97316;"></span>
+                            <span class="layer-color" style="background:#fb923c;"></span>
                             <span style="font-size:14px;">Dekorasi Kota</span>
                         </label>
                     </div>
@@ -302,7 +314,7 @@
                 <!-- GROUP: POMPA & SALURAN AIR -->
                 <div class="layer-group layer-group-pompa-saluran">
                     <div class="layer-group-header" onclick="toggleLayerGroup(this)">
-                        <span><i class="bi bi-droplet-fill"></i> Pompa & Saluran Air</span>
+                        <span><i class="bi bi-droplet-fill"></i> Pompa &amp; Saluran Air</span>
                         <i class="bi bi-chevron-down toggle-icon"></i>
                     </div>
                     <div class="layer-group-content">
@@ -319,7 +331,7 @@
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="JARINGAN_PIPA_SALURAN">
                             <span class="layer-color" style="background:#0284c7; width:20px; height:3px;"></span>
-                            <span style="font-size:14px;">Jaringan Pipa & Saluran Air</span>
+                            <span style="font-size:14px;">Jaringan Pipa &amp; Saluran Air</span>
                         </label>
                         <label class="layer-item">
                             <input type="checkbox" class="layer-toggle me-2" data-layer="TITIK_POMPA_AIR">
@@ -333,8 +345,6 @@
                         </label>
                     </div>
                 </div>
-
-
 
                 <hr style="border-top:1px dashed #cbd5e1; margin:15px 0;">
 
@@ -369,12 +379,12 @@
                     </div>
 
                     <div class="btn-help-wrap">
-                        <button class="btn-analysis" onclick="runClustering()">Hitung Rekomendasi</button>
+                        <button class="btn-analysis" onclick="runClusteringWithLoad()">Hitung Rekomendasi</button>
                         <button class="help-btn help-btn-rec" onclick="showHelp('rec')" title="Info Analisis Rekomendasi">?</button>
                     </div>
 
                     <div class="btn-help-wrap" style="margin-top:15px;">
-                        <button class="btn-analysis" onclick="runHeatmapAnalysis()"
+                        <button class="btn-analysis" onclick="runHeatmapWithLoad()"
                                 style="background:linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);">
                             Analisis Heatmap
                         </button>
@@ -441,8 +451,6 @@
 
                     <div id="analysis-result" style="font-size:11px; color:#0c4a6e; margin-top:8px; display:none;"></div>
                 </div>
-
-
 
                 <hr style="border-top:1px dashed #cbd5e1; margin:15px 0;">
 
@@ -554,7 +562,7 @@
         <!-- SECTION PRINT & EXPORT (non-fullscreen) -->
         <div class="print-section">
             <div class="print-title">
-                <i class="bi bi-printer-fill"></i> Export Peta & Data
+                <i class="bi bi-printer-fill"></i> Export Peta &amp; Data
             </div>
             <div class="print-buttons">
                 <button class="btn-print" onclick="printMap()">
@@ -583,6 +591,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://unpkg.com/leaflet-simple-map-screenshoter"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <script>
     window.ASSET_BASE_URL = "{{ asset('') }}";
@@ -613,6 +622,85 @@
             });
         }
     });
+
+    // ============================================================
+    // AUTO-LOAD DATA saat Analisis Dijalankan
+    // Jika checkbox analisis dicentang tapi data belum dimuat,
+    // loadLayer() dipanggil otomatis sebelum runClustering/Heatmap.
+    // ============================================================
+
+    /**
+     * Muat semua layer yang dicentang di panel analisis (jika belum ada datanya),
+     * lalu jalankan callback setelah semua selesai.
+     */
+    async function _loadCheckedAnalysisSources(statusDiv) {
+        const checked = document.querySelectorAll('.analysis-source:checked');
+        if (checked.length === 0) return true; // biarkan runClustering yang alert
+
+        const toLoad = [];
+        checked.forEach(function(cb) {
+            const key = cb.value;
+            if (!geoJsonStore[key] || !geoJsonStore[key].features) {
+                toLoad.push(key);
+            }
+        });
+
+        if (toLoad.length === 0) return true; // semua sudah ada
+
+        if (statusDiv) {
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = 'Mengunduh data (' + toLoad.length + ' layer)...';
+        }
+
+        const results = await Promise.allSettled(
+            toLoad.map(function(key) { return loadLayer(key); })
+        );
+
+        // Update checkbox — aktifkan yang berhasil dimuat
+        results.forEach(function(result, i) {
+            const key = toLoad[i];
+            const cb  = document.querySelector('.analysis-source[value="' + key + '"]');
+            if (!cb) return;
+            if (result.status === 'fulfilled') {
+                cb.disabled = false;
+            } else {
+                cb.checked  = false;
+                cb.disabled = true;
+                console.warn('Gagal memuat layer analisis:', key);
+            }
+        });
+
+        // Refresh badge count
+        if (typeof refreshAnalysisSourceCounts === 'function') {
+            refreshAnalysisSourceCounts();
+        }
+
+        return true;
+    }
+
+    /** Wrapper runClustering dengan auto-load */
+    async function runClusteringWithLoad() {
+        const statusDiv = document.getElementById('analysis-result');
+        await _loadCheckedAnalysisSources(statusDiv);
+        runClustering();
+    }
+
+    /** Wrapper runHeatmapAnalysis dengan auto-load */
+    async function runHeatmapWithLoad() {
+        const statusDiv = document.getElementById('analysis-result');
+
+        // Heatmap butuh KELURAHAN — muat juga jika belum ada
+        if (!geoJsonStore['KELURAHAN'] || !geoJsonStore['KELURAHAN'].features) {
+            if (statusDiv) {
+                statusDiv.style.display = 'block';
+                statusDiv.innerHTML = 'Mengunduh data kelurahan...';
+            }
+            try { await loadLayer('KELURAHAN'); } catch(e) { /* akan ditangani di dalam runHeatmapAnalysis */ }
+        }
+
+        await _loadCheckedAnalysisSources(statusDiv);
+        runHeatmapAnalysis();
+    }
   </script>
 
   <script src="{{ asset('js/config.js') }}"></script>
