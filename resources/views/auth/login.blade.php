@@ -49,7 +49,7 @@
 
         {{-- === CAPTCHA (BAGIAN BARU) === --}}
         <div class="captcha-container">
-          <label class="captcha-label">MASUKAN KODE</label>
+          <label class="captcha-label"> Masukan Kode</label>
           <div class="captcha-wrapper">
             <img 
               id="captcha-img" 

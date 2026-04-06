@@ -21,20 +21,13 @@ function populateAnalysisSources() {
         'KEPADATAN_PENDUDUK', 'SURABAYA_MASK', 'HEATMAP_LAYER',
         'ANALYSIS_RESULT', 'CLUSTER_BOUNDARIES',
         'KECAMATAN', 'KELURAHAN', 'BATAS_RW',
-        'RUTE_SAMPAH',
-        'AREA_RAYON',
-        'POMPA_AIR_7_RAYON',
-        'JARINGAN_PIPA_SALURAN',
-        'MAKAM',
-        'SALURAN_AIR'
+        'RUTE_SAMPAH', 'AREA_RAYON', 'POMPA_AIR_7_RAYON',
+        'JARINGAN_PIPA_SALURAN', 'SALURAN_AIR'
     ];
 
-    // Override grup untuk layer yang berbeda dari config.js
-    const GROUP_OVERRIDE = {
-        'RUKOM': 'persampahan'
-    };
+    const GROUP_OVERRIDE = { 'RUKOM': 'persampahan', 'TITIK_SAMPAH': 'persampahan', 'TITIK_SAMPAH_RENCANA': 'persampahan' };
 
-    // Label grup untuk pengelompokan visual
+    // Label & icon grup — urutan & nama sama dengan layer data di blade
     const GROUP_LABELS = {
         infrastruktur: 'Infrastruktur',
         pendidikan:    'Pendidikan',
@@ -65,12 +58,13 @@ function populateAnalysisSources() {
 
     container.innerHTML = '';
 
+    // Urutan grup sama dengan urutan di layer data blade
     const groupOrder = ['infrastruktur', 'pendidikan', 'persampahan', 'fasilitas', 'pompa_saluran', 'lainnya'];
 
     groupOrder.forEach(function(grp) {
         if (!grouped[grp] || grouped[grp].length === 0) return;
 
-        // Header grup
+        // Header grup — UI lama (flat label abu-abu)
         const grpLabel = document.createElement('div');
         grpLabel.style.cssText = [
             'font-size:10px', 'font-weight:700', 'color:#64748b',
@@ -79,12 +73,12 @@ function populateAnalysisSources() {
             'border-bottom:1px solid #e2e8f0', 'display:flex',
             'align-items:center', 'gap:5px'
         ].join(';');
-        const icon = GROUP_ICONS[grp] || 'bi-pin-map-fill';
+        const icon  = GROUP_ICONS[grp] || 'bi-pin-map-fill';
         const label = GROUP_LABELS[grp] || (grp.charAt(0).toUpperCase() + grp.slice(1));
         grpLabel.innerHTML = '<i class="bi ' + icon + '" style="font-size:11px;"></i><span>' + label + '</span>';
         container.appendChild(grpLabel);
 
-        // Checkbox tiap layer
+        // Checkbox tiap layer — UI lama
         grouped[grp].forEach(function(item) {
             const key = item.key;
             const cfg = item.cfg;
@@ -98,19 +92,15 @@ function populateAnalysisSources() {
                 'font-size:12px', 'color:#334155', 'transition:background 0.15s',
                 'user-select:none'
             ].join(';');
-            wrapper.addEventListener('mouseenter', function() {
-                wrapper.style.background = '#f1f5f9';
-            });
-            wrapper.addEventListener('mouseleave', function() {
-                wrapper.style.background = '';
-            });
+            wrapper.addEventListener('mouseenter', function() { wrapper.style.background = '#f1f5f9'; });
+            wrapper.addEventListener('mouseleave', function() { wrapper.style.background = ''; });
 
             const cb = document.createElement('input');
-            cb.type = 'checkbox';
+            cb.type      = 'checkbox';
             cb.className = 'analysis-source';
-            cb.value = key;
-            cb.disabled = (count === 0);
-            cb.title = count === 0 ? 'Data belum dimuat' : '';
+            cb.value     = key;
+            cb.disabled  = (count === 0);
+            cb.title     = count === 0 ? 'Data belum dimuat' : '';
             cb.style.cssText = 'width:14px;height:14px;cursor:pointer;flex-shrink:0;';
 
             const dot = document.createElement('span');
@@ -416,6 +406,7 @@ function runHeatmapAnalysis() {
         map.removeLayer(mapLayers['HEATMAP_LAYER']);
         delete mapLayers['HEATMAP_LAYER'];
     }
+    window._heatmapMeta = null;
 
     if (mapLayers['ANALYSIS_RESULT']) {
         map.removeLayer(mapLayers['ANALYSIS_RESULT']);
@@ -550,6 +541,24 @@ function runHeatmapAnalysis() {
                 
                 return `rgb(${r}, ${g}, ${b})`;
             }
+
+            // Simpan info heatmap ke global agar PDF export bisa membacanya
+            window._heatmapMeta = {
+                minCount: minCount,
+                maxCount: maxCount,
+                getColor: getColor,
+                // Breakpoints representatif untuk legenda PDF (5 tingkatan)
+                steps: (function() {
+                    const steps = [];
+                    const labels = ['Sangat Rendah', 'Rendah', 'Sedang', 'Tinggi', 'Sangat Tinggi'];
+                    for (let i = 0; i < 5; i++) {
+                        const ratio = i / 4;
+                        const count = Math.round(minCount + ratio * (maxCount - minCount));
+                        steps.push({ count: count, color: getColor(count), label: labels[i] });
+                    }
+                    return steps;
+                })()
+            };
 
             const heatmapLayer = L.geoJSON(geoJsonStore['KELURAHAN'], {
                 style: (feature) => {

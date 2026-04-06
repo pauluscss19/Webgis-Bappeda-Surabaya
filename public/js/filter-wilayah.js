@@ -302,10 +302,10 @@ window.FilterWilayah = (function () {
         // ── 3. Marker ke depan ────────────────────────────────
         _liftMarkers();
 
-        // ── 3b. FIX: Re-angkat border filter SETELAH marker ──
-        // _liftMarkers() menimpa bringToFront dari _showBoundary,
-        // sehingga border tertutup layer marker/polygon.
-        _reliftBoundary(targetFeature);
+        // ── 3b. Angkat marker INSIDE ke atas boundary ─────────
+        // Dilakukan setelah _showBoundary & _liftMarkers agar
+        // marker inside bisa diklik dan tidak tertutup polygon wilayah.
+        _liftInsideMarkers(targetFeature);
 
         // ── 4. Zoom ───────────────────────────────────────────
         _zoomTo(targetFeature);
@@ -434,27 +434,33 @@ window.FilterWilayah = (function () {
         }
     }
 
-    // ── FIX: Re-angkat border wilayah filter ke atas marker ──
-    // Dipanggil SETELAH _liftMarkers() agar border tidak tertimpa.
-    // Untuk polygon layer (KEPADATAN_PENDUDUK dll) yang menutupi seluruh
-    // Surabaya, border harus selalu paling atas agar tetap visible.
-    function _reliftBoundary(targetFeature) {
-        const boundaryKey = _activeKel ? 'KELURAHAN' : 'KECAMATAN';
-        if (!mapLayers[boundaryKey] || !map.hasLayer(mapLayers[boundaryKey])) return;
-        
-        mapLayers[boundaryKey].eachLayer(function(sub) {
-            const feat  = sub.feature;
-            if (!feat) return;
-            const props = feat.properties || {};
-            let isTarget = false;
-            if (_activeKel) {
-                const v = props.K || props.KELURAHAN || props.name || '';
-                isTarget = v.toLowerCase() === _activeKel.toLowerCase();
-            } else if (_activeKec) {
-                const v = props.Name || props.KECAMATAN || props.name || '';
-                isTarget = v.toLowerCase() === _activeKec.toLowerCase();
-            }
-            if (isTarget) sub.bringToFront();
+    // ── Angkat marker INSIDE ke atas segalanya ───────────────
+    // Dipanggil TERAKHIR setelah _showBoundary & _liftMarkers,
+    // sehingga titik-titik di dalam wilayah selalu bisa diklik.
+    function _liftInsideMarkers(targetFeature) {
+        Object.keys(mapLayers).forEach(function(layerKey) {
+            const cfg = layerConfig[layerKey];
+            if (!cfg || cfg.isBoundary) return;
+            if (['SURABAYA_MASK','HEATMAP_LAYER','ANALYSIS_RESULT','CLUSTER_BOUNDARIES'].includes(layerKey)) return;
+            const layer = mapLayers[layerKey];
+            if (!layer || !map.hasLayer(layer)) return;
+
+            layer.eachLayer(function(sub) {
+                let latlng = null;
+                if (sub.getLatLng) latlng = sub.getLatLng();
+                else if (sub.getBounds) latlng = sub.getBounds().getCenter();
+                if (!latlng) return;
+
+                const inside = _pointInFeature(latlng, targetFeature);
+                if (inside) {
+                    // Pastikan pointer-events aktif & angkat ke atas
+                    if (sub.getElement && sub.getElement()) {
+                        sub.getElement().style.pointerEvents = 'auto';
+                        sub.getElement().style.cursor = 'pointer';
+                    }
+                    if (sub.bringToFront) sub.bringToFront();
+                }
+            });
         });
     }
 

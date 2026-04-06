@@ -363,7 +363,15 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   }
 
   // Gabung jadi satu string judul penuh tanpa spasi antar bagian
-  const dataPart = activeLayerNames.length > 0 ? activeLayerNames.join(', ') : '';
+  let dataPart = '';
+  if (activeLayerNames.length === 1) {
+    dataPart = activeLayerNames[0];
+  } else if (activeLayerNames.length === 2) {
+    dataPart = activeLayerNames[0] + ' DAN ' + activeLayerNames[1];
+  } else if (activeLayerNames.length > 2) {
+    const allButLast = activeLayerNames.slice(0, -1).join(', ');
+    dataPart = allButLast + ', DAN ' + activeLayerNames[activeLayerNames.length - 1];
+  }
   const fullTitle = dataPart
     ? `PETA KELENGKAPAN ${dataPart} KOTA SURABAYA`
     : 'PETA KELENGKAPAN KOTA SURABAYA';
@@ -685,34 +693,95 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
     
     currentY += 8 * scale;
     
-    // Heatmap layer (dalam multi-kolom)
+    // Heatmap layer (dalam multi-kolom) - menggunakan warna & nilai aktual dari analisis
     if (mapLayers['HEATMAP_LAYER'] && map.hasLayer(mapLayers['HEATMAP_LAYER'])) {
-      checkColumnSwitch(80 * scale);
+      const meta = window._heatmapMeta;
+      
+      // Tinggi total: header + bar gradien + label + 5 step + min/max = ~110px
+      checkColumnSwitch(115 * scale);
       const posHm = getColumnPositions();
+
       ctx.font = `bold ${10 * scale}px Arial`;
       ctx.fillStyle = '#000000';
       ctx.fillText("Analisis Heatmap", posHm.legIndentCol, currentY);
-      currentY += 15 * scale;
-      
-      const heatItems = [
-        { color: '#7f1d1d', label: 'Jumlah Tempat Banyak' },
-        { color: '#f87171', label: 'Jumlah Tempat Sedang' },
-        { color: '#fee2e2', label: 'Jumlah Tempat Sedikit' }
-      ];
-      heatItems.forEach(item => {
-        checkColumnSwitch(LEG_ROW_H);
-        const posH = getColumnPositions();
-        const boxSz = 10 * scale;
-        ctx.fillStyle = item.color;
-        ctx.fillRect(posH.legSymbolCX - boxSz / 2, currentY - boxSz / 2, boxSz, boxSz);
-        ctx.strokeStyle = '#000';
+      currentY += 14 * scale;
+
+      if (meta && meta.steps && meta.steps.length > 0) {
+        // ── Gradien bar horizontal (lebar penuh kolom dikurangi padding) ──
+        const barX      = posHm.legSymbolCX - LEG_SYMBOL_W / 2;
+        const barWidth  = 110 * scale;
+        const barHeight = 10 * scale;
+        const barY      = currentY - 6 * scale;
+
+        // Buat gradien kiri (tinggi/gelap) → kanan (rendah/terang)
+        const grad = ctx.createLinearGradient(barX, 0, barX + barWidth, 0);
+        // Warna paling terang (minCount) di kiri, paling gelap (maxCount) di kanan
+        const colorAtMin = meta.getColor(meta.minCount); // rgb terang
+        const colorAtMax = meta.getColor(meta.maxCount); // rgb gelap
+        grad.addColorStop(0, colorAtMin);
+        grad.addColorStop(1, colorAtMax);
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+        ctx.strokeStyle = '#555';
         ctx.lineWidth = 0.5 * scale;
-        ctx.strokeRect(posH.legSymbolCX - boxSz / 2, currentY - boxSz / 2, boxSz, boxSz);
-        ctx.fillStyle = 'black';
-        ctx.font = `${9 * scale}px Arial`;
-        ctx.fillText(item.label, posH.legTextX, currentY + 3 * scale);
-        currentY += LEG_ROW_H;
-      });
+        ctx.strokeRect(barX, barY, barWidth, barHeight);
+
+        // Label bawah bar: nilai min & max
+        ctx.fillStyle = '#000000';
+        ctx.font = `${8 * scale}px Arial`;
+        ctx.textAlign = 'left';
+        ctx.fillText(`${meta.minCount} titik`, barX, currentY + 8 * scale);
+        ctx.textAlign = 'right';
+        ctx.fillText(`${meta.maxCount} titik`, barX + barWidth, currentY + 8 * scale);
+        ctx.textAlign = 'left';
+        currentY += 18 * scale;
+
+        // ── 5 baris step warna + label ──
+        meta.steps.forEach(step => {
+          checkColumnSwitch(LEG_ROW_H);
+          const posH = getColumnPositions();
+          const boxSz = 10 * scale;
+
+          // Kotak warna — gunakan warna aktual dari getColor()
+          ctx.fillStyle = step.color;
+          ctx.fillRect(posH.legSymbolCX - boxSz / 2, currentY - boxSz / 2, boxSz, boxSz);
+          ctx.strokeStyle = '#555';
+          ctx.lineWidth = 0.5 * scale;
+          ctx.strokeRect(posH.legSymbolCX - boxSz / 2, currentY - boxSz / 2, boxSz, boxSz);
+
+          // Teks: "Sangat Tinggi (42 titik)"
+          ctx.fillStyle = 'black';
+          ctx.font = `${9 * scale}px Arial`;
+          ctx.textAlign = 'left';
+          ctx.fillText(`${step.label} (${step.count} titik)`, posH.legTextX, currentY + 3 * scale);
+          currentY += LEG_ROW_H;
+        });
+
+      } else {
+        // Fallback jika meta belum tersedia
+        const fallbackItems = [
+          { color: 'rgb(128,0,0)',   label: 'Sangat Tinggi' },
+          { color: 'rgb(192,64,64)', label: 'Tinggi' },
+          { color: 'rgb(224,112,112)', label: 'Sedang' },
+          { color: 'rgb(240,176,176)', label: 'Rendah' },
+          { color: 'rgb(255,224,224)', label: 'Sangat Rendah' }
+        ];
+        fallbackItems.forEach(item => {
+          checkColumnSwitch(LEG_ROW_H);
+          const posH = getColumnPositions();
+          const boxSz = 10 * scale;
+          ctx.fillStyle = item.color;
+          ctx.fillRect(posH.legSymbolCX - boxSz / 2, currentY - boxSz / 2, boxSz, boxSz);
+          ctx.strokeStyle = '#555';
+          ctx.lineWidth = 0.5 * scale;
+          ctx.strokeRect(posH.legSymbolCX - boxSz / 2, currentY - boxSz / 2, boxSz, boxSz);
+          ctx.fillStyle = 'black';
+          ctx.font = `${9 * scale}px Arial`;
+          ctx.fillText(item.label, posH.legTextX, currentY + 3 * scale);
+          currentY += LEG_ROW_H;
+        });
+      }
       currentY += 6 * scale;
     }
     

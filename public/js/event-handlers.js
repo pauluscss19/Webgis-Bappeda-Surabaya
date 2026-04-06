@@ -210,6 +210,11 @@ async function resetMap() {
 
         map.setView(centerPoint, 12, { animate: true, duration: 0.5 });
 
+        // Reset filter wilayah jika aktif
+        if (typeof window.FilterWilayah !== 'undefined' && window.FilterWilayah.isFilterActive()) {
+            window.FilterWilayah.clearFilter();
+        }
+
         // Hapus layer analisis
         ['ANALYSIS_RESULT', 'CLUSTER_BOUNDARIES', 'HEATMAP_LAYER'].forEach(key => {
             if (mapLayers[key]) {
