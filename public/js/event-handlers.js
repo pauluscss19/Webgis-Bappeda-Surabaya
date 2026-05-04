@@ -144,7 +144,7 @@ function reorderLayers() {
         if (mapLayers[key] && map.hasLayer(mapLayers[key])) mapLayers[key].bringToFront();
     });
 
-    ['JARINGAN_PIPA_SALURAN', 'SALURAN_AIR', 'RUTE_SAMPAH', 'FIBEROPTIK'].forEach(key => {
+    ['JARINGAN_PIPA_SALURAN', 'SALURAN_AIR', 'RUTE_SAMPAH', 'FIBEROPTIK', 'JARINGAN_JALAN'].forEach(key => {
         if (mapLayers[key] && map.hasLayer(mapLayers[key])) mapLayers[key].bringToFront();
     });
 

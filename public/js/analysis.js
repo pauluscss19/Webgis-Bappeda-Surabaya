@@ -22,7 +22,8 @@ function populateAnalysisSources() {
         'ANALYSIS_RESULT', 'CLUSTER_BOUNDARIES',
         'KECAMATAN', 'KELURAHAN', 'BATAS_RW',
         'RUTE_SAMPAH', 'AREA_RAYON', 'POMPA_AIR_7_RAYON',
-        'JARINGAN_PIPA_SALURAN', 'SALURAN_AIR'
+        'JARINGAN_PIPA_SALURAN', 'SALURAN_AIR', 
+        'JARINGAN_JALAN'
     ];
 
     const GROUP_OVERRIDE = { 'RUKOM': 'persampahan', 'TITIK_SAMPAH': 'persampahan', 'TITIK_SAMPAH_RENCANA': 'persampahan' };

@@ -268,7 +268,8 @@ function _buildLeafletLayer(data, layerKey, config) {
         'JARINGAN_PIPA_SALURAN': 1.2,
         'SALURAN_AIR':           1.2,
         'RUTE_SAMPAH':           2,
-        'FIBEROPTIK':            1.5
+        'FIBEROPTIK':            1.5,
+        'JARINGAN_JALAN':        2.5,
     };
 
     return L.geoJSON(data, {

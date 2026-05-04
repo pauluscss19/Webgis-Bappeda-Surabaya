@@ -79,6 +79,14 @@ const layerConfig = {
         nameField: 'name',             
         group: 'infrastruktur'         
     },
+    'JARINGAN_JALAN': { 
+        file: 'jaringan_jalan.geojson',   
+        color: '#f44444',             
+        label: 'Jaringan Jalan', 
+        isLine: true, 
+        nameField: 'name',             
+        group: 'infrastruktur'         
+    },
     
     // PENDIDIKAN
     'PAUD': { 

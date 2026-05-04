@@ -437,6 +437,11 @@
                                 <span class="layer-color" style="background:#475569;"></span>
                                 <span style="font-size:14px;">Makam</span>
                             </label>
+                            <label class="layer-item">
+                                <input type="checkbox" class="layer-toggle me-2" data-layer="JARINGAN_JALAN">
+                                <span class="layer-color" style="background:#F44444; width:20px; height:3px; border-radius:2px;"></span>
+                                <span style="font-size:14px;">Jaringan Jalan</span>
+                            </label>
                         </div>
                     </div>
 
