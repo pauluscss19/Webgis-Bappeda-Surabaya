@@ -45,61 +45,50 @@ window.toggleRwLabels = function(show) {
     });
 };
 
-// ─── Konversi GeometryCollection ────────────────────────────
+// ─── Konversi GeometryCollection & Inject Dummy Data ──────────
 function convertGeometryCollectionToFeatureCollection(data, layerKey) {
-    if (data.type === 'FeatureCollection') return data;
-
-    if (data.type === 'GeometryCollection' && data.geometries) {
-        if (layerKey === 'KEPADATAN_PENDUDUK') {
-            return {
-                type: 'FeatureCollection',
-                features: data.geometries.map((geometry, index) => {
-                    const density = Math.floor(Math.random() * 25000) + 500;
-                    return {
-                        type: 'Feature', id: index,
-                        properties: {
-                            DESA: `Wilayah ${index + 1}`,
-                            DENSITY: density,
-                            KATEGORI: getPopulationDensityLabel(density),
-                            id: index
-                        },
-                        geometry
-                    };
-                })
-            };
-        }
-        if (layerKey === 'BATAS_RW') {
-            return {
-                type: 'FeatureCollection',
-                features: data.geometries.map((geometry, index) => ({
-                    type: 'Feature', id: index,
-                    properties: {
-                        RW: `RW ${String(index + 1).padStart(2, '0')}`,
-                        NAMA: `RW ${String(index + 1).padStart(2, '0')}`,
-                        id: index
-                    },
-                    geometry
-                }))
-            };
-        }
-        return {
-            type: 'FeatureCollection',
-            features: data.geometries.map((geometry, index) => ({
-                type: 'Feature', id: index,
-                properties: { Name: `Point ${index + 1}`, id: index },
-                geometry
-            }))
-        };
+    let features = [];
+    
+    // Konversi bentuk apapun ke array fitur dasar
+    if (data.type === 'FeatureCollection') {
+        features = data.features || [];
+    } else if (data.type === 'GeometryCollection' && data.geometries) {
+        features = data.geometries.map((geometry, index) => ({
+            type: 'Feature', id: index,
+            properties: { id: index },
+            geometry
+        }));
+    } else if (data.type && data.type !== 'FeatureCollection' && data.coordinates) {
+        features = [{ type: 'Feature', id: 0, properties: { Name: 'Feature 1' }, geometry: data }];
+    } else {
+        features = [];
     }
 
-    if (data.type && data.type !== 'FeatureCollection' && data.coordinates) {
-        return {
-            type: 'FeatureCollection',
-            features: [{ type: 'Feature', id: 0, properties: { Name: 'Feature 1' }, geometry: data }]
-        };
+    // Suntik dummy data khusus karena di DB hanya tersimpan geometri (tanpa properties ini saat di-seed)
+    if (layerKey === 'KEPADATAN_PENDUDUK') {
+        features.forEach((feat, index) => {
+            if (!feat.properties) feat.properties = {};
+            if (!feat.properties.DENSITY) {
+                const density = Math.floor(Math.random() * 25000) + 500;
+                feat.properties.DESA = feat.properties.DESA || `Wilayah ${index + 1}`;
+                feat.properties.DENSITY = density;
+                feat.properties.KATEGORI = getPopulationDensityLabel(density);
+            }
+        });
+    } else if (layerKey === 'BATAS_RW') {
+        features.forEach((feat, index) => {
+            if (!feat.properties) feat.properties = {};
+            if (!feat.properties.RW) {
+                feat.properties.RW = `RW ${String(index + 1).padStart(2, '0')}`;
+                feat.properties.NAMA = `RW ${String(index + 1).padStart(2, '0')}`;
+            }
+        });
     }
 
-    return data;
+    return {
+        type: 'FeatureCollection',
+        features: features
+    };
 }
 
 // ─── Ambil koordinat dari feature ───────────────────────────
@@ -229,11 +218,15 @@ async function loadLayer(layerKey) {
     }
 
     const base     = (window.ASSET_BASE_URL || '').replace(/\/$/, '');
-    const filePath = base + '/' + encodeURIComponent(config.file);
+    
+    // Gunakan file statis untuk JARINGAN_JALAN karena sangat besar (96MB), sisanya dari API database
+    const fetchPath = (layerKey === 'JARINGAN_JALAN') 
+        ? base + '/' + encodeURIComponent(config.file)
+        : `/api/geo-layer/${layerKey}`;
 
     _loadingPromises[layerKey] = (async () => {
         try {
-            const response = await fetch(filePath);
+            const response = await fetch(fetchPath);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const rawData = await response.json();
             const data    = convertGeometryCollectionToFeatureCollection(rawData, layerKey);
@@ -339,8 +332,9 @@ async function initMapData() {
     try {
         if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
-        // Satu-satunya fetch saat init: KECAMATAN (untuk mask Surabaya)
+        // Satu-satunya fetch saat init: KECAMATAN & KELURAHAN (untuk mask & filter wilayah)
         await loadLayer('KECAMATAN');
+        await loadLayer('KELURAHAN');
 
         const maskCheckbox = document.getElementById('surabaya-mask-toggle');
         if (maskCheckbox && maskCheckbox.checked) toggleSurabayaMask(true);

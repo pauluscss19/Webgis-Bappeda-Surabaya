@@ -591,7 +591,7 @@ window.FilterWilayah = (function () {
 
     function init() {
         var _try = function() {
-            if (!geoJsonStore['KECAMATAN'] || !document.getElementById('fw-kecamatan')) {
+            if (!geoJsonStore['KECAMATAN'] || !geoJsonStore['KELURAHAN'] || !document.getElementById('fw-kecamatan')) {
                 setTimeout(_try, 500); return;
             }
             _populateKec();

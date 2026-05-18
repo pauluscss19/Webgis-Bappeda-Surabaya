@@ -17,7 +17,7 @@
     <main class="hero"
       style="background-image:
         linear-gradient(90deg, rgba(0,0,0,.45), rgba(0,0,0,.15)),
-        url('{{ asset('images/Jasobundo.png') }}');">
+        url('{{ asset('images/Kantor_Bappeko_Surabaya.jpg') }}');">
 
       <div class="hero-inner intro">
         <div class="pill intro-item">

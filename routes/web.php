@@ -5,6 +5,11 @@ use App\Http\Controllers\DataStatistikController;
 use App\Http\Controllers\UjiAirController;
 use App\Http\Controllers\UjiUdaraController;
 use App\Http\Controllers\RthController;
+use App\Http\Controllers\DataSampahController;
+use App\Http\Controllers\DataKualitasLingkunganController;
+use App\Http\Controllers\SarprasController;
+use App\Http\Controllers\RthCrudController;
+use App\Http\Controllers\RingkasanController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\CaptchaHelper;
@@ -42,6 +47,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/peta', fn() => view('pages.peta'))->name('peta');
     Route::get('/data-statistik', [DataStatistikController::class, 'index'])->name('data-statistik');
     Route::get('/rth-surabaya', [RthController::class, 'index'])->name('rth-surabaya');
+
+    // --- CRUD Data Sampah ---
+    Route::resource('data-sampah', DataSampahController::class);
+
+    // --- CRUD Data Kualitas Lingkungan ---
+    Route::resource('kualitas-lingkungan', DataKualitasLingkunganController::class);
+
+    // --- CRUD Sarana & Prasarana ---
+    Route::resource('sarpras', SarprasController::class);
+
+    // --- CRUD RTH ---
+    Route::resource('rth', RthCrudController::class);
+
+    // --- Ringkasan ---
+    Route::get('/ringkasan', [RingkasanController::class, 'index'])->name('ringkasan');
 });
 
 // 2. GROUP ROUTE YANG BUTUH LOGIN (Middleware 'auth')
@@ -61,6 +81,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // --- Controller Data Statistik (Chart) ---
     // Saya ubah name-nya jadi 'data.statistik' (pakai titik) biar standar Laravel
     Route::get('/data-statistik', [DataStatistikController::class, 'index'])->name('data.statistik');
+
+    // --- CRUD Data Sampah ---
+    Route::resource('data-sampah', DataSampahController::class);
+
+    // --- CRUD Data Kualitas Lingkungan ---
+    Route::resource('kualitas-lingkungan', DataKualitasLingkunganController::class);
 
     // --- Profile User (Bawaan Breeze) ---
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

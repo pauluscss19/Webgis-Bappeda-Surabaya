@@ -92,8 +92,16 @@ function loadImage(src) {
 async function captureLocationDiagram(targetBounds) {
   const DIV_W = 340;
   const DIV_H = 240;
-  const MARKER_LAT = -7.267;
-  const MARKER_LNG = 112.717;
+  
+  // Gunakan center dari bounds area yang diexport, fallback ke pusat Surabaya
+  let MARKER_LAT = -7.267;
+  let MARKER_LNG = 112.717;
+  if (targetBounds && typeof targetBounds.getCenter === 'function') {
+      const center = targetBounds.getCenter();
+      MARKER_LAT = center.lat;
+      MARKER_LNG = center.lng;
+  }
+  
   const MAP_ZOOM = 10;
 
   const tempDiv = document.createElement('div');
@@ -963,7 +971,24 @@ window.printMap = async function() {
     window.map.invalidateSize();
 
     const SURABAYA_CENTER = [-7.2575, 112.7200];
-    window.map.setView(SURABAYA_CENTER, PDF_ZOOM_SCALE_150000, { animate: false });
+    
+    // Zoom ke kecamatan/kelurahan jika filter aktif
+    if (window.FilterWilayah && window.FilterWilayah.isFilterActive()) {
+        const activeFeature = window.FilterWilayah.getActiveFeature();
+        if (activeFeature && typeof turf !== 'undefined') {
+            try {
+                const bbox = turf.bbox(activeFeature);
+                window.map.fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]], { animate: false, padding: [50, 50] });
+            } catch (e) {
+                console.warn("Gagal set bounds dari filter wilayah:", e);
+                window.map.setView(SURABAYA_CENTER, PDF_ZOOM_SCALE_150000, { animate: false });
+            }
+        } else {
+            window.map.setView(SURABAYA_CENTER, PDF_ZOOM_SCALE_150000, { animate: false });
+        }
+    } else {
+        window.map.setView(SURABAYA_CENTER, PDF_ZOOM_SCALE_150000, { animate: false });
+    }
 
     if (loadingOverlay) {
       updateProgress(50, "Merender peta dalam resolusi tinggi...", "Memuat tile peta HD", 3);

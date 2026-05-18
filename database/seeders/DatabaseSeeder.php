@@ -24,6 +24,9 @@ class DatabaseSeeder extends Seeder
 
             // Data RTH/Makam/BBM lengkap (uncomment jika tabel terkait sudah ada):
             // CompleteDataSeeder::class, 
+
+            // --- Data GeoJSON Peta (impor dari file ke database) ---
+            GeoLayerSeeder::class,
         ]);
     }
 }

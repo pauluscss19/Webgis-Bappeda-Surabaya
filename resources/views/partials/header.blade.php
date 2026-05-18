@@ -4,10 +4,10 @@
     {{-- LOGO BRAND --}}
     <div class="brand">
       <a href="#" class="brand-logo">
-        <img src="{{ asset('images/Jasobundo.png') }}" alt="Logo" onerror="this.style.display='none'">
+        <img src="{{ asset('images/logo-2.png') }}" alt="Logo" onerror="this.style.display='none'">
       </a>
-      <span class="brand-text1">Jaso</span>
-      <span class="brand-text2">Bundo</span>
+      <span class="brand-text1">Bappeda</span>
+      <span class="brand-text2">Surabaya</span>
     </div>
 
     {{-- MENU NAVIGASI --}}
@@ -34,20 +34,20 @@
           
           {{-- Tambahkan ID unik: "statDropdown" --}}
           <div id="statDropdown" class="dropdown-menu-custom">
-              <a href="{{ url('/data-statistik') }}" class="dropdown-item-custom">
-                  1. Data Sampah
+              <a href="{{ route('data-sampah.index') }}" class="dropdown-item-custom">
+                  <i class="bi bi-trash3" style="margin-right:6px;color:#059669"></i> 1. Data Sampah
               </a>
-              <a href="{{ url('/rth-surabaya') }}" class="dropdown-item-custom">
-                  2. Data Kualitas Lingkungan
+              <a href="{{ route('kualitas-lingkungan.index') }}" class="dropdown-item-custom">
+                  <i class="bi bi-droplet-half" style="margin-right:6px;color:#2563eb"></i> 2. Data Kualitas Lingkungan
               </a>
-              <a href="{{ url('/data-statistik?tab=sarpras') }}" class="dropdown-item-custom">
-                  3. Data?
+              <a href="{{ route('sarpras.index') }}" class="dropdown-item-custom">
+                  <i class="bi bi-tools" style="margin-right:6px;color:#d97706"></i> 3. Data Sarpras
               </a>
-              <a href="{{ url('/data-statistik?tab=sdm') }}" class="dropdown-item-custom">
-                  4. Data?
+              <a href="{{ route('rth.index') }}" class="dropdown-item-custom">
+                  <i class="bi bi-tree" style="margin-right:6px;color:#16a34a"></i> 4. Data RTH
               </a>
-              <a href="{{ url('/data-statistik?tab=ringkasan') }}" class="dropdown-item-custom">
-                  5. Data?
+              <a href="{{ route('ringkasan') }}" class="dropdown-item-custom">
+                  <i class="bi bi-bar-chart" style="margin-right:6px;color:#7c3aed"></i> 5. Ringkasan
               </a>
           </div>
       </div>

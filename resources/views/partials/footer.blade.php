@@ -86,3 +86,6 @@
     </div>
   </div>
 </footer>
+
+{{-- Page Transition Script --}}
+<script src="{{ asset('js/page-transition.js') }}"></script>
