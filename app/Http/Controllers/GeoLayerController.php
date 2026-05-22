@@ -29,8 +29,16 @@ class GeoLayerController extends Controller
 
         $featureCollection = GeoLayer::toFeatureCollection($features);
 
-        return response()->json($featureCollection)
-            ->header('Cache-Control', 'public, max-age=600');  // cache 10 menit
+        $response = response()->json($featureCollection);
+
+        // Hanya cache non-custom layer, bypass cache untuk custom layer
+        if (str_starts_with($layerKey, 'CUSTOM_')) {
+            $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        } else {
+            $response->header('Cache-Control', 'public, max-age=600');
+        }
+
+        return $response;
     }
 
     /**

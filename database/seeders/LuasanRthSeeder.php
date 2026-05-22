@@ -9,6 +9,10 @@ class LuasanRthSeeder extends Seeder
 {
     public function run(): void
     {
+        DB::table('luasan_rth_dprkpps')->truncate();
+        DB::table('persentase_tipologis')->truncate();
+        DB::table('ringkasan_rth_kotas')->truncate();
+
         // 1. Data Detail RTH
         $rthData = [
             // TIPOLOGI A

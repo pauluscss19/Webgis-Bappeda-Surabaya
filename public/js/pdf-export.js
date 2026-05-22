@@ -346,8 +346,8 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
   const activeLayerNames = [];
   document.querySelectorAll('.layer-toggle:checked').forEach(cb => {
     const key = cb.getAttribute('data-layer');
-    const cfg = PDF_CONFIG.layerConfig[key];
-    if (cfg && !cfg.isBoundary) {
+    const cfg = PDF_CONFIG.layerConfig[key] || layerConfig[key];
+    if (cfg && !cfg.isBoundary && key !== 'KEPADATAN_PENDUDUK') {
       activeLayerNames.push(cfg.label.toUpperCase());
     }
   });
@@ -645,7 +645,7 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
     
     activeCheckboxes.forEach(checkbox => {
       const layerKey = checkbox.getAttribute('data-layer');
-      const config = PDF_CONFIG.layerConfig[layerKey];
+      const config = PDF_CONFIG.layerConfig[layerKey] || layerConfig[layerKey];
       
       if (config && !config.isBoundary && layerKey !== 'KEPADATAN_PENDUDUK') {
         checkColumnSwitch(LEG_ROW_H + 2 * scale);
@@ -653,7 +653,10 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
 
         const markerCount = _getPdfMarkerCount(layerKey);
 
-        if (config.type === 'line') {
+        const isLine = config.type === 'line' || config.isLine;
+        const isPolygon = config.type === 'polygon' || config.isPolygon;
+
+        if (isLine) {
           ctx.beginPath();
           ctx.strokeStyle = config.color;
           ctx.lineWidth = 2.5 * scale;
@@ -661,7 +664,7 @@ function drawSidebar(ctx, x, y, w, h, logos, bounds, pixelHeight, diagramImage, 
           ctx.moveTo(pos.legSymbolCX - LEG_SYMBOL_W / 2, currentY);
           ctx.lineTo(pos.legSymbolCX + LEG_SYMBOL_W / 2, currentY);
           ctx.stroke();
-        } else if (config.type === 'polygon') {
+        } else if (isPolygon) {
           const boxSz = 10 * scale;
           ctx.fillStyle = config.color + '88';
           ctx.fillRect(pos.legSymbolCX - boxSz / 2, currentY - boxSz / 2, boxSz, boxSz);
@@ -925,8 +928,17 @@ window.printMap = async function() {
     left: mapDiv.style.left
   };
   
+  const originalWeights = [];
+  
   const restoreMapState = () => {
     try {
+      // Kembalikan ketebalan garis asli dari semua layer
+      originalWeights.forEach(({ layer, weight }) => {
+        if (layer && typeof layer.setStyle === 'function') {
+          layer.setStyle({ weight: weight });
+        }
+      });
+      
       mapDiv.style.width = originalStyle.width;
       mapDiv.style.height = originalStyle.height;
       mapDiv.style.position = originalStyle.position;
@@ -988,6 +1000,21 @@ window.printMap = async function() {
         }
     } else {
         window.map.setView(SURABAYA_CENTER, PDF_ZOOM_SCALE_150000, { animate: false });
+    }
+
+    // Set ketebalan garis lebih tipis untuk export PDF agar tidak terlalu tebal pada resolusi tinggi
+    if (window.map) {
+        window.map.eachLayer(layer => {
+            if (layer instanceof L.Path && typeof layer.setStyle === 'function' && layer.options && layer.options.weight !== undefined) {
+                const w = layer.options.weight;
+                originalWeights.push({ layer, weight: w });
+                
+                // Kurangi ketebalan garis secara proporsional (skala 0.35x, minimal 0.4px)
+                let newWeight = w * 0.35;
+                if (newWeight < 0.4) newWeight = 0.4;
+                layer.setStyle({ weight: newWeight });
+            }
+        });
     }
 
     if (loadingOverlay) {

@@ -9,6 +9,7 @@ use App\Http\Controllers\DataSampahController;
 use App\Http\Controllers\DataKualitasLingkunganController;
 use App\Http\Controllers\SarprasController;
 use App\Http\Controllers\RthCrudController;
+use App\Http\Controllers\CustomLayerController;
 use App\Http\Controllers\RingkasanController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -59,6 +60,12 @@ Route::middleware('auth')->group(function () {
 
     // --- CRUD RTH ---
     Route::resource('rth', RthCrudController::class);
+
+    Route::resource('custom-layers', CustomLayerController::class);
+    Route::patch('custom-layers/{custom_layer}/toggle', [CustomLayerController::class, 'toggle'])->name('custom-layers.toggle');
+    Route::post('custom-layers/{custom_layer}/add-point', [CustomLayerController::class, 'addPoint'])->name('custom-layers.add-point');
+    Route::put('custom-layers/{custom_layer}/features/{feature_id}', [CustomLayerController::class, 'updateFeature'])->name('custom-layers.update-feature');
+    Route::delete('custom-layers/{custom_layer}/features/{feature_id}', [CustomLayerController::class, 'deleteFeature'])->name('custom-layers.delete-feature');
 
     // --- Ringkasan ---
     Route::get('/ringkasan', [RingkasanController::class, 'index'])->name('ringkasan');

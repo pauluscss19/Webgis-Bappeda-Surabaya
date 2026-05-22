@@ -162,5 +162,20 @@ class bbm extends Seeder
             'biaya_pertamax' => 123025000.00,
             'created_at' => now()
         ];
+
+        $insert_data = array_map(function ($row) {
+            return [
+                'bulan_ke' => $row['bulan_ke'],
+                'nama_bulan' => $row['nama_bulan'],
+                'solar_liter' => $row['solar_liter'],
+                'dexlite_liter' => $row['dexlite_liter'],
+                'pertamax_liter' => $row['pertamax_liter'],
+                'created_at' => $row['created_at'],
+                'updated_at' => now(),
+            ];
+        }, $data_bbm);
+
+        \Illuminate\Support\Facades\DB::table('laporan_bbm')->truncate();
+        \Illuminate\Support\Facades\DB::table('laporan_bbm')->insert($insert_data);
     }
 }

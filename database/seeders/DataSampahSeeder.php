@@ -9,6 +9,8 @@ class DataSampahSeeder extends Seeder
 {
     public function run(): void
     {
+        DB::table('data_sampah')->truncate();
+        
         $kecamatanData = [
             ['kecamatan' => 'Sukolilo', 'kelurahan' => 'Keputih', 'volume' => 45.8, 'terangkut' => 32.5, 'diolah' => 8.2, 'tidak' => 5.1, 'tps' => 12, 'bank' => 5],
             ['kecamatan' => 'Rungkut', 'kelurahan' => 'Kalirungkut', 'volume' => 52.3, 'terangkut' => 38.1, 'diolah' => 10.5, 'tidak' => 3.7, 'tps' => 15, 'bank' => 8],

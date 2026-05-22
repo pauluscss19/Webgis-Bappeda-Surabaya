@@ -111,4 +111,55 @@
             }, 100);
         }
     }
+
+    // ─── EFEK TRANSISI PINDAH HALAMAN ───
+    document.addEventListener("DOMContentLoaded", function() {
+        // Buat elemen overlay untuk efek fade out / fade in
+        const overlay = document.createElement('div');
+        overlay.id = 'page-transition-overlay';
+        Object.assign(overlay.style, {
+            position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
+            backgroundColor: '#f8fafc', zIndex: '99999', pointerEvents: 'none',
+            opacity: '1', transition: 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+        });
+
+        // Tambahkan spinner dan teks loading ke dalam overlay
+        overlay.innerHTML = `
+            <div style="width:44px;height:44px;border:4px solid #cbd5e1;border-top-color:#3b82f6;border-radius:50%;animation:spinTransition 0.8s linear infinite;"></div>
+            <div style="margin-top:16px;color:#64748b;font-weight:600;font-size:15px;letter-spacing:1px;text-transform:uppercase;">Loading...</div>
+            <style>@keyframes spinTransition { to { transform: rotate(360deg); } }</style>
+        `;
+
+        document.body.appendChild(overlay);
+
+        // Fade in saat halaman pertama kali diload
+        setTimeout(() => {
+            overlay.style.opacity = '0';
+        }, 50);
+
+        // Tangkap klik link untuk efek fade out
+        document.querySelectorAll('a[href]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Jangan tangkap jika link: punya onclick, mengarah ke target blank, anchor link (#), atau ditekan pakai ctrl/cmd
+                if (this.target === '_blank' || this.href.includes('#') || this.getAttribute('onclick') || e.ctrlKey || e.metaKey) {
+                    return;
+                }
+                
+                // Pastikan link mengarah ke domain yang sama (internal link)
+                if (this.hostname === window.location.hostname) {
+                    e.preventDefault();
+                    const targetUrl = this.href;
+                    
+                    // Fade out
+                    overlay.style.opacity = '1';
+                    
+                    // Pindah halaman setelah animasi selesai
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 400); 
+                }
+            });
+        });
+    });
 </script>

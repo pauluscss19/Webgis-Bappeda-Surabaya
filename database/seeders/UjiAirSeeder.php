@@ -9,6 +9,11 @@ class UjiAirSeeder extends Seeder
 {
     public function run(): void
     {
+        DB::table('uji_air_badan_air')->truncate();
+        DB::table('uji_air_laut_pelabuhan')->truncate();
+        DB::table('uji_air_laut_wisata_bahari')->truncate();
+        DB::table('uji_air_laut_biota_laut')->truncate();
+
         // ============================================================
         // 1. TABLE: UJI AIR BADAN AIR (41 TITIK)
         // ============================================================

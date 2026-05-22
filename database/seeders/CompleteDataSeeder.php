@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class CompleteDataSeeder extends Seeder
 {
@@ -93,28 +94,30 @@ class CompleteDataSeeder extends Seeder
         // ==========================================
         // 6. DATA CSR (Corporate Social Responsibility)
         // ==========================================
-        DB::table('rth_skema_csrs')->truncate();
-        DB::table('rth_skema_csrs')->insert([
-            ['lokasi' => 'Taman Jemursari (Air Mancur)', 'penanggung_jawab' => 'PT Adhi Kartika', 'bulan' => 'Januari', 'tahun' => 2024],
-            ['lokasi' => 'Taman Rotonde Mayangkara', 'penanggung_jawab' => 'PT Adhi Kartika', 'bulan' => 'Januari', 'tahun' => 2024],
-            ['lokasi' => 'Taman Jalur Hijau Jalan Mayjend Yonosoewoyo', 'penanggung_jawab' => 'CV Lentera Media', 'bulan' => 'Februari', 'tahun' => 2024],
-            ['lokasi' => 'Jalan Dr. Soetomo Pulau 1, Surabaya (Perempatan Traffic Light Darmo - Dr. Soetomo)', 'penanggung_jawab' => 'PT Warna Warni Media', 'bulan' => 'Maret', 'tahun' => 2024],
-            ['lokasi' => 'Jalan Tunjungan - Pahlawan (Pos Polisi di depan Siola)', 'penanggung_jawab' => 'PT Warna Warni Media', 'bulan' => 'Maret', 'tahun' => 2024],
-            ['lokasi' => 'Jalan Blauran - Praban (Pos Polisi di depan BG Junction)', 'penanggung_jawab' => 'PT Warna Warni Media', 'bulan' => 'Maret', 'tahun' => 2024],
-            ['lokasi' => 'Taman/Jalur Hijau di Jalan Urip Sumoharjo - Basuki Rahmat', 'penanggung_jawab' => 'PT Warna Warni Media', 'bulan' => 'April', 'tahun' => 2024],
-            ['lokasi' => 'Taman Jalur Hijau di Jalan Diponegoro', 'penanggung_jawab' => 'Bank Jatim', 'bulan' => 'Juni', 'tahun' => 2024],
-            ['lokasi' => 'Taman Bungkul', 'penanggung_jawab' => 'Telkom Indonesia Regional 5', 'bulan' => 'Juli', 'tahun' => 2024],
-            ['lokasi' => 'Taman Kota Glampark Mozaik', 'penanggung_jawab' => 'Rotary Club Kaliasin Rotary Global Grant #GG2457789', 'bulan' => 'Agustus', 'tahun' => 2024],
-            ['lokasi' => 'Taman Jalur Hijau di Jalan Diponegoro', 'penanggung_jawab' => 'CV Standard Agency', 'bulan' => 'Oktober', 'tahun' => 2024],
-            ['lokasi' => 'Taman Jalur Hijau di Jalan Diponegoro', 'penanggung_jawab' => 'CV General Majesty', 'bulan' => 'November', 'tahun' => 2024],
-            ['lokasi' => 'Taman Jalur Hijau Jalan Mayjend Sungkono', 'penanggung_jawab' => 'CV Vision Media', 'bulan' => 'Desember', 'tahun' => 2024],
-            ['lokasi' => 'Taman/Jalur Hijau di Jalan Ahmad Yani', 'penanggung_jawab' => 'CV Sembilan Karya Anugerah Kemenangan', 'bulan' => 'Januari', 'tahun' => 2025],
-            ['lokasi' => 'Taman Jalur Hijau di Jalan Diponegoro', 'penanggung_jawab' => 'PT Wings Surya', 'bulan' => 'Februari', 'tahun' => 2025],
-            ['lokasi' => 'Taman/Jalur Hijau di Jalan HR. Muhammad', 'penanggung_jawab' => 'CV Tujuh Tujuh Bangkit Jaya', 'bulan' => 'Maret', 'tahun' => 2025],
-            ['lokasi' => 'Taman/Jalur Hijau di Jalan Bintang Diponggo', 'penanggung_jawab' => 'Gereja Bethel Indonesia Gibeon', 'bulan' => 'April', 'tahun' => 2025],
-            ['lokasi' => 'Taman/Jalur Hijau di Jalan HR. Muhammad', 'penanggung_jawab' => 'CV Tujuh Tujuh Bangkit Jaya', 'bulan' => 'Mei', 'tahun' => 2025],
-            ['lokasi' => 'Taman/Jalur Hijau di Jalan Blauran - Praban (Pos Polisi BG Junction)', 'penanggung_jawab' => 'PT Warna Warni Media', 'bulan' => 'Mei', 'tahun' => 2025],
-            ['lokasi' => 'Taman/Jalur Hijau di Jalan Urip Sumoharjo - Basuki Rahmat (Pos Polisi Karapan Sapi)', 'penanggung_jawab' => 'PT Warna Warni Media', 'bulan' => 'Mei', 'tahun' => 2025],
-        ]);
+        if (Schema::hasTable('rth_skema_csrs')) {
+            DB::table('rth_skema_csrs')->truncate();
+            DB::table('rth_skema_csrs')->insert([
+                ['lokasi' => 'Taman Jemursari (Air Mancur)', 'penanggung_jawab' => 'PT Adhi Kartika', 'bulan' => 'Januari', 'tahun' => 2024],
+                ['lokasi' => 'Taman Rotonde Mayangkara', 'penanggung_jawab' => 'PT Adhi Kartika', 'bulan' => 'Januari', 'tahun' => 2024],
+                ['lokasi' => 'Taman Jalur Hijau Jalan Mayjend Yonosoewoyo', 'penanggung_jawab' => 'CV Lentera Media', 'bulan' => 'Februari', 'tahun' => 2024],
+                ['lokasi' => 'Jalan Dr. Soetomo Pulau 1, Surabaya (Perempatan Traffic Light Darmo - Dr. Soetomo)', 'penanggung_jawab' => 'PT Warna Warni Media', 'bulan' => 'Maret', 'tahun' => 2024],
+                ['lokasi' => 'Jalan Tunjungan - Pahlawan (Pos Polisi di depan Siola)', 'penanggung_jawab' => 'PT Warna Warni Media', 'bulan' => 'Maret', 'tahun' => 2024],
+                ['lokasi' => 'Jalan Blauran - Praban (Pos Polisi di depan BG Junction)', 'penanggung_jawab' => 'PT Warna Warni Media', 'bulan' => 'Maret', 'tahun' => 2024],
+                ['lokasi' => 'Taman/Jalur Hijau di Jalan Urip Sumoharjo - Basuki Rahmat', 'penanggung_jawab' => 'PT Warna Warni Media', 'bulan' => 'April', 'tahun' => 2024],
+                ['lokasi' => 'Taman Jalur Hijau di Jalan Diponegoro', 'penanggung_jawab' => 'Bank Jatim', 'bulan' => 'Juni', 'tahun' => 2024],
+                ['lokasi' => 'Taman Bungkul', 'penanggung_jawab' => 'Telkom Indonesia Regional 5', 'bulan' => 'Juli', 'tahun' => 2024],
+                ['lokasi' => 'Taman Kota Glampark Mozaik', 'penanggung_jawab' => 'Rotary Club Kaliasin Rotary Global Grant #GG2457789', 'bulan' => 'Agustus', 'tahun' => 2024],
+                ['lokasi' => 'Taman Jalur Hijau di Jalan Diponegoro', 'penanggung_jawab' => 'CV Standard Agency', 'bulan' => 'Oktober', 'tahun' => 2024],
+                ['lokasi' => 'Taman Jalur Hijau di Jalan Diponegoro', 'penanggung_jawab' => 'CV General Majesty', 'bulan' => 'November', 'tahun' => 2024],
+                ['lokasi' => 'Taman Jalur Hijau Jalan Mayjend Sungkono', 'penanggung_jawab' => 'CV Vision Media', 'bulan' => 'Desember', 'tahun' => 2024],
+                ['lokasi' => 'Taman/Jalur Hijau di Jalan Ahmad Yani', 'penanggung_jawab' => 'CV Sembilan Karya Anugerah Kemenangan', 'bulan' => 'Januari', 'tahun' => 2025],
+                ['lokasi' => 'Taman Jalur Hijau di Jalan Diponegoro', 'penanggung_jawab' => 'PT Wings Surya', 'bulan' => 'Februari', 'tahun' => 2025],
+                ['lokasi' => 'Taman/Jalur Hijau di Jalan HR. Muhammad', 'penanggung_jawab' => 'CV Tujuh Tujuh Bangkit Jaya', 'bulan' => 'Maret', 'tahun' => 2025],
+                ['lokasi' => 'Taman/Jalur Hijau di Jalan Bintang Diponggo', 'penanggung_jawab' => 'Gereja Bethel Indonesia Gibeon', 'bulan' => 'April', 'tahun' => 2025],
+                ['lokasi' => 'Taman/Jalur Hijau di Jalan HR. Muhammad', 'penanggung_jawab' => 'CV Tujuh Tujuh Bangkit Jaya', 'bulan' => 'Mei', 'tahun' => 2025],
+                ['lokasi' => 'Taman/Jalur Hijau di Jalan Blauran - Praban (Pos Polisi BG Junction)', 'penanggung_jawab' => 'PT Warna Warni Media', 'bulan' => 'Mei', 'tahun' => 2025],
+                ['lokasi' => 'Taman/Jalur Hijau di Jalan Urip Sumoharjo - Basuki Rahmat (Pos Polisi Karapan Sapi)', 'penanggung_jawab' => 'PT Warna Warni Media', 'bulan' => 'Mei', 'tahun' => 2025],
+            ]);
+        }
     }
 }

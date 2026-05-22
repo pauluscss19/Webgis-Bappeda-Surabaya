@@ -9,6 +9,11 @@ class UjiUdaraSeeder extends Seeder
 {
     public function run(): void
     {
+        DB::table('uji_udara_ambien_particulate_counters')->truncate();
+        DB::table('uji_udara_passive_samplers')->truncate();
+        DB::table('sumur_pantaus')->truncate();
+        DB::table('spkuas')->truncate();
+
         // ============================================================
         // 1. TABLE: UJI UDARA AMBIEN PARTICULATE COUNTER (60 TITIK)
         // ============================================================

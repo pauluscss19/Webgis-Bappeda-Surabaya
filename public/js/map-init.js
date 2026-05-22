@@ -17,7 +17,8 @@ window.map = L.map('map', {
     wheelPxPerZoomLevel: 120,
     zoomSnap: 0.25,
     zoomDelta: 0.5,
-    worldCopyJump: true
+    worldCopyJump: true,
+    preferCanvas: true // Render semua garis vektor menggunakan HTML5 Canvas, bukan SVG DOM. Mengatasi freeze di layer 96MB!
 });
 
 // ── Zoom Control ──────────────────────────────────────────────

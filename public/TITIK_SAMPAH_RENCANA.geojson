@@ -1,0 +1,25 @@
+{
+"type": "FeatureCollection",
+"name": "TITIK_SAMPAH_RENCANA",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl taman kusuma bangsa (Sekitaran TMP kusuma bangsa sisi utara)", "Kelurahan": "Ketabang", "Kecamatan": "Genteng" }, "geometry": { "type": "Point", "coordinates": [ 112.749088135758896, -7.251900131618614 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Bantaran sungai penele", "Kelurahan": "Peneleh", "Kecamatan": "Genteng" }, "geometry": { "type": "Point", "coordinates": [ 112.741888091862933, -7.248832228401586 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl Gembong (selatan viaduck)", "Kelurahan": "Kapasari", "Kecamatan": "Genteng" }, "geometry": { "type": "Point", "coordinates": [ 112.747587395676376, -7.243816967123898 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl Gembong tebasan sisi selatan mendekati TL perempatan kapasari", "Kelurahan": "Kapasari", "Kecamatan": "Genteng" }, "geometry": { "type": "Point", "coordinates": [ 112.749729894092212, -7.245115962476199 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl kenjeran depan gang donorejo", "Kelurahan": "Kapasan", "Kecamatan": "Simokerto" }, "geometry": { "type": "Point", "coordinates": [ 112.755383493826997, -7.241614610491491 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Bantaran sungai penele depan jl lawang seketeng IV", "Kelurahan": "Peneleh", "Kecamatan": "Genteng" }, "geometry": { "type": "Point", "coordinates": [ 112.740878962609429, -7.249657533486025 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl pegirian (depan hotel kalimantan)", "Kelurahan": "Simolawang", "Kecamatan": "Simokerto" }, "geometry": { "type": "Point", "coordinates": [ 112.744474090243017, -7.231765033685047 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl johar mendekati per4an sulung", "Kelurahan": "Alon - alon Contong", "Kecamatan": "Bubutan" }, "geometry": { "type": "Point", "coordinates": [ 112.742213285025983, -7.245058923693822 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl dupak depan nomor 35", "Kelurahan": "Jepara", "Kecamatan": "Bubutan" }, "geometry": { "type": "Point", "coordinates": [ 112.729140427116576, -7.244969034747391 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl dupak (timur nya dupak perahu, barat nya dealer yamaha)", "Kelurahan": "Jepara", "Kecamatan": "Bubutan" }, "geometry": { "type": "Point", "coordinates": [ 112.728061936415727, -7.244903837515833 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl kalibutuh depan gedung succofindo", "Kelurahan": "Tembok Dukuh", "Kecamatan": "Bubutan" }, "geometry": { "type": "Point", "coordinates": [ 112.717193516273056, -7.254478370252629 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl Kembang kuning depan masjid Rahmat", "Kelurahan": "Darmo", "Kecamatan": "Wonokromo" }, "geometry": { "type": "Point", "coordinates": [ 112.72939919944983, -7.282090666864748 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl Kembang kuning pojok Pasar Pakis", "Kelurahan": "Darmo", "Kecamatan": "Wonokromo" }, "geometry": { "type": "Point", "coordinates": [ 112.730131954466671, -7.285480209067617 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl Demak selatan sisi barat depan AKS", "Kelurahan": "Tembok Dukuh", "Kecamatan": "Bubutan" }, "geometry": { "type": "Point", "coordinates": [ 112.72045992136988, -7.251951194290585 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl Sidotopo wetan", "Kelurahan": "Simokerto", "Kecamatan": "Simokerto" }, "geometry": { "type": "Point", "coordinates": [ 112.758114353408786, -7.237127811524386 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "jl Menur depan makam", "Kelurahan": "Mojo", "Kecamatan": "Gubeng" }, "geometry": { "type": "Point", "coordinates": [ 112.761237118374254, -7.272349426144062 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Bantaran kali tebu", "Kelurahan": "Sidotopo wetan", "Kecamatan": "Kenjeran" }, "geometry": { "type": "Point", "coordinates": [ 112.768239499732786, -7.223363876223945 ] } },
+{ "type": "Feature", "properties": { "Id": 0, "Keterangan": "Jl kapasari sisi barat depan persil 11", "Kelurahan": "Kapasari", "Kecamatan": "Genteng" }, "geometry": { "type": "Point", "coordinates": [ 112.7510648277961, -7.246615612253846 ] } }
+]
+}

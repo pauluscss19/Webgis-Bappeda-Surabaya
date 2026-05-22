@@ -266,6 +266,7 @@ function _buildLeafletLayer(data, layerKey, config) {
     };
 
     return L.geoJSON(data, {
+        interactive: layerKey !== 'JARINGAN_JALAN', // Mematikan mouse event untuk garis jalan agar super ringan!
         pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
             radius: 6, fillColor: config.color, fillOpacity: 1,
             color: '#ffffff', weight: 1.5, opacity: 1, stroke: true
@@ -375,36 +376,49 @@ function toggleSurabayaMask(show = true) {
 
         if (!geoJsonStore['KECAMATAN']) return;
 
-        const worldPolygon = {
+        // Bikin Polygon dunia sebagai exterior ring, lalu masukkan semua exterior ring kecamatan sebagai interior ring (lubang)
+        const worldCoords = [
+            [[-180, -90], [-180, 90], [180, 90], [180, -90], [-180, -90]]
+        ];
+
+        geoJsonStore['KECAMATAN'].features.forEach(feature => {
+            if (!feature.geometry) return;
+            const type = feature.geometry.type;
+            const coords = feature.geometry.coordinates;
+
+            if (type === 'Polygon') {
+                // coords[0] adalah exterior ring dari polygon tersebut
+                worldCoords.push(coords[0]);
+            } else if (type === 'MultiPolygon') {
+                // Untuk MultiPolygon, kita iterasi setiap Polygon di dalamnya
+                coords.forEach(polyCoords => {
+                    worldCoords.push(polyCoords[0]);
+                });
+            }
+        });
+
+        const maskFeature = {
             type: 'Feature',
+            properties: {},
             geometry: {
                 type: 'Polygon',
-                coordinates: [[[-180,-90],[-180,90],[180,90],[180,-90],[-180,-90]]]
+                coordinates: worldCoords
             }
         };
 
-        let surabayaUnion = null;
-        geoJsonStore['KECAMATAN'].features.forEach(feature => {
-            if (!feature.geometry) return;
-            const geoms = feature.geometry.type === 'MultiPolygon'
-                ? feature.geometry.coordinates.map(c => turf.polygon(c))
-                : [turf.polygon(feature.geometry.coordinates)];
-            geoms.forEach(poly => {
-                surabayaUnion = surabayaUnion ? turf.union(surabayaUnion, poly) : poly;
-            });
+        const maskLayer = L.geoJSON(maskFeature, {
+            style: { 
+                fillColor: '#f0f0f0', 
+                fillOpacity: 0.8, 
+                color: 'transparent', // Tanpa border agar tidak memunculkan garis batas antar-kecamatan
+                weight: 0, 
+                interactive: false 
+            }
         });
 
-        if (surabayaUnion) {
-            const maskArea = turf.difference(worldPolygon, surabayaUnion);
-            if (maskArea) {
-                const maskLayer = L.geoJSON(maskArea, {
-                    style: { fillColor: '#f0f0f0', fillOpacity: 0.8, color: '#999', weight: 1, interactive: false }
-                });
-                mapLayers['SURABAYA_MASK'] = maskLayer;
-                maskLayer.addTo(map);
-                maskLayer.bringToBack();
-            }
-        }
+        mapLayers['SURABAYA_MASK'] = maskLayer;
+        maskLayer.addTo(map);
+        maskLayer.bringToBack();
     } catch (error) {
         console.warn('Mask error:', error);
     }

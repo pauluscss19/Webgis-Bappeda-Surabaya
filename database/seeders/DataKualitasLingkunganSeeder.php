@@ -9,6 +9,8 @@ class DataKualitasLingkunganSeeder extends Seeder
 {
     public function run(): void
     {
+        DB::table('data_kualitas_lingkungan')->truncate();
+
         $data = [
             ['lokasi' => 'Sungai Kalimas', 'kecamatan' => 'Genteng', 'jenis_uji' => 'air_sungai', 'parameter' => 'BOD', 'nilai' => 4.2, 'satuan' => 'mg/L', 'baku' => 6.0, 'status' => 'memenuhi'],
             ['lokasi' => 'Sungai Kalimas', 'kecamatan' => 'Genteng', 'jenis_uji' => 'air_sungai', 'parameter' => 'COD', 'nilai' => 22.5, 'satuan' => 'mg/L', 'baku' => 50.0, 'status' => 'memenuhi'],

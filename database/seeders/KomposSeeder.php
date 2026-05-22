@@ -39,6 +39,7 @@ class KomposSeeder extends Seeder
             ['lokasi' => 'NGINDEN', 'bahan_masuk_2025' => 2.10, 'diolah_selain_kompos_2025' => 0.64, 'diolah_untuk_kompos_2025' => 1.46, 'hasil_produksi_2025' => 0.22, 'bahan_masuk_2024' => 1.36, 'diolah_selain_kompos_2024' => 0.40, 'diolah_untuk_kompos_2024' => 0.96, 'hasil_produksi_2024' => 0.11],
         ];
 
+        DB::table('kompos_lokasi')->truncate();
         DB::table('kompos_lokasi')->insert($data);
     }
 }

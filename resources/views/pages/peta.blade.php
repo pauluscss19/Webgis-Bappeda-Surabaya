@@ -290,15 +290,24 @@
 
     {{-- Banner ──────────────────────────────────────────────────── --}}
     <section class="peta-banner">
-        <div class="peta-banner__inner">
-            <div class="peta-banner__icon">
-                <img src="{{ asset('images/icon-peta.jpg') }}" alt="Icon Peta"
-                     onerror="this.style.display='none'">
+        <div class="peta-banner__inner" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+            <div style="display:flex; align-items:center; gap:20px;">
+                <div class="peta-banner__icon" style="margin:0;">
+                    <img src="{{ asset('images/icon-peta.jpg') }}" alt="Icon Peta"
+                         onerror="this.style.display='none'">
+                </div>
+                <div class="peta-banner__text" style="margin:0;">
+                    <h1 class="peta-banner__title">Peta Pembangunan</h1>
+                    <p class="peta-banner__subtitle">Peta Tematik Kota Surabaya</p>
+                </div>
             </div>
-            <div class="peta-banner__text">
-                <h1 class="peta-banner__title">Peta Pembangunan</h1>
-                <p class="peta-banner__subtitle">Peta Tematik Kota Surabaya</p>
+            @auth
+            <div>
+                <a href="{{ route('custom-layers.index') }}" style="background:rgba(255,255,255,0.15); color:#fff; border:1.5px solid #fff; padding:7px 16px; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600; display:flex; align-items:center; gap:6px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); box-shadow:0 4px 6px rgba(0,0,0,0.1); transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='none';">
+                    <i class="bi bi-layers"></i> Kelola Layer Peta
+                </a>
             </div>
+            @endauth
         </div>
     </section>
 
@@ -411,7 +420,7 @@
                             <span><i class="bi bi-broadcast-pin"></i> Infrastruktur</span>
                             <i class="bi bi-chevron-down toggle-icon"></i>
                         </div>
-                        <div class="layer-group-content">
+                        <div class="layer-group-content" id="group-content-infrastruktur">
                             <label class="layer-item">
                                 <input type="checkbox" class="layer-toggle me-2" data-layer="CCTV_EKSISTING">
                                 <span class="layer-color" style="background:#B153D7;"></span>
@@ -451,7 +460,7 @@
                             <span><i class="bi bi-mortarboard-fill"></i> Pendidikan</span>
                             <i class="bi bi-chevron-down toggle-icon"></i>
                         </div>
-                        <div class="layer-group-content">
+                        <div class="layer-group-content" id="group-content-pendidikan">
                             <label class="layer-item">
                                 <input type="checkbox" class="layer-toggle me-2" data-layer="PAUD">
                                 <span class="layer-color" style="background:#ec4899;"></span>
@@ -476,7 +485,7 @@
                             <span><i class="bi bi-recycle"></i> Persampahan &amp; Lingkungan</span>
                             <i class="bi bi-chevron-down toggle-icon"></i>
                         </div>
-                        <div class="layer-group-content">
+                        <div class="layer-group-content" id="group-content-persampahan">
                             <label class="layer-item">
                                 <input type="checkbox" class="layer-toggle me-2" data-layer="TPS3R">
                                 <span class="layer-color" style="background:#10b981;"></span>
@@ -521,7 +530,7 @@
                             <span><i class="bi bi-buildings-fill"></i> Fasilitas Umum</span>
                             <i class="bi bi-chevron-down toggle-icon"></i>
                         </div>
-                        <div class="layer-group-content">
+                        <div class="layer-group-content" id="group-content-fasilitas">
                             <label class="layer-item">
                                 <input type="checkbox" class="layer-toggle me-2" data-layer="DEKORASI_KOTA">
                                 <span class="layer-color" style="background:#fb923c;"></span>
@@ -536,7 +545,7 @@
                             <span><i class="bi bi-people-fill"></i> Demografi</span>
                             <i class="bi bi-chevron-down toggle-icon"></i>
                         </div>
-                        <div class="layer-group-content">
+                        <div class="layer-group-content" id="group-content-demografi">
                             <label class="layer-item">
                                 <input type="checkbox" class="layer-toggle me-2" data-layer="KEPADATAN_PENDUDUK">
                                 <span class="layer-color" style="background:transparent; border:2px solid #8b5cf6;"></span>
@@ -551,7 +560,7 @@
                             <span><i class="bi bi-droplet-fill"></i> Pompa &amp; Saluran Air</span>
                             <i class="bi bi-chevron-down toggle-icon"></i>
                         </div>
-                        <div class="layer-group-content">
+                        <div class="layer-group-content" id="group-content-pompa_saluran">
                             <label class="layer-item">
                                 <input type="checkbox" class="layer-toggle me-2" data-layer="AREA_RAYON">
                                 <span class="layer-color" style="background:#0d9488;"></span>
@@ -581,6 +590,7 @@
                     </div>
 
                     <hr style="border-top:1px dashed #cbd5e1; margin:15px 0;">
+
 
                     {{-- ─────────────────────────────────────────
                          ANALISIS
@@ -630,6 +640,33 @@
                                     <label>Target Rekomendasi (Titik):</label>
                                     <input type="number" id="cluster-count" class="form-control"
                                            value="3" min="1" max="10">
+                                </div>
+
+                                {{-- Opsi Pembobotan MCE (Sembunyi dari Peta) --}}
+                                <div class="form-group" style="margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+                                    <label style="font-weight:600; color:#475569; margin-bottom:8px; display:block; font-size:11px;">
+                                        Opsi Analisis Kesesuaian Lahan (MCE)
+                                    </label>
+                                    <div style="display:flex; flex-direction:column; gap:8px;">
+                                        <label style="display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer; color:#334155;">
+                                            <input type="checkbox" id="mce-kepadatan" onchange="silentLoadData('KEPADATAN_PENDUDUK', this.checked)">
+                                            <span>Bobot Kepadatan Penduduk (Demand)</span>
+                                        </label>
+                                        <label style="display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer; color:#334155;">
+                                            <input type="checkbox" id="mce-jalan" onchange="silentLoadData('JARINGAN_JALAN', this.checked)">
+                                            <span>Snap ke Jaringan Jalan (Aksesibilitas)</span>
+                                        </label>
+                                        <label style="display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer; color:#334155;">
+                                            <input type="checkbox" id="mce-demografi" onchange="loadDemografiData(this.checked)">
+                                            <span>📊 Data Demografi RW (KK & Jiwa)</span>
+                                        </label>
+                                    </div>
+                                    <div id="mce-status" style="font-size:10px; color:#f59e0b; margin-top:8px; display:none; font-weight:600;">
+                                        <i class="bi bi-hourglass-split"></i> Memuat data di latar belakang...
+                                    </div>
+                                    <div id="mce-demografi-info" style="font-size:10px; color:#059669; margin-top:6px; display:none; font-weight:600;">
+                                        <i class="bi bi-check-circle-fill"></i> <span id="mce-demografi-count">0</span> kelurahan data demografi dimuat
+                                    </div>
                                 </div>
 
                                 {{-- Tombol Rekomendasi --}}
@@ -1004,10 +1041,89 @@
 <script src="{{ asset('js/search-bar.js') }}"></script>
 <script src="{{ asset('js/main.js') }}"></script>
 <script>
-    // Inisialisasi search bar setelah semua script siap
+    // ════════════════════════════════════════════════════
+    // CUSTOM LAYERS — Load dari API & render di sidebar
+    // ════════════════════════════════════════════════════
+    async function initCustomLayers() {
+        try {
+            const response = await fetch('/api/custom-layers');
+            const data     = await response.json();
+            const layers   = data.layers || [];
+
+            layers.forEach(function(layer) {
+                // Register ke layerConfig agar loadLayer() & AI Analisis bisa bekerja
+                layerConfig[layer.layer_key] = {
+                    file:       '', // tidak pakai file, pakai API
+                    color:      layer.color,
+                    label:      layer.name,
+                    group:      layer.category,
+                    nameField:  'Name',
+                    isLine:     layer.geometry_type === 'line',
+                    isPolygon:  layer.geometry_type === 'polygon',
+                    isBoundary: false,
+                    isChloropleth: false,
+                };
+
+                // Tentukan style warna berdasarkan geometry type
+                let colorStyle = 'background:' + layer.color;
+                if (layer.geometry_type === 'line') {
+                    colorStyle = 'background:' + layer.color + '; width:20px; height:3px; border-radius:2px;';
+                } else if (layer.geometry_type === 'polygon') {
+                    colorStyle = 'background:transparent; border:2px solid ' + layer.color;
+                }
+
+                // Buat element label
+                const label = document.createElement('label');
+                label.className = 'layer-item';
+                label.innerHTML = '<input type="checkbox" class="layer-toggle me-2" data-layer="' + layer.layer_key + '">'
+                    + '<span class="layer-color" style="' + colorStyle + '"></span>'
+                    + '<span style="font-size:14px;">' + layer.name
+                    + ' <span style="font-size:10px;color:#94a3b8">(' + layer.feature_count + ')</span>'
+                    + '</span>';
+
+                // Cari container kategori
+                const container = document.getElementById('group-content-' + layer.category);
+                if (container) {
+                    container.appendChild(label);
+
+                    // Pasang event listener untuk checkbox custom layer
+                    const checkbox = label.querySelector('.layer-toggle');
+                    checkbox.addEventListener('change', async function() {
+                        const layerKey = this.getAttribute('data-layer');
+                        if (this.checked) {
+                            try {
+                                await loadLayer(layerKey);
+                                if (mapLayers[layerKey]) mapLayers[layerKey].addTo(map);
+                            } catch(err) {
+                                console.error('Gagal memuat custom layer:', err);
+                                this.checked = false;
+                            }
+                        } else {
+                            if (mapLayers[layerKey] && map.hasLayer(mapLayers[layerKey])) {
+                                map.removeLayer(mapLayers[layerKey]);
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Refresh list sumber data di AI Analisis
+            if (typeof populateAnalysisSources === 'function') {
+                populateAnalysisSources();
+            }
+
+        } catch(err) {
+            console.warn('Gagal memuat custom layers:', err);
+        }
+    }
+
+    // Inisialisasi search bar & custom layers setelah semua script siap
     document.addEventListener('DOMContentLoaded', function() {
         // Tunggu map & layer siap
-        setTimeout(initSearchBar, 800);
+        setTimeout(function() {
+            initSearchBar();
+            initCustomLayers();
+        }, 800);
     });
 </script>
 

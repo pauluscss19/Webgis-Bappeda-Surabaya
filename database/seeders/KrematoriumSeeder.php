@@ -9,6 +9,10 @@ class KrematoriumSeeder extends Seeder
 {
     public function run(): void
     {
+        DB::table('kompor_krematoriums')->truncate();
+        DB::table('catatan_jabatan_krematoriums')->truncate();
+        DB::table('pegawai_krematoriums')->truncate();
+
         // 1. Data Kompor
         DB::table('kompor_krematoriums')->insert([
             ['jumlah' => 5, 'kondisi' => 'Bisa Digunakan', 'keterangan' => 'Bisa Diperbaiki'],

@@ -2,6 +2,92 @@
 // ANALYSIS.JS - Fungsi Analisis (Clustering & Heatmap)
 // ============================================================
 
+// ── Cache data demografi dari database ──────────────────────
+let _demografiCache = null; // { data: [...], kelurahanMap: { 'KEL_NAME': {total_kk, total_jiwa, kecamatan} } }
+
+/**
+ * Memuat data demografi per kelurahan dari API /api/demografi.
+ * Dipanggil saat checkbox 'mce-demografi' dicentang.
+ */
+async function loadDemografiData(isChecked) {
+    if (!isChecked) return;
+    if (_demografiCache) return; // Sudah di-cache
+
+    const statusDiv = document.getElementById('mce-status');
+    const infoDiv = document.getElementById('mce-demografi-info');
+    if (statusDiv) statusDiv.style.display = 'block';
+
+    try {
+        const response = await fetch('/api/demografi');
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const json = await response.json();
+
+        // Bangun lookup map berdasarkan nama kelurahan (uppercase)
+        const kelurahanMap = {};
+        (json.data || []).forEach(function(row) {
+            const key = (row.kelurahan || '').toUpperCase().trim();
+            kelurahanMap[key] = {
+                kecamatan: (row.kecamatan || '').toUpperCase().trim(),
+                total_kk: parseInt(row.total_kk) || 0,
+                total_jiwa: parseInt(row.total_jiwa) || 0,
+                jumlah_rw: parseInt(row.jumlah_rw) || 0
+            };
+        });
+
+        _demografiCache = { data: json.data, kelurahanMap: kelurahanMap };
+
+        if (infoDiv) {
+            document.getElementById('mce-demografi-count').textContent = Object.keys(kelurahanMap).length;
+            infoDiv.style.display = 'block';
+        }
+
+        console.log('📊 Data demografi dimuat:', Object.keys(kelurahanMap).length, 'kelurahan');
+
+        // Juga muat layer KELURAHAN jika belum (untuk spatial matching)
+        if (!geoJsonStore['KELURAHAN']) {
+            await loadLayer('KELURAHAN');
+        }
+
+    } catch (e) {
+        console.error('Gagal memuat data demografi:', e);
+        alert('Gagal memuat data demografi dari server.');
+    } finally {
+        if (statusDiv) statusDiv.style.display = 'none';
+    }
+}
+
+/**
+ * Cari data demografi untuk sebuah titik berdasarkan kelurahan polygon.
+ * Returns { kelurahan, kecamatan, total_kk, total_jiwa } atau null.
+ */
+function getDemografiForPoint(pt) {
+    if (!_demografiCache || !_demografiCache.kelurahanMap) return null;
+    const kelLayer = geoJsonStore['KELURAHAN'];
+    if (!kelLayer || !kelLayer.features) return null;
+
+    for (let feat of kelLayer.features) {
+        try {
+            if (turf.booleanPointInPolygon(pt, feat)) {
+                // Ambil nama kelurahan dari properties
+                const props = feat.properties || {};
+                const kelName = (props.K || props.KELURAHAN || props.Name || props.name || '').toUpperCase().trim();
+                const match = _demografiCache.kelurahanMap[kelName];
+                if (match) {
+                    return {
+                        kelurahan: kelName,
+                        kecamatan: match.kecamatan,
+                        total_kk: match.total_kk,
+                        total_jiwa: match.total_jiwa,
+                        jumlah_rw: match.jumlah_rw
+                    };
+                }
+                return null;
+            }
+        } catch(e) {}
+    }
+    return null;
+}
+
 // ============================================================
 // POPULATE SUMBER DATA ANALISIS SECARA DINAMIS
 // Membaca layerConfig dan mengisi checkbox analisis otomatis
@@ -34,7 +120,10 @@ function populateAnalysisSources() {
         pendidikan:    'Pendidikan',
         persampahan:   'Persampahan & Lingkungan',
         fasilitas:     'Fasilitas Umum',
-        pompa_saluran: 'Pompa & Saluran Air'
+        demografi:     'Demografi',
+        pompa_saluran: 'Pompa & Saluran Air',
+        custom:        'Custom Layers',
+        lainnya:       'Lainnya'
     };
 
     const GROUP_ICONS = {
@@ -42,7 +131,10 @@ function populateAnalysisSources() {
         pendidikan:    'bi-mortarboard-fill',
         persampahan:   'bi-recycle',
         fasilitas:     'bi-buildings-fill',
-        pompa_saluran: 'bi-droplet-fill'
+        demografi:     'bi-people-fill',
+        pompa_saluran: 'bi-droplet-fill',
+        custom:        'bi-layers-fill',
+        lainnya:       'bi-folder-fill'
     };
 
     // Kumpulkan layer per grup
@@ -51,7 +143,7 @@ function populateAnalysisSources() {
         const cfg = layerConfig[key];
         if (EXCLUDED_KEYS.includes(key)) return;
         if (cfg.isBoundary) return;
-        if (cfg.isLine && !cfg.isPolygon) return;
+        if (cfg.isLine && !cfg.isPolygon) return; // Point dan Polygon yang masuk
         const grp = GROUP_OVERRIDE[key] || cfg.group || 'lainnya';
         if (!grouped[grp]) grouped[grp] = [];
         grouped[grp].push({ key: key, cfg: cfg });
@@ -60,7 +152,12 @@ function populateAnalysisSources() {
     container.innerHTML = '';
 
     // Urutan grup sama dengan urutan di layer data blade
-    const groupOrder = ['infrastruktur', 'pendidikan', 'persampahan', 'fasilitas', 'pompa_saluran', 'lainnya'];
+    const groupOrder = ['infrastruktur', 'pendidikan', 'persampahan', 'fasilitas', 'demografi', 'pompa_saluran', 'custom', 'lainnya'];
+
+    // Pastikan grup yang tidak ada di groupOrder (seperti grup custom yang aneh) juga dimuat di akhir
+    Object.keys(grouped).forEach(grp => {
+        if (!groupOrder.includes(grp)) groupOrder.push(grp);
+    });
 
     groupOrder.forEach(function(grp) {
         if (!grouped[grp] || grouped[grp].length === 0) return;
@@ -132,6 +229,28 @@ function toggleAllAnalysisSources(checked) {
 }
 
 /**
+ * Memuat data spasial ke memori (Background) khusus untuk AI Analisis 
+ * tanpa me-render visual layer tersebut ke dalam peta agar browser tidak berat.
+ */
+async function silentLoadData(layerKey, isChecked) {
+    if (!isChecked) return; // Jika dimatikan, biarkan data tetap di cache memori
+    
+    if (geoJsonStore[layerKey]) return; // Jika sudah ada, langsung selesai
+    
+    const statusDiv = document.getElementById('mce-status');
+    if (statusDiv) statusDiv.style.display = 'block';
+    
+    try {
+        await loadLayer(layerKey);
+    } catch (e) {
+        console.error(`Gagal silent-load ${layerKey}:`, e);
+        alert(`Gagal memuat data ${layerKey} untuk analisis.`);
+    } finally {
+        if (statusDiv) statusDiv.style.display = 'none';
+    }
+}
+
+/**
  * Dipanggil setelah semua layer selesai dimuat — refresh badge count di analisis
  */
 function refreshAnalysisSourceCounts() {
@@ -181,12 +300,40 @@ function runClustering() {
         try {
             let allFeatures = [];
             
+            // Cek apakah ada filter wilayah yang aktif
+            const activeRegion = (window.FilterWilayah && window.FilterWilayah.isFilterActive()) 
+                ? window.FilterWilayah.getActiveFeature() 
+                : null;
+            
+            // Konversi region ke polygon turf jika ada
+            let regionPoly = null;
+            if (activeRegion) {
+                try {
+                    if (activeRegion.geometry.type === 'Polygon') {
+                        regionPoly = turf.polygon(activeRegion.geometry.coordinates);
+                    } else if (activeRegion.geometry.type === 'MultiPolygon') {
+                        regionPoly = turf.multiPolygon(activeRegion.geometry.coordinates);
+                    }
+                } catch(e) { console.warn("Invalid active region geometry", e); }
+            }
+            
             selectedCheckboxes.forEach(cb => {
                 const key = cb.value;
                 if (geoJsonStore[key] && geoJsonStore[key].features) {
-                    const pointFeatures = geoJsonStore[key].features.filter(f => 
+                    let pointFeatures = geoJsonStore[key].features.filter(f => 
                         f.geometry.type === 'Point'
                     );
+                    
+                    // Filter berdasarkan wilayah aktif jika ada
+                    if (regionPoly) {
+                        pointFeatures = pointFeatures.filter(f => {
+                            try {
+                                const pt = turf.point(f.geometry.coordinates);
+                                return turf.booleanPointInPolygon(pt, regionPoly);
+                            } catch(e) { return false; }
+                        });
+                    }
+                    
                     allFeatures = allFeatures.concat(pointFeatures);
                 }
             });
@@ -196,93 +343,280 @@ function runClustering() {
             }
 
             const combinedPoints = turf.featureCollection(allFeatures);
-            const clustered = turf.clustersKmeans(combinedPoints, { numberOfClusters: k });
 
-            const clusterGroups = {};
-            turf.featureEach(clustered, (feature) => {
-                const clusterId = feature.properties.cluster;
-                if (!clusterGroups[clusterId]) clusterGroups[clusterId] = [];
-                clusterGroups[clusterId].push(feature);
+            // ==========================================
+            // LOGIKA BARU: BLANK SPOT / SUITABILITY ANALYSIS
+            // Mencari lokasi yang paling jauh dari fasilitas eksisting
+            // ==========================================
+            
+            // 1. Tentukan area pencarian (Bbox dari Region atau seluruh Surabaya)
+            let searchBounds;
+            let maskPolygons = [];
+            
+            if (regionPoly) {
+                searchBounds = turf.bbox(regionPoly);
+                maskPolygons.push(regionPoly);
+            } else if (geoJsonStore['KECAMATAN'] && geoJsonStore['KECAMATAN'].features) {
+                // Jika tidak difilter, batasi hanya di wilayah Surabaya (berdasarkan layer Kecamatan)
+                searchBounds = turf.bbox(geoJsonStore['KECAMATAN']);
+                geoJsonStore['KECAMATAN'].features.forEach(f => {
+                    try {
+                        if (f.geometry.type === 'Polygon') maskPolygons.push(turf.polygon(f.geometry.coordinates));
+                        else if (f.geometry.type === 'MultiPolygon') maskPolygons.push(turf.multiPolygon(f.geometry.coordinates));
+                    } catch(e) {}
+                });
+            } else {
+                searchBounds = turf.bbox(combinedPoints);
+            }
+            // 2. Buat titik-titik kandidat (Gunakan Jaringan Jalan jika tersedia agar pasti ada akses!)
+            const widthKm = turf.distance(turf.point([searchBounds[0], searchBounds[1]]), turf.point([searchBounds[2], searchBounds[1]]));
+            const heightKm = turf.distance(turf.point([searchBounds[0], searchBounds[1]]), turf.point([searchBounds[0], searchBounds[3]]));
+            const cellSize = Math.max(0.3, Math.sqrt((widthKm * heightKm) / 800)); // Sekitar 800 titik grid
+            
+            const useJalan = document.getElementById('mce-jalan') && document.getElementById('mce-jalan').checked;
+            const jalanLayer = useJalan ? geoJsonStore['JARINGAN_JALAN'] : null;
+            let grid;
+            if (jalanLayer && jalanLayer.features) {
+                // Ekstrak titik-titik tengah dari ruas jalan yang ada di dalam area pencarian
+                const searchPoly = turf.bboxPolygon(searchBounds);
+                const roadCandidates = [];
+                
+                jalanLayer.features.forEach(feat => {
+                    try {
+                        if (feat.geometry && (feat.geometry.type === 'LineString' || feat.geometry.type === 'MultiLineString')) {
+                            // Cek apakah ruas jalan ini masuk di area pencarian
+                            if (turf.booleanIntersects(searchPoly, feat)) {
+                                const midPt = turf.center(feat);
+                                midPt.properties.sourceRoad = feat; // Simpan ruas jalannya sekalian
+                                roadCandidates.push(midPt);
+                            }
+                        }
+                    } catch(e) {}
+                });
+                
+                // Ambil sampel maksimal ~800 titik agar browser tidak hang
+                const step = Math.max(1, Math.floor(roadCandidates.length / 800));
+                const sampledGrid = [];
+                for (let i = 0; i < roadCandidates.length; i += step) {
+                    sampledGrid.push(roadCandidates[i]);
+                }
+                grid = turf.featureCollection(sampledGrid);
+                
+            } else {
+                // Fallback ke Grid Biasa jika layer jalan tidak dimuat
+                grid = turf.pointGrid(searchBounds, cellSize, {units: 'kilometers'});
+    
+                // Hapus titik grid yang jatuh di luar daratan/batas Surabaya
+                if (maskPolygons.length > 0) {
+                    const filteredGrid = [];
+                    turf.featureEach(grid, function(pt) {
+                        let inside = false;
+                        for (let poly of maskPolygons) {
+                            if (turf.booleanPointInPolygon(pt, poly)) {
+                                inside = true; break;
+                            }
+                        }
+                        if (inside) filteredGrid.push(pt);
+                    });
+                    if (filteredGrid.length > 0) {
+                        grid = turf.featureCollection(filteredGrid);
+                    }
+                }
+            }
+
+            // 3. Persiapkan layer penimbang (Kepadatan Penduduk)
+            const useKepadatan = document.getElementById('mce-kepadatan') && document.getElementById('mce-kepadatan').checked;
+            const popLayer = useKepadatan ? geoJsonStore['KEPADATAN_PENDUDUK'] : null;
+            let maxDensity = 1;
+            if (popLayer && popLayer.features) {
+                maxDensity = Math.max(...popLayer.features.map(f => f.properties.DENSITY || 1));
+            }
+
+            // 3b. Persiapkan data demografi RW (dari database)
+            const useDemografi = document.getElementById('mce-demografi') && document.getElementById('mce-demografi').checked;
+            const demografiAvailable = useDemografi && _demografiCache && _demografiCache.kelurahanMap;
+            let maxJiwa = 1;
+            if (demografiAvailable) {
+                const allJiwa = Object.values(_demografiCache.kelurahanMap).map(d => d.total_jiwa);
+                maxJiwa = Math.max(...allJiwa, 1);
+            }
+            
+            // Hitung pusat peradaban (pusat geometri dari semua fasilitas eksisting)
+            const centerOfMass = turf.center(combinedPoints);
+
+            // 4. Hitung skor gabungan tiap titik kandidat
+            let candidates = [];
+            turf.featureEach(grid, function(pt) {
+                const nearest = turf.nearestPoint(pt, combinedPoints);
+                const distance = turf.distance(pt, nearest, {units: 'kilometers'});
+                pt.properties.nearestDist = distance;
+                
+                // Hitung jarak ke pusat kota/peradaban
+                const distToCenter = turf.distance(pt, centerOfMass, {units: 'kilometers'});
+                
+                let densityScore = 0.5; // Skor standar jika data penduduk tidak di-load
+                let actualDensity = 0;
+                
+                if (popLayer && popLayer.features) {
+                    for (let poly of popLayer.features) {
+                        try {
+                            if (turf.booleanPointInPolygon(pt, poly)) {
+                                actualDensity = poly.properties.DENSITY || 0;
+                                densityScore = (actualDensity / maxDensity) || 0;
+                                break;
+                            }
+                        } catch(e) {}
+                    }
+                }
+                
+                pt.properties.density = actualDensity;
+
+                // 4b. Lookup data demografi RW untuk titik ini
+                let demografiScore = 0.5;
+                let demografiData = null;
+                if (demografiAvailable) {
+                    demografiData = getDemografiForPoint(pt);
+                    if (demografiData) {
+                        demografiScore = (demografiData.total_jiwa / maxJiwa) || 0;
+                        pt.properties.demografi = demografiData;
+                    }
+                }
+                
+                // MCE (Multi-Criteria Evaluation): 
+                // 1. Kekosongan (Jarak terjauh dari fasilitas terdekat) = Positif
+                // 2. Pusat Kota (Jarak ke tengah-tengah kota) = Negatif (Pinalti agar tidak di ujung laut/tambak)
+                // 3. Kepadatan Penduduk = Positif (Pengali)
+                // 4. Data Demografi RW (Jumlah KK & Jiwa) = Positif (Pengali tambahan)
+                
+                let baseScore = distance - (distToCenter * 0.15); // Pinalti ringan untuk pinggiran
+                baseScore = Math.max(0, baseScore); // Pastikan tidak negatif
+                
+                // Hitung pengali populasi (gabungan kepadatan + demografi jika keduanya aktif)
+                let populationMultiplier = 1.0;
+                let hasAnyPopData = false;
+                
+                if (popLayer) {
+                    populationMultiplier = 0.3 + (densityScore * 0.7);
+                    hasAnyPopData = true;
+                }
+                
+                if (demografiAvailable && demografiData) {
+                    const demoMultiplier = 0.3 + (demografiScore * 0.7);
+                    if (hasAnyPopData) {
+                        // Gabungkan kedua skor (rata-rata tertimbang)
+                        populationMultiplier = (populationMultiplier * 0.5) + (demoMultiplier * 0.5);
+                    } else {
+                        populationMultiplier = demoMultiplier;
+                        hasAnyPopData = true;
+                    }
+                }
+                
+                if (hasAnyPopData) {
+                    pt.properties.finalScore = baseScore * populationMultiplier;
+                } else {
+                    // Jika tidak ada data penduduk, berikan pinalti pinggiran lebih berat (0.3) agar aman
+                    pt.properties.finalScore = Math.max(0, distance - (distToCenter * 0.3));
+                }
+                
+                candidates.push(pt);
             });
 
+            // 5. Urutkan dari Skor Kesesuaian Lahan tertinggi
+            candidates.sort((a, b) => b.properties.finalScore - a.properties.finalScore);
+
+            // 6. Ambil Top K titik rekomendasi yang tidak saling berdekatan
+            const minSpacing = cellSize * 2.5; 
+            const topSpots = [];
+            for (let i = 0; i < candidates.length && topSpots.length < k; i++) {
+                const cand = candidates[i];
+                let tooClose = false;
+                for (let j = 0; j < topSpots.length; j++) {
+                    if (turf.distance(cand, topSpots[j], {units: 'kilometers'}) < minSpacing) {
+                        tooClose = true; break;
+                    }
+                }
+                if (!tooClose) topSpots.push(cand);
+            }
+
+            // 7. Snap titik rekomendasi ke Jaringan Jalan terdekat (Jika Layer Jalan Dimuat)
+            let snappedToRoad = false;
+            
+            if (jalanLayer && jalanLayer.features) {
+                snappedToRoad = true;
+                topSpots.forEach((spot) => {
+                    const searchBuffer = turf.buffer(spot, 1.5, {units: 'kilometers'});
+                    const nearbyLines = [];
+                    
+                    // Filter ruas jalan yang ada di sekitar radius rekomendasi
+                    jalanLayer.features.forEach(feat => {
+                        try {
+                            if (feat.geometry && (feat.geometry.type === 'LineString' || feat.geometry.type === 'MultiLineString')) {
+                                if (turf.booleanIntersects(searchBuffer, feat)) {
+                                    nearbyLines.push(feat);
+                                }
+                            }
+                        } catch(e) {}
+                    });
+                    
+                    if (nearbyLines.length > 0) {
+                        const localLines = turf.featureCollection(nearbyLines);
+                        try {
+                            // Cari titik koordinat paling presisi yang menempel di ruas jalan
+                            const snapped = turf.nearestPointOnLine(localLines, spot, {units: 'kilometers'});
+                            if (snapped) {
+                                spot.geometry = snapped.geometry; // Pindahkan titik pusat rekomendasi persis ke jalan
+                                spot.properties.roadSegment = nearbyLines[snapped.properties.index]; // Simpan ruas jalannya
+                            }
+                        } catch(e) {}
+                    }
+                });
+            }
+
+            // 8. Format ke struktur yang siap di-render
             const clusterScores = [];
-            Object.keys(clusterGroups).forEach(clusterId => {
-                const clusterFeatures = turf.featureCollection(clusterGroups[clusterId]);
-                const center = turf.center(clusterFeatures);
-                const points = clusterGroups[clusterId];
+            const maxScore = topSpots.length > 0 ? topSpots[0].properties.finalScore : 1;
+            
+            topSpots.forEach((spot, idx) => {
+                const searchRadius = spot.properties.nearestDist * 1.8;
+                const nearbyPoints = allFeatures.filter(f => turf.distance(spot, f, {units: 'kilometers'}) <= searchRadius);
+                nearbyPoints.sort((a, b) => turf.distance(spot, a) - turf.distance(spot, b));
+                const spiderPoints = nearbyPoints.slice(0, 5);
                 
-                const pointCount = points.length;
-                
-                let totalDistance = 0;
-                points.forEach(point => {
-                    const distance = turf.distance(center, point, { units: 'kilometers' });
-                    totalDistance += distance;
-                });
-                const avgDistance = totalDistance / pointCount;
-                
-                const hull = turf.convex(clusterFeatures);
-                const area = hull ? turf.area(hull) / 1000000 : 0;
-                
-                const density = area > 0 ? pointCount / area : pointCount;
-                
-                const maxPoints = Math.max(...Object.keys(clusterGroups).map(id => clusterGroups[id].length));
-                const maxDensity = Math.max(...Object.keys(clusterGroups).map(id => {
-                    const cf = turf.featureCollection(clusterGroups[id]);
-                    const h = turf.convex(cf);
-                    const a = h ? turf.area(h) / 1000000 : 0;
-                    return a > 0 ? clusterGroups[id].length / a : clusterGroups[id].length;
-                }));
-                
-                const pointScore = (pointCount / maxPoints) * 40;
-                const distanceScore = (1 / (1 + avgDistance)) * 30;
-                const densityScore = (density / maxDensity) * 30;
-                
-                const totalScore = pointScore + distanceScore + densityScore;
-                
+                const score = (spot.properties.finalScore / maxScore) * 100;
+
                 clusterScores.push({
-                    clusterId: clusterId,
-                    center: center,
-                    points: points,
-                    pointCount: pointCount,
-                    avgDistance: avgDistance,
-                    area: area,
-                    density: density,
-                    score: totalScore,
-                    hull: hull
+                    rank: idx + 1,
+                    center: spot,
+                    points: spiderPoints,
+                    nearestDist: spot.properties.nearestDist,
+                    density: spot.properties.density,
+                    hasDensity: !!popLayer,
+                    demografi: spot.properties.demografi || null,
+                    hasDemografi: demografiAvailable,
+                    roadSegment: spot.properties.roadSegment,
+                    isRoadSnapped: snappedToRoad,
+                    score: score
                 });
             });
-
-            clusterScores.sort((a, b) => b.score - a.score);
 
             const recommendations = L.featureGroup();
             const boundaries = L.featureGroup();
 
-            clusterScores.forEach((cluster, index) => {
-                const rank = index + 1;
+            clusterScores.forEach((cluster) => {
+                const rank = cluster.rank;
                 const coord = cluster.center.geometry.coordinates;
                 
                 let rankBadgeClass = 'rank-other';
                 let rankIcon = `${rank}`;
                 let rankLabel = '';
                 
-                if (rank === 1) {
-                    rankBadgeClass = 'rank-1';
-                    rankIcon = 'Prioritas Utama';
-                    rankLabel = '(Ranking 1)';
-                } else if (rank === 2) {
-                    rankBadgeClass = 'rank-2';
-                    rankIcon = 'Prioritas Kedua';
-                    rankLabel = '(Ranking 2)';
-                } else if (rank === 3) {
-                    rankBadgeClass = 'rank-3';
-                    rankIcon = 'Prioritas Ketiga';
-                    rankLabel = '(Ranking 3)';
-                } else {
-                    rankLabel = `Ranking ${rank}`;
-                }
+                if (rank === 1) { rankBadgeClass = 'rank-1'; rankIcon = 'Prioritas Utama'; rankLabel = '(Ranking 1)'; }
+                else if (rank === 2) { rankBadgeClass = 'rank-2'; rankIcon = 'Prioritas Kedua'; rankLabel = '(Ranking 2)'; }
+                else if (rank === 3) { rankBadgeClass = 'rank-3'; rankIcon = 'Prioritas Ketiga'; rankLabel = '(Ranking 3)'; }
+                else { rankLabel = `Ranking ${rank}`; }
 
                 const popupContent = `
-                    <div style="min-width: 240px; font-family: sans-serif;">
+                    <div style="min-width: 250px; font-family: sans-serif;">
                         <div style="text-align: center; margin-bottom: 12px;">
                             <span class="${rankBadgeClass} rank-badge">
                                 ${rankIcon} ${rankLabel}
@@ -291,7 +625,7 @@ function runClustering() {
                         
                         <div style="border:1px solid #e2e8f0; padding:10px; border-radius:6px; margin-bottom:10px;">
                             <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:6px;">
-                                Skor Kelayakan
+                                Skor Kesesuaian Lahan (MCE)
                             </div>
                             <div style="font-size:16px; font-weight:700; color:#1e293b; text-align:center; margin-bottom:4px;">
                                 ${cluster.score.toFixed(1)} / 100
@@ -303,36 +637,64 @@ function runClustering() {
 
                         <div style="border:1px solid #e2e8f0; padding:10px; border-radius:6px; margin-bottom:10px;">
                             <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:8px;">
-                                Data Analisis
+                                Faktor Penentu (Kriteria)
                             </div>
                             
                             <div class="metric-item">
-                                <span class="metric-label">Jumlah Objek</span>
-                                <span class="metric-value">${cluster.pointCount} titik</span>
+                                <span class="metric-label">Kekosongan (Blank Spot)</span>
+                                <span class="metric-value">${(cluster.nearestDist * 1000).toFixed(0)} meter</span>
                             </div>
                             
+                            ${cluster.hasDensity ? `
                             <div class="metric-item">
-                                <span class="metric-label">Jarak Rata-rata</span>
-                                <span class="metric-value">${cluster.avgDistance.toFixed(2)} km</span>
+                                <span class="metric-label">Kepadatan Penduduk</span>
+                                <span class="metric-value">${cluster.density.toLocaleString('id-ID')} jiwa/km²</span>
                             </div>
+                            ` : `
+                            <div class="metric-item">
+                                <span class="metric-label">Kepadatan Penduduk</span>
+                                <span class="metric-value" style="color:#ef4444;font-size:10px;">Data tidak dimuat</span>
+                            </div>
+                            `}
                             
-                            <div class="metric-item">
-                                <span class="metric-label">Cakupan Area</span>
-                                <span class="metric-value">${cluster.area.toFixed(3)} km²</span>
+                            ${cluster.hasDemografi ? (cluster.demografi ? `
+                            <div class="metric-item" style="margin-top:6px; border-top:1px dashed #cbd5e1; padding-top:6px;">
+                                <span class="metric-label" style="color:#7c3aed"><i class="bi bi-people-fill"></i> Kelurahan</span>
+                                <span class="metric-value" style="color:#7c3aed; font-size:10px;">${cluster.demografi.kelurahan}</span>
                             </div>
-                            
                             <div class="metric-item">
-                                <span class="metric-label">Kepadatan</span>
-                                <span class="metric-value">${cluster.density.toFixed(1)} titik/km²</span>
+                                <span class="metric-label">Jumlah KK</span>
+                                <span class="metric-value">${cluster.demografi.total_kk.toLocaleString('id-ID')} KK</span>
                             </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Jumlah Jiwa</span>
+                                <span class="metric-value">${cluster.demografi.total_jiwa.toLocaleString('id-ID')} jiwa</span>
+                            </div>
+                            ` : `
+                            <div class="metric-item" style="margin-top:6px; border-top:1px dashed #cbd5e1; padding-top:6px;">
+                                <span class="metric-label" style="color:#94a3b8"><i class="bi bi-people"></i> Demografi</span>
+                                <span class="metric-value" style="color:#94a3b8; font-size:10px;">Tidak dalam area kelurahan</span>
+                            </div>
+                            `) : ''}
+
+                            ${cluster.isRoadSnapped ? `
+                            <div class="metric-item" style="margin-top:6px; border-top:1px dashed #cbd5e1; padding-top:6px;">
+                                <span class="metric-label" style="color:#059669"><i class="bi bi-signpost-split-fill"></i> Aksesibilitas</span>
+                                <span class="metric-value" style="color:#059669; font-size:10px;">Tepat di pinggir jalan</span>
+                            </div>
+                            ` : `
+                            <div class="metric-item" style="margin-top:6px; border-top:1px dashed #cbd5e1; padding-top:6px;">
+                                <span class="metric-label" style="color:#94a3b8"><i class="bi bi-signpost-split"></i> Aksesibilitas</span>
+                                <span class="metric-value" style="color:#94a3b8; font-size:10px;">Data jalan tidak dimuat</span>
+                            </div>
+                            `}
                         </div>
 
                         <div style="background:#f8fafc; padding:8px; border-radius:4px; margin-bottom:10px;">
                             <div style="font-size:11px; color:#475569; line-height:1.4;">
-                                ${rank === 1 ? 'Prioritas utama dengan skor tertinggi.' : 
-                                  rank === 2 ? 'Prioritas kedua dengan potensi strategis baik.' :
-                                  rank === 3 ? 'Alternatif ketiga yang layak dipertimbangkan.' :
-                                  'Potensi lebih rendah dari alternatif lain.'}
+                                ${rank === 1 ? 'Sangat strategis: area kekosongan paling besar ' + (cluster.hasDensity ? 'dengan potensi demand (penduduk) yang tinggi' : '') + (cluster.isRoadSnapped ? ', dan langsung terhubung dengan akses jalan utama.' : '.') : 
+                                  rank === 2 ? 'Prioritas kedua: keseimbangan yang baik antara jarak fasilitas dan kebutuhan.' :
+                                  'Titik alternatif pemerataan infrastruktur.'}
                             </div>
                         </div>
 
@@ -357,17 +719,42 @@ function runClustering() {
                 
                 marker.addTo(recommendations);
 
-                if(cluster.hull) {
-                    L.geoJSON(cluster.hull, {
-                        style: { 
+                // Garis spider web ke fasilitas terdekat yang ada di sekitarnya
+                if (cluster.points && cluster.points.length > 0) {
+                    cluster.points.forEach(point => {
+                        const pointCoord = point.geometry.coordinates;
+                        L.polyline([
+                            [coord[1], coord[0]],          
+                            [pointCoord[1], pointCoord[0]] 
+                        ], {
                             color: markerColor,
-                            weight: 2, 
-                            dashArray: '5, 5', 
-                            fillOpacity: 0.15,
-                            fillColor: markerColor
+                            weight: 1.5,
+                            opacity: 0.6,
+                            dashArray: '4, 5'
+                        }).addTo(boundaries);
+                    });
+                }
+                
+                // Gambar ruas jalan terdekat (Jika tersedia dari snapping)
+                if (cluster.roadSegment) {
+                    L.geoJSON(cluster.roadSegment, {
+                        style: {
+                            color: markerColor, // Warnai sesuai ranking
+                            weight: 6,          // Buat tebal agar jelas terlihat
+                            opacity: 0.8
                         }
                     }).addTo(boundaries);
                 }
+                
+                // Gambar lingkaran radius jangkauan "Blank Spot"
+                L.circle([coord[1], coord[0]], {
+                    radius: cluster.nearestDist * 1000, // meter
+                    color: markerColor,
+                    weight: 2,
+                    dashArray: '5, 5',
+                    fillOpacity: 0.08,
+                    fillColor: markerColor
+                }).addTo(boundaries);
             });
 
             mapLayers['ANALYSIS_RESULT'] = recommendations;
