@@ -1,16 +1,18 @@
 <!doctype html>
 <html lang="id">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>SIDAPETA</title>
-  
+
   <link rel="stylesheet" href="{{ asset('css/login-sby.css') }}">
 </head>
+
 <body>
 
   <main class="login-page" style="background-image: url('{{ asset('images/bg-sby.jpg') }}')">
-     <section class="card login-anim">
+    <section class="card login-anim">
 
       <div class="logos">
         <a href="#" target="_blank" rel="noopener">
@@ -22,57 +24,40 @@
       </div>
 
       <h1 class="title">SIDAPETA SURABAYA</h1>
-      <p class="subtitle">Lorem ipsum dolor sit amet consectetur adipisicing elit. Ratione mollitia, voluptatum quam qui suscipit cupiditate, consequatur nihil quidem, sit illum quia sunt eos itaque tenetur? Facilis nesciunt architecto vero eligendi?<br>Makanan Padang</p>
+      <p class="subtitle">Selamat datang di SIDAPETA Kota Surabaya.
 
+        Platform visualisasi dan analisis data spasial sektoral (infrastruktur, persampahan, RTH, dan kualitas
+        lingkungan) untuk mendukung perencanaan pembangunan kota.</p>
       {{-- Form Action mengarah ke route('login') bawaan Breeze --}}
       <form class="form" method="POST" action="{{ route('login') }}">
         @csrf
 
         {{-- Menampilkan Error Global (jika ada) --}}
         @if ($errors->any())
-            <div class="form-alert" style="color: red; font-size: 0.9em; margin-bottom: 10px; text-align: center;">
-                {{-- Menampilkan error pertama yang ditemukan --}}
-                {{ $errors->first('email') ?: $errors->first('password') ?: $errors->first('captcha') }}
-            </div>
+          <div class="form-alert" style="color: red; font-size: 0.9em; margin-bottom: 10px; text-align: center;">
+            {{-- Menampilkan error pertama yang ditemukan --}}
+            {{ $errors->first('email') ?: $errors->first('password') ?: $errors->first('captcha') }}
+          </div>
         @endif
 
         {{-- Input Email (Breeze default menggunakan email) --}}
         <label class="label" for="email">Email</label>
-        <input class="input" id="email" name="email" type="email"
-               value="{{ old('email') }}"
-               required autofocus autocomplete="username">
+        <input class="input" id="email" name="email" type="email" value="{{ old('email') }}" required autofocus
+          autocomplete="username">
 
         {{-- Input Password --}}
         <label class="label" for="password">Password</label>
-        <input class="input" id="password" name="password" type="password"
-               required autocomplete="current-password">
+        <input class="input" id="password" name="password" type="password" required autocomplete="current-password">
 
         {{-- === CAPTCHA (BAGIAN BARU) === --}}
         <div class="captcha-container">
           <label class="captcha-label"> Masukan Kode</label>
           <div class="captcha-wrapper">
-            <img 
-              id="captcha-img" 
-              src="{{ route('captcha.image') }}?{{ time() }}" 
-              alt="CAPTCHA" 
-              class="captcha-image"
-            >
-            <input 
-              type="text" 
-              id="captcha" 
-              name="captcha" 
-              class="captcha-input" 
-              placeholder="Ketik kode"
-              maxlength="6"
-              required
-              autocomplete="off"
-            >
+            <img id="captcha-img" src="{{ route('captcha.image') }}?{{ time() }}" alt="CAPTCHA" class="captcha-image">
+            <input type="text" id="captcha" name="captcha" class="captcha-input" placeholder="Ketik kode" maxlength="6"
+              required autocomplete="off">
           </div>
-          <button 
-            type="button" 
-            class="captcha-refresh" 
-            onclick="refreshCaptcha()"
-          >
+          <button type="button" class="captcha-refresh" onclick="refreshCaptcha()">
             ↻ Refresh Kode
           </button>
           @error('captcha')
@@ -96,4 +81,5 @@
   </script>
 
 </body>
+
 </html>

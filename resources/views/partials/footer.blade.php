@@ -7,7 +7,7 @@
       <div class="sby-footer__col sby-footer__brandcol">
         <div class="sby-footer__brand">
           <a class="sby-footer__logo" href="https://link-logo-kamu" target="_blank" rel="noopener">
-            <img src="{{ asset('images/Jasobundo.png') }}" alt="Logo Jasobundo">
+            <img src="{{ asset('images/logo-2.png') }}" alt="Logo Jasobundo">
           </a>
 
           <div>
@@ -65,10 +65,11 @@
         <h4 class="sby-footer__title">Tautan Cepat</h4>
 
         <ul class="sby-footer__list sby-footer__links">
-          <li><a href="https://surabaya.go.id" target="_blank" rel="noopener">Portal Website Resmi Kota Surabaya</a></li>
-          <li><a href="https://Jasobundo.surabaya.go.id" target="_blank" rel="noopener">Portal Jasobundo Surabaya</a></li>
+          <li><a href="https://surabaya.go.id" target="_blank" rel="noopener">Portal Website Resmi Kota Surabaya</a>
+          </li>
+          <li><a href="https://bappeda@surabaya.go.id" target="_blank" rel="noopener">Portal Bappeda Surabaya</a></li>
           <li><a href="https://www.bappenas.go.id/id">Portal Bappenas</a></li>
-          <li><a href="https://Jasobundo.jatimprov.go.id/">Portal Jasobundo Jatim</a></li>
+          <li><a href="https://bappeda.jatimprov.go.id/">Portal Bappeda Jatim</a></li>
         </ul>
       </div>
 
