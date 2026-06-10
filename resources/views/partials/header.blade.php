@@ -1,70 +1,72 @@
 <header class="topbar">
-  <div class="navwrap">
-    
-    {{-- LOGO BRAND --}}
-    <div class="brand">
-      <a href="#" class="brand-logo">
-        <img src="{{ asset('images/logo-2.png') }}" alt="Logo" onerror="this.style.display='none'">
-      </a>
-      <span class="brand-text1">Bappeda</span>
-      <span class="brand-text2">Surabaya</span>
+    <div class="navwrap">
+
+        {{-- LOGO BRAND --}}
+        <div class="brand">
+            <a href="#" class="brand-logo">
+                <img src="{{ asset('images/logo-2.png') }}" alt="Logo" onerror="this.style.display='none'">
+            </a>
+            <span class="brand-text1">SIGAP</span>
+        </div>
+
+        {{-- MENU NAVIGASI --}}
+        <nav class="nav">
+
+            <a class="navlink {{ request()->routeIs('beranda') ? 'active' : '' }}" href="{{ route('beranda') }}">
+                <i class="bi bi-house-door"></i>
+                Beranda
+            </a>
+
+            <a class="navlink {{ request()->is('peta*') ? 'active' : '' }}" href="{{ url('/peta') }}">
+                <i class="bi bi-map"></i>
+                Peta
+            </a>
+
+            {{-- MENU DATA STATISTIK (REVISI JS) --}}
+            <div class="nav-item-dropdown">
+                {{-- Tambahkan onclick --}}
+                <a class="navlink {{ request()->is('data-statistik*') ? 'active' : '' }}" href="#"
+                    onclick="toggleStatistik(event)">
+                    <i class="bi bi-bar-chart"></i>
+                    Data Statistik
+                    <i class="bi bi-chevron-down ms-1" style="font-size: 12px;"></i>
+                </a>
+
+                {{-- Tambahkan ID unik: "statDropdown" --}}
+                <div id="statDropdown" class="dropdown-menu-custom">
+                    <a href="{{ route('data-sampah.index') }}" class="dropdown-item-custom">
+                        <i class="bi bi-trash3" style="margin-right:6px;color:#059669"></i> 1. Data Sampah
+                    </a>
+                    {{-- <a href="{{ route('kualitas-lingkungan.index') }}" class="dropdown-item-custom">
+                        <i class="bi bi-droplet-half" style="margin-right:6px;color:#2563eb"></i> 2. Data Kualitas
+                        Lingkungan
+                    </a> --}}
+                    {{-- <a href="{{ route('sarpras.index') }}" class="dropdown-item-custom">
+                        <i class="bi bi-tools" style="margin-right:6px;color:#d97706"></i> 3. Data Sarpras
+                    </a> --}}
+                    {{-- <a href="{{ route('rth.index') }}" class="dropdown-item-custom">
+                        <i class="bi bi-tree" style="margin-right:6px;color:#16a34a"></i> 4. Data RTH
+                    </a> --}}
+                    {{-- <a href="{{ route('ringkasan') }}" class="dropdown-item-custom">
+                        <i class="bi bi-bar-chart" style="margin-right:6px;color:#7c3aed"></i> 5. Ringkasan
+                    </a> --}}
+                </div>
+            </div>
+
+        </nav>
+
+        {{-- TOMBOL LOGOUT --}}
+        <a class="logout" href="login"
+            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+            <i class="bi bi-box-arrow-right logout-icon"></i>
+            Logout
+        </a>
+
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+            @csrf
+        </form>
+
     </div>
-
-    {{-- MENU NAVIGASI --}}
-    <nav class="nav">
-      
-      <a class="navlink {{ request()->routeIs('beranda') ? 'active' : '' }}" href="{{ route('beranda') }}">
-        <i class="bi bi-house-door"></i>
-        Beranda
-      </a>
-
-      <a class="navlink {{ request()->is('peta*') ? 'active' : '' }}" href="{{ url('/peta') }}">
-        <i class="bi bi-map"></i>
-        Peta
-      </a>
-
-      {{-- MENU DATA STATISTIK (REVISI JS) --}}
-      <div class="nav-item-dropdown">
-          {{-- Tambahkan onclick --}}
-          <a class="navlink {{ request()->is('data-statistik*') ? 'active' : '' }}" href="#" onclick="toggleStatistik(event)">
-            <i class="bi bi-bar-chart"></i>
-            Data Statistik
-            <i class="bi bi-chevron-down ms-1" style="font-size: 12px;"></i>
-          </a>
-          
-          {{-- Tambahkan ID unik: "statDropdown" --}}
-          <div id="statDropdown" class="dropdown-menu-custom">
-              <a href="{{ route('data-sampah.index') }}" class="dropdown-item-custom">
-                  <i class="bi bi-trash3" style="margin-right:6px;color:#059669"></i> 1. Data Sampah
-              </a>
-              <a href="{{ route('kualitas-lingkungan.index') }}" class="dropdown-item-custom">
-                  <i class="bi bi-droplet-half" style="margin-right:6px;color:#2563eb"></i> 2. Data Kualitas Lingkungan
-              </a>
-              <a href="{{ route('sarpras.index') }}" class="dropdown-item-custom">
-                  <i class="bi bi-tools" style="margin-right:6px;color:#d97706"></i> 3. Data Sarpras
-              </a>
-              <a href="{{ route('rth.index') }}" class="dropdown-item-custom">
-                  <i class="bi bi-tree" style="margin-right:6px;color:#16a34a"></i> 4. Data RTH
-              </a>
-              <a href="{{ route('ringkasan') }}" class="dropdown-item-custom">
-                  <i class="bi bi-bar-chart" style="margin-right:6px;color:#7c3aed"></i> 5. Ringkasan
-              </a>
-          </div>
-      </div>
-
-    </nav>
-
-    {{-- TOMBOL LOGOUT --}}
-    <a class="logout" href="login" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-      <i class="bi bi-box-arrow-right logout-icon"></i>
-      Logout
-    </a>
-
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-        @csrf
-    </form>
-
-  </div>
 </header>
 
 {{-- SCRIPT LOGIKA REVISI (Taruh di bawah header agar load terakhir) --}}
@@ -73,15 +75,15 @@
 
     function toggleStatistik(event) {
         event.preventDefault(); // Mencegah link pindah halaman
-        
+
         const dropdown = document.getElementById('statDropdown');
-        
+
         // 1. Toggle Tampilan (Buka/Tutup)
         dropdown.classList.toggle('show');
 
         // Jika menu barusan dibuka:
         if (dropdown.classList.contains('show')) {
-            
+
             // A. Reset timer lama jika ada (biar tidak bentrok kalau diklik cepat)
             if (statTimer) clearTimeout(statTimer);
 
@@ -97,7 +99,7 @@
                 window.removeEventListener('scroll', closeOnScroll); // Hapus listener agar hemat memori
             };
             window.addEventListener('scroll', closeOnScroll);
-            
+
             // D. Pasang Event Listener Klik di luar (Optional, UX bagus)
             const closeOnClickOutside = (e) => {
                 if (!event.target.contains(e.target) && !dropdown.contains(e.target)) {
@@ -113,7 +115,7 @@
     }
 
     // ─── EFEK TRANSISI PINDAH HALAMAN ───
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         // Buat elemen overlay untuk efek fade out / fade in
         const overlay = document.createElement('div');
         overlay.id = 'page-transition-overlay';
@@ -140,24 +142,24 @@
 
         // Tangkap klik link untuk efek fade out
         document.querySelectorAll('a[href]').forEach(link => {
-            link.addEventListener('click', function(e) {
+            link.addEventListener('click', function (e) {
                 // Jangan tangkap jika link: punya onclick, mengarah ke target blank, anchor link (#), atau ditekan pakai ctrl/cmd
                 if (this.target === '_blank' || this.href.includes('#') || this.getAttribute('onclick') || e.ctrlKey || e.metaKey) {
                     return;
                 }
-                
+
                 // Pastikan link mengarah ke domain yang sama (internal link)
                 if (this.hostname === window.location.hostname) {
                     e.preventDefault();
                     const targetUrl = this.href;
-                    
+
                     // Fade out
                     overlay.style.opacity = '1';
-                    
+
                     // Pindah halaman setelah animasi selesai
                     setTimeout(() => {
                         window.location.href = targetUrl;
-                    }, 400); 
+                    }, 400);
                 }
             });
         });

@@ -57,7 +57,7 @@ class CustomLayerController extends Controller
             'name'        => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'color'       => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
-            'category'    => 'required|string|in:infrastruktur,pendidikan,persampahan,fasilitas,demografi,pompa_saluran',
+            'category'    => 'required|string|in:persampahan,fasilitas,demografi',
             'geojson_file'=> 'required|file|max:10240|mimes:json,geojson,txt',
         ], [
             'name.required'         => 'Nama layer wajib diisi.',
@@ -138,7 +138,7 @@ class CustomLayerController extends Controller
             'name'        => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'color'       => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
-            'category'    => 'required|string|in:infrastruktur,pendidikan,persampahan,fasilitas,demografi,pompa_saluran',
+            'category'    => 'required|string|in:persampahan,fasilitas,demografi',
             'is_active'   => 'sometimes|boolean',
         ]);
 

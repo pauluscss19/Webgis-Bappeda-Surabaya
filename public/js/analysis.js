@@ -112,27 +112,21 @@ function populateAnalysisSources() {
         'JARINGAN_JALAN'
     ];
 
-    const GROUP_OVERRIDE = { 'RUKOM': 'persampahan', 'TITIK_SAMPAH': 'persampahan', 'TITIK_SAMPAH_RENCANA': 'persampahan' };
+    const GROUP_OVERRIDE = {};
 
     // Label & icon grup — urutan & nama sama dengan layer data di blade
     const GROUP_LABELS = {
-        infrastruktur: 'Infrastruktur',
-        pendidikan:    'Pendidikan',
         persampahan:   'Persampahan & Lingkungan',
         fasilitas:     'Fasilitas Umum',
         demografi:     'Demografi',
-        pompa_saluran: 'Pompa & Saluran Air',
         custom:        'Custom Layers',
         lainnya:       'Lainnya'
     };
 
     const GROUP_ICONS = {
-        infrastruktur: 'bi-broadcast-pin',
-        pendidikan:    'bi-mortarboard-fill',
         persampahan:   'bi-recycle',
         fasilitas:     'bi-buildings-fill',
         demografi:     'bi-people-fill',
-        pompa_saluran: 'bi-droplet-fill',
         custom:        'bi-layers-fill',
         lainnya:       'bi-folder-fill'
     };
@@ -152,7 +146,7 @@ function populateAnalysisSources() {
     container.innerHTML = '';
 
     // Urutan grup sama dengan urutan di layer data blade
-    const groupOrder = ['infrastruktur', 'pendidikan', 'persampahan', 'fasilitas', 'demografi', 'pompa_saluran', 'custom', 'lainnya'];
+    const groupOrder = ['persampahan', 'fasilitas', 'demografi', 'custom', 'lainnya'];
 
     // Pastikan grup yang tidak ada di groupOrder (seperti grup custom yang aneh) juga dimuat di akhir
     Object.keys(grouped).forEach(grp => {

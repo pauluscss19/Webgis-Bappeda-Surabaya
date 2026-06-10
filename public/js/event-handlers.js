@@ -133,7 +133,7 @@ function reorderLayers() {
     if (mapLayers['SURABAYA_MASK'] && map.hasLayer(mapLayers['SURABAYA_MASK']))
         mapLayers['SURABAYA_MASK'].bringToBack();
 
-    ['KEPADATAN_PENDUDUK', 'POMPA_AIR_7_RAYON', 'AREA_RAYON', 'MAKAM'].forEach(key => {
+    ['KEPADATAN_PENDUDUK'].forEach(key => {
         if (mapLayers[key] && map.hasLayer(mapLayers[key])) mapLayers[key].bringToFront();
     });
 
@@ -144,15 +144,13 @@ function reorderLayers() {
         if (mapLayers[key] && map.hasLayer(mapLayers[key])) mapLayers[key].bringToFront();
     });
 
-    ['JARINGAN_PIPA_SALURAN', 'SALURAN_AIR', 'RUTE_SAMPAH', 'FIBEROPTIK', 'JARINGAN_JALAN'].forEach(key => {
+    ['RUTE_SAMPAH', 'JARINGAN_JALAN'].forEach(key => {
         if (mapLayers[key] && map.hasLayer(mapLayers[key])) mapLayers[key].bringToFront();
     });
 
     [
-        'POINT_RUTE_SAMPAH', 'CCTV_EKSISTING', 'CCTV_RENCANA',
-        'TITIK_SAMPAH', 'TITIK_SAMPAH_RENCANA', 'TPS', 'TPS3R',
-        'DAMKAR', 'PAUD', 'SD_MI', 'SMP_MTS', 'RUKOM',
-        'DEKORASI_KOTA', 'TITIK_POMPA_AIR',
+        'POINT_RUTE_SAMPAH', 'TITIK_SAMPAH', 'TITIK_SAMPAH_RENCANA',
+        'TPS', 'TPS3R', 'RUKOM', 'DEKORASI_KOTA',
         'ANALYSIS_RESULT', 'CLUSTER_BOUNDARIES'
     ].forEach(key => {
         if (mapLayers[key] && map.hasLayer(mapLayers[key])) mapLayers[key].bringToFront();

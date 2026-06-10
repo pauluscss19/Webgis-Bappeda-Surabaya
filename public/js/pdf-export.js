@@ -13,15 +13,8 @@ const PDF_CONFIG = {
     "5. Badan Pusat Statistik (BPS) Kota Surabaya"
   ],
   layerConfig: {
-    'CCTV_EKSISTING': { label: 'CCTV Eksisting', color: '#9333ea', type: 'circle', isBoundary: false },
     'TITIK_SAMPAH': { label: 'Titik Sampah', color: '#facc15', type: 'circle', isBoundary: false },
-    'CCTV_RENCANA': { label: 'CCTV Rencana', color: '#f97316', type: 'circle', isBoundary: false },
     'TITIK_SAMPAH_RENCANA': { label: 'Sampah Rencana', color: '#22c55e', type: 'circle', isBoundary: false },
-    'DAMKAR': { label: 'Pos Damkar', color: '#dc2626', type: 'circle', isBoundary: false },
-    'MAKAM': { label: 'Makam', color: '#475569', type: 'circle', isBoundary: false },
-    'PAUD': { label: 'PAUD/TK', color: '#ec4899', type: 'circle', isBoundary: false },
-    'SD_MI': { label: 'SD/MI', color: '#8b5cf6', type: 'circle', isBoundary: false },
-    'SMP_MTS': { label: 'SMP/MTS', color: '#06b6d4', type: 'circle', isBoundary: false },
     'TPS3R': { label: 'TPS3R', color: '#10b981', type: 'circle', isBoundary: false },
     'TPS': { label: 'TPS', color: '#f59e0b', type: 'circle', isBoundary: false },
     'RUTE_SAMPAH': { label: 'Rute Pengangkutan Sampah', color: '#a855f7', type: 'line', isBoundary: false },
@@ -32,11 +25,6 @@ const PDF_CONFIG = {
     'KECAMATAN': { label: 'Batas Kecamatan', color: '#6366f1', type: 'line', isBoundary: true },
     'KELURAHAN': { label: 'Batas Kelurahan', color: '#eab308', type: 'line', isBoundary: true },
     'BATAS_RW': { label: 'Batas RW', color: '#14b8a6', type: 'line', isBoundary: true },
-    'AREA_RAYON': { label: 'Area Rayon', color: '#0d9488', type: 'polygon', isBoundary: false },
-    'POMPA_AIR_7_RAYON': { label: 'Area Pompa Air 7 Rayon', color: '#0891b2', type: 'polygon', isBoundary: false },
-    'JARINGAN_PIPA_SALURAN': { label: 'Jaringan Pipa & Saluran Air', color: '#0284c7', type: 'line', isBoundary: false },
-    'SALURAN_AIR': { label: 'Saluran Air', color: '#0e7490', type: 'circle', isBoundary: false },
-    'FIBEROPTIK': { label: 'Jaringan Fiberoptik', color: '#ff1493', type: 'line', isBoundary: false },
     'JARINGAN_JALAN': { label: 'Jaringan Jalan', color: '#f44444', type: 'line', isBoundary: false },
   }
 };

@@ -11,14 +11,13 @@
           </a>
 
           <div>
-            <div class="sby-footer__brand-title">Jasobundo</div>
-            <div class="sby-footer__brand-sub">Kota Surabaya</div>
+            <div class="sby-footer__brand-title">SIGAP</div>
           </div>
         </div>
 
         <p class="sby-footer__text">
           Badan Perencanaan Pembangunan Daerah Kota Surabaya berperan dalam menyusun dan mengkoordinasikan
-          perencanaan pembangunan daerah.
+          perencanaan persebaran persampahan daerah.
         </p>
       </div>
 
@@ -36,7 +35,7 @@
           </li>
           <li>
             <i class="bi bi-envelope" aria-hidden="true"></i>
-            <span>Jasobundo@surabaya.go.id</span>
+            <span>bappeda.surabaya.go.id</span>
           </li>
         </ul>
       </div>

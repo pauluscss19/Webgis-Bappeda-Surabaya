@@ -31,89 +31,6 @@ const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{
 // KONFIGURASI DATA
 const geoJsonStore = {};
 const layerConfig = {
-    // INFRASTRUKTUR
-    'CCTV_EKSISTING': { 
-        file: 'CCTV_EKSISTING.geojson', 
-        color: '#9333ea',
-        label: 'CCTV Eksisting', 
-        group: 'infrastruktur' 
-    },
-    'TITIK_SAMPAH': { 
-        file: 'TITIK_SAMPAH.geojson', 
-        color: '#facc15',
-        label: 'Titik Sampah', 
-        group: 'infrastruktur' 
-    },
-    'CCTV_RENCANA': { 
-        file: 'CCTV_RENCANA.geojson', 
-        color: '#f97316',
-        label: 'CCTV Rencana', 
-        group: 'infrastruktur' 
-    },
-    'TITIK_SAMPAH_RENCANA': { 
-        file: 'TITIK_SAMPAH_RENCANA.geojson', 
-        color: '#22c55e',
-        label: 'Sampah Rencana', 
-        group: 'infrastruktur' 
-    },
-    'DAMKAR': { 
-        file: 'Damkar.geojson', 
-        color: '#dc2626',
-        label: 'Pos Damkar', 
-        nameField: 'Pos_Ekst', 
-        group: 'infrastruktur' 
-    },
-    'MAKAM': { 
-        file: 'MAKAM.geojson', 
-        color: '#475569',
-        label: 'Makam', 
-        nameField: 'Nama_Lokas', 
-        isPolygon: true, 
-        group: 'infrastruktur' 
-    },
-    'FIBEROPTIK': { 
-        file: 'FiberOptic.json',   
-        color: '#ff1493',             
-        label: 'Jaringan Fiberoptik', 
-        isLine: true, 
-        nameField: 'name',             
-        group: 'infrastruktur'         
-    },
-    'JARINGAN_JALAN': { 
-        file: 'jaringan_jalan.geojson',   
-        color: '#f44444',             
-        label: 'Jaringan Jalan', 
-        isLine: true, 
-        nameField: 'name',             
-        group: 'infrastruktur'         
-    },
-    
-    // PENDIDIKAN
-    'PAUD': { 
-        file: 'paud.geojson', 
-        color: '#ec4899',
-        label: 'PAUD/TK', 
-        nameField: 'NAMA SEKOL', 
-        locationField: 'ALAMAT SEK', 
-        group: 'pendidikan' 
-    },
-    'SD_MI': { 
-        file: 'sd-mi.geojson', 
-        color: '#8b5cf6',
-        label: 'SD/MI', 
-        nameField: 'NAMA SEKOL', 
-        locationField: 'ALAMAT SEK', 
-        group: 'pendidikan' 
-    },
-    'SMP_MTS': { 
-        file: 'smp-mts.geojson', 
-        color: '#06b6d4',
-        label: 'SMP/MTS', 
-        nameField: 'NAMA SEKOL', 
-        locationField: 'ALAMAT SEK', 
-        group: 'pendidikan' 
-    },
-    
     // PERSAMPAHAN & LINGKUNGAN
     'TPS3R': { 
         file: 'TPS3R_12.json', 
@@ -143,16 +60,27 @@ const layerConfig = {
         nameField: 'Name', 
         group: 'persampahan' 
     },
+    'TITIK_SAMPAH': { 
+        file: 'TITIK_SAMPAH.geojson', 
+        color: '#facc15',
+        label: 'Titik Sampah', 
+        group: 'persampahan' 
+    },
+    'TITIK_SAMPAH_RENCANA': { 
+        file: 'TITIK_SAMPAH_RENCANA.geojson', 
+        color: '#22c55e',
+        label: 'Sampah Rencana', 
+        group: 'persampahan' 
+    },
     'RUKOM': { 
         file: 'Rukom_27.json', 
         color: '#0ea5e9',
         label: 'Rumah Kompos', 
         nameField: 'Name', 
-        group: 'fasilitas' 
+        group: 'persampahan' 
     },
     
     // FASILITAS UMUM
-    
     'DEKORASI_KOTA': { 
         file: 'DekorasiKota.json', 
         color: '#fb923c',
@@ -172,47 +100,15 @@ const layerConfig = {
         group: 'demografi' 
     },
 
-    // POMPA & SALURAN AIR
-    'AREA_RAYON': { 
-        file: 'Area_Rayon.json', 
-        color: '#0d9488',
-        label: 'Area Rayon', 
-        isPolygon: true,
-        nameField: 'name',
-        group: 'pompa_saluran' 
+    // INTERNAL/BACKGROUND LAYERS (TIDAK DITAMPILKAN DI SIDEBAR)
+    'JARINGAN_JALAN': { 
+        file: 'jaringan_jalan.geojson',   
+        color: '#f44444',             
+        label: 'Jaringan Jalan', 
+        isLine: true, 
+        nameField: 'name',             
+        group: 'internal'         
     },
-    'POMPA_AIR_7_RAYON': { 
-        file: 'Layer area Pompa Air 7 Rayon.json', 
-        color: '#0891b2',
-        label: 'Area Pompa Air 7 Rayon', 
-        isPolygon: true,
-        nameField: 'name',
-        group: 'pompa_saluran' 
-    },
-    'JARINGAN_PIPA_SALURAN': { 
-        file: 'Layer garis jaringan pipa & saluran air.json', 
-        color: '#0284c7',
-        label: 'Jaringan Pipa & Saluran Air', 
-        isLine: true,
-        nameField: 'name',
-        group: 'pompa_saluran' 
-    },
-    'TITIK_POMPA_AIR': { 
-        file: 'Layer titik lokasi pompa air.json', 
-        color: '#0369a1',
-        label: 'Titik Lokasi Pompa Air', 
-        nameField: 'name',
-        group: 'pompa_saluran' 
-    },
-    'SALURAN_AIR': { 
-        file: 'Saluran_Air.json', 
-        color: '#0e7490',
-        label: 'Saluran Air', 
-        nameField: 'name',
-        group: 'pompa_saluran' 
-    },
-    
-    // BATAS WILAYAH
     'KECAMATAN': { 
         file: 'Kecamatan.geojson', 
         color: '#6366f1',

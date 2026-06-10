@@ -210,17 +210,14 @@
                 <div class="crud-form__group">
                   <label class="crud-form__label">Nama Layer <span class="required">*</span></label>
                   <input type="text" name="name" class="crud-form__input"
-                         value="{{ old('name') }}" placeholder="Contoh: Pos Pemadam Kebakaran" required id="input-name">
+                         value="{{ old('name') }}" placeholder="Contoh: TPS" required id="input-name">
                 </div>
                 <div class="crud-form__group">
                   <label class="crud-form__label">Kategori Peta <span class="required">*</span></label>
                   <select name="category" class="crud-form__select" required>
-                    <option value="infrastruktur" {{ old('category') == 'infrastruktur' ? 'selected' : '' }}>Infrastruktur</option>
-                    <option value="pendidikan" {{ old('category') == 'pendidikan' ? 'selected' : '' }}>Pendidikan</option>
                     <option value="persampahan" {{ old('category') == 'persampahan' ? 'selected' : '' }}>Persampahan & Lingkungan</option>
                     <option value="fasilitas" {{ old('category') == 'fasilitas' ? 'selected' : '' }}>Fasilitas Umum</option>
                     <option value="demografi" {{ old('category') == 'demografi' ? 'selected' : '' }}>Demografi</option>
-                    <option value="pompa_saluran" {{ old('category') == 'pompa_saluran' ? 'selected' : '' }}>Pompa & Saluran Air</option>
                   </select>
                 </div>
                 <div class="crud-form__group">

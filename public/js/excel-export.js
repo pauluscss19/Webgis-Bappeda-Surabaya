@@ -5,12 +5,9 @@
 
 // ── Palet warna per grup layer ────────────────────────────────
 const GROUP_PALETTES = {
-    infrastruktur: { h1: '0D2137', h2: '1A56DB', h3: '3F83F8', r1: 'DBEAFE', r2: 'EFF6FF', accent: '60A5FA', stripe: 'BFDBFE', badge: '1E40AF' },
-    pendidikan:    { h1: '064E3B', h2: '059669', h3: '10B981', r1: 'D1FAE5', r2: 'ECFDF5', accent: '34D399', stripe: 'A7F3D0', badge: '065F46' },
     persampahan:   { h1: '14532D', h2: '16A34A', h3: '4ADE80', r1: 'DCFCE7', r2: 'F0FDF4', accent: '86EFAC', stripe: 'BBF7D0', badge: '166534' },
     fasilitas:     { h1: '2E1065', h2: '7C3AED', h3: 'A78BFA', r1: 'EDE9FE', r2: 'F5F3FF', accent: 'C4B5FD', stripe: 'DDD6FE', badge: '4C1D95' },
     demografi:     { h1: '450A0A', h2: 'DC2626', h3: 'F87171', r1: 'FEE2E2', r2: 'FFF1F2', accent: 'FCA5A5', stripe: 'FECACA', badge: '7F1D1D' },
-    pompa_saluran: { h1: '0C2A4A', h2: '0284C7', h3: '38BDF8', r1: 'E0F2FE', r2: 'F0F9FF', accent: '7DD3FC', stripe: 'BAE6FD', badge: '075985' },
     batas:         { h1: '0F172A', h2: '334155', h3: '64748B', r1: 'F1F5F9', r2: 'F8FAFC', accent: 'CBD5E1', stripe: 'E2E8F0', badge: '1E293B' },
     _default:      { h1: '111827', h2: '374151', h3: '6B7280', r1: 'F3F4F6', r2: 'F9FAFB', accent: 'D1D5DB', stripe: 'E5E7EB', badge: '1F2937' }
 };
@@ -68,12 +65,9 @@ function _allBorder(style, rgb) { const b = _border(style, rgb); return { top: b
 // ── Label grup ────────────────────────────────────────────────
 
 const GRP_MAP = {
-    infrastruktur: 'Infrastruktur',
-    pendidikan:    'Pendidikan',
     persampahan:   'Persampahan & Lingkungan',
     fasilitas:     'Fasilitas Umum',
     demografi:     'Demografi',
-    pompa_saluran: 'Pompa & Saluran Air',
     batas:         'Batas Wilayah'
 };
 

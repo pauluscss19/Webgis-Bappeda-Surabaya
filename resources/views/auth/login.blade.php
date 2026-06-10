@@ -4,14 +4,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SIDAPETA</title>
+  <title>SIGAP</title>
 
   <link rel="stylesheet" href="{{ asset('css/login-sby.css') }}">
 </head>
 
 <body>
 
-  <main class="login-page" style="background-image: url('{{ asset('images/bg-sby.jpg') }}')">
+  <main class="login-page" style="background-image: url('{{ asset('images/sampah.jpg') }}')">
     <section class="card login-anim">
 
       <div class="logos">
@@ -23,11 +23,11 @@
         </a>
       </div>
 
-      <h1 class="title">SIDAPETA SURABAYA</h1>
-      <p class="subtitle">Selamat datang di SIDAPETA Kota Surabaya.
+      <h1 class="title">SIGAP</h1>
+      <p class="subtitle">Selamat datang di Sistem Informasi Geospasial Persampahan.
 
-        Platform visualisasi dan analisis data spasial sektoral (infrastruktur, persampahan, RTH, dan kualitas
-        lingkungan) untuk mendukung perencanaan pembangunan kota.</p>
+        Platform visualisasi dan pengelolaan data spasial persampahan untuk mendukung pemantauan, analisis, serta
+        perencanaan pengelolaan sampah yang lebih efektif dan berkelanjutan.</p>
       {{-- Form Action mengarah ke route('login') bawaan Breeze --}}
       <form class="form" method="POST" action="{{ route('login') }}">
         @csrf
