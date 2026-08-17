@@ -285,7 +285,21 @@ window.FilterWilayah = (function () {
 
                 _saveOrigStyle(sub);
 
-                const inside = _pointInFeature(latlng, targetFeature);
+                let inside = _pointInFeature(latlng, targetFeature);
+
+                // Fallback: cek properti Kecamatan/Kelurahan secara eksplisit
+                // untuk titik yang tepat di batas polygon (border case)
+                if (!inside && sub.feature && sub.feature.properties) {
+                    const fp = sub.feature.properties;
+                    if (_activeKel) {
+                        const fKel = (fp.Kelurahan || fp.KELURAHAN || fp.kelurahan || '').trim().toLowerCase();
+                        if (fKel && fKel === _activeKel.trim().toLowerCase()) inside = true;
+                    } else if (_activeKec) {
+                        const fKec = (fp.Kecamatan || fp.KECAMATAN || fp.kecamatan || '').trim().toLowerCase();
+                        if (fKec && fKec === _activeKec.trim().toLowerCase()) inside = true;
+                    }
+                }
+
                 if (inside) {
                     _restoreOrigStyle(sub);
                     countInside++;
