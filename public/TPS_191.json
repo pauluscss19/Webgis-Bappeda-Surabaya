@@ -6074,8 +6074,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          112.67432,
-          -7.30372,
+          112.67,
+          -7.299,
           0
         ]
       },
@@ -6100,8 +6100,11 @@
         "Area Pel_1": "Lidah Wetan, Lidah Kulon, Babatan",
         "Jumlah T_1": "42",
         "field_3": 0,
-        "X": 112.67432,
-        "Y": -7.30372
+        "X": 112.67,
+        "Y": -7.299,
+        "Kecamatan": "Lakarsantri",
+        "Kelurahan": "Lidah Wetan",
+        "latlong": "-7.29900,112.67000"
       },
       "id": "191_fiiiiiiiiiiiiiiiiiiiixxxxxxxxxxxxxxxxxxxx.169"
     },
